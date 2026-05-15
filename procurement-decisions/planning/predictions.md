@@ -96,7 +96,8 @@ Theoretical prior:
 
 What would invalidate this:
 
-- <5 percentage point difference between direct-award disagreement rate and competitive-procurement disagreement rate. Suggests agent drift is uniform across award methods rather than concentrated where the s.44/s.53 distinction matters.
+- <10 percentage point difference between direct-award disagreement rate and competitive-procurement disagreement rate. The 10-point threshold (revised from 5 points pre-sanity-check) accounts for the modest statistical power of the comparison given the substrate-constrained sample composition. Differences smaller than 10 points may exist in the underlying population but cannot be reliably distinguished from sampling noise at N=20-vs-N=280.
+- Sample size scope: this prediction requires a minimum of 20 direct-award records and a minimum of 100 competitive-procurement records for the comparison to carry methodological weight. The direct-cell floor in experiment_design.md sampling subsection guarantees the former; the latter is satisfied by the 3×3 grid's natural construction from the above-threshold population. If the underlying disagreement-rate gap is large (the theoretical prior of s.44/s.53 confusion suggests it may be), the prediction is detectable. If the gap is small (a few percentage points), the experiment is honest about its limited power to detect it.
 
 Relationship to P7:
 
