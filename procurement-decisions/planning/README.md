@@ -7,7 +7,7 @@
 
 ## What this is
 
-A Stripe-style commercial research report. The artefact is a long-form research post on `meshqu.com/research`, an open repo, and a downloadable signed receipt corpus that readers verify offline. The piece is engineering-credible because the methodology holds up, the data is real, and the corpus is reproducible.
+A practitioner-direct commercial research report written for engineers and compliance leads at regulated firms. The artefact is a long-form research post on `meshqu.com/research`, an open repo, and a downloadable signed receipt corpus that readers verify offline. The piece is engineering-credible because the methodology holds up, the data is real, and the corpus is reproducible.
 
 The methodology developed here is substrate-agnostic and intended to be reusable for future analyses on different historic-decision archives. UK Contracts Finder is the first worked application.
 

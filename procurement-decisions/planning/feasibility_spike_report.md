@@ -4,6 +4,8 @@
 **Records inspected**: 255 OCDS releases with `awards[0].date` in 2025-06-01 to 2025-12-31, drawn from 1,300 award notices published 2025-06-01 to 2026-02-28. Plus 5 direct-award HTML award-notice pages and 1 chained "previous notice" HTML page.
 **Status**: _GO | GO WITH ADJUSTMENTS | NO-GO_ — Sam's call.
 
+> **Resolution (2026-05-15, added pre-lock).** Sam's verdict was **GO WITH ADJUSTMENTS**. The Phase 0 findings drove three substantive design pivots, all documented in subsequent revision briefs: the faithful rule pivoted from `PROC-001-S44` (Schedule 5 transparency notice, no substrate support) to `PROC-001-S53` (30-day Contract Details Notice publication, evaluable from verified OCDS fields) in revision brief 5; the stratification grid was revised from 5×4 to 3×3 reflecting the empirical framework-dominated shape; the regime-via-award-date proxy and signature-date proxy were named explicitly in briefs 11 and 12. The spike report is preserved as the historical record of what was found.
+
 > **Phase 0 — pre-pre-registration.** Records inspected here are
 > **sacrificial**. They cannot enter the eventual 300-record corpus.
 > Notice IDs touched are listed in the appendix so Phase 1's sampling

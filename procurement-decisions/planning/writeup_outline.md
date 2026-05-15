@@ -1,6 +1,6 @@
 # Writeup Outline
 
-A Stripe-style commercial research report. Written engineer-to-engineer. The piece is the deliverable. Every other artefact in this harness exists to make the piece defensible.
+A practitioner-direct commercial research report written engineer-to-engineer. The piece is the deliverable. Every other artefact in this harness exists to make the piece defensible.
 
 ## Title
 
@@ -16,7 +16,7 @@ The opening line of the piece is the framing question that used to be the title:
 
 ## Author
 
-Byline: **Sam Carter, MeshQu**. Named human, not "the MeshQu team." Stripe convention. Credibility partly comes from a named individual standing behind the work.
+Byline: **Sam Carter, MeshQu**. Named human, not "the MeshQu team." Credibility partly comes from a named individual standing behind the work; a team byline reads as committee-written and lowers the credibility signal.
 
 ## Publication surface
 
@@ -253,7 +253,7 @@ Contractions are fine. First-person where natural.
 
 **Step 0 — before drafting any section, write the opening 300 words.**
 
-If those 300 words read in Stripe voice — flat, descriptive, engineer-to-engineer, no rhetorical lifts, no "revolutionary," methodology-confident — the rest of the piece writes itself in the same voice. If they don't, the voice isn't locked yet. Don't proceed to other sections until the opening 300 lands.
+If those 300 words read in the locked voice — flat, descriptive, engineer-to-engineer, no rhetorical lifts, no "revolutionary," methodology-confident — the rest of the piece writes itself in the same voice. If they don't, the voice isn't locked yet. Don't proceed to other sections until the opening 300 lands.
 
 ### Locked voice reference (the opening 300 words)
 

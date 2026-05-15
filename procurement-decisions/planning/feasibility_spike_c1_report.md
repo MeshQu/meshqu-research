@@ -4,6 +4,8 @@
 **Records re-pulled**: 19 unique OCIDs re-fetched (Test 1; 20 selected, one was a duplicate from a record with two awards) + 5 UI HTML pages fetched (Test 2) + OCDS spec + Contracts Finder extension sweep (Test 3).
 **Status**: C1 VIABLE on the date-semantics question — Sam's call.
 
+> **Resolution (2026-05-15, added pre-lock).** The award-date-as-signature-date proxy framing was committed in revision brief 11; see `procurement-decisions/planning/experiment_design.md` PROC-001-S53 row and the substrate-honesty subsection's second-proxy paragraph for the documented decision. This spike report is preserved as a historical record of the date-semantics finding; the original status line above is what the spike concluded at the time it ran.
+
 > The Phase 0 confounder hypothesis was that `awards[0].datePublished`
 > tracks the pull moment (a pipeline timestamp). Three tests against
 > the live Contracts Finder OCDS feed today disconfirm that hypothesis.
