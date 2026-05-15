@@ -5,6 +5,32 @@
 
 ---
 
+## 2026-05-15 — Revision brief 12 (revised): direct-cell floor calibrated to substrate; sanity check past tense; single-model commitment
+
+**Decision**: three pending items from the planning phase closed before predictions lock, calibrated to the empirical substrate composition surfaced by the pre-lock sanity check:
+
+1. **Direct-cell floor**: minimum 20 direct-award records in the 300-record corpus (approximately 7% of corpus, ~4× natural rate; distributed at minimum 10 records each in £100k–£1m and >£1m value bands; no floor for <£100k which is structurally near-empty for above-threshold direct awards). This revises the original brief 12 proposal of 60 records, which the sanity check revealed was substrate-incompatible.
+2. **Above-threshold scope sanity check**: performed against Contracts Finder pre-lock; pulled 2,900 records published 2025-04-01 to 2026-05-15; filtered to PA23-era awards (≥ 2025-02-24); applied £139k above-threshold proxy. Found 120 above-threshold records in-window of which 6 were direct awards. Design adjusted accordingly. Documented past tense in the substrate-honesty subsection.
+3. **Single-model commitment**: the first piece tests a single foundation model only. Multi-model comparison relocated from "Phase 2 second-run variant" to Follow-up B (agent context gradient), where it sits alongside the context gradient as natural future-piece extensions.
+
+**Source of findings**:
+
+- Outstanding pending items identified in the brief 11 status report and predictions-lock sequencing notes.
+- Above-threshold sanity check performed by the harness operations engineer pre-lock; full data preserved at `/tmp/sanity-check-12/` at execution time and OCID list at `procurement-decisions/planning/spike_data/sanity_check_12_ocids.jsonl` (gitignored) for conservative-read exclusion at build time.
+
+**Alternatives considered**:
+
+- Lower the floor to 30 records as originally proposed. Rejected — substrate sanity check found only 6 above-threshold direct-award records in the 2025 sample, and even with broader time window the population is too thin to support 30 reliably.
+- Drop above-threshold scope from brief 11 to broaden the direct-award population. Rejected — reverses brief 11's correctness gain; s.53(1) vs s.87(3) is a real statutory distinction that the harness was correct to honour.
+- Pivot the faithful rule from PROC-001-S53 to PROC-001-SME. Rejected — would require rewriting P6-C and P7 from scratch and losing the elegant s.44/s.53 theoretical prior.
+- Lower the floor to 20 records calibrated to actual substrate composition. **Chosen** — preserves brief 11's correctness gain, preserves PROC-001-S53 as the faithful rule, preserves P6-C's theoretical prior, accepts modest statistical power as the honest cost of substrate constraint.
+
+**Reason**: the cool-down's purpose was to surface and resolve exactly this kind of ambiguity. The substrate sanity check did its job: locking against a 60-record floor would have failed at build time. The 20-record floor is what the substrate can credibly support. P6-C's falsification criterion is recalibrated to ≥10 percentage point difference (revised from ≥5 points) to acknowledge the modest statistical power. The honest framing strengthens the methodology narrative — the experiment scopes to what the substrate empirically supports rather than to an externally-imposed target.
+
+**Impact assessment**: affects sampling (20-record direct floor with band distribution), substrate adapter (floor enforcement plus the conservative-read exclusion list), PROC-001-S53 (no rule-level change; still scoped to above-threshold), P6-C falsification (10-point threshold; sample size scope explicit), Follow-up B framing (multi-model dimension named), section 7 limitations (both substrate-power and sanity-check-exclusion bullets added). Build-phase implication: substrate adapter implementation must enforce the 20-record floor and apply the sanity-check-12 exclusion list alongside Phase 0 and Phase 0.5 exclusions. Agent selection at build kickoff pins one model at one version with temperature 0.
+
+---
+
 ## 2026-05-15 — Revision brief 11: PROC-001-S53 scope corrected to above-threshold; reg. 36 framing tightened
 
 **Decision**: PROC-001-S53 rule scope narrowed to above-threshold PA23-governed contracts only. Below-threshold contracts excluded from the 300-record sample. Reg. 36 framing in the provenance entry updated to distinguish reg. 36 (separate spec for below-threshold notices under s.87(3)) from regs 33-35 (which layer on reg. 32 for s.53(1) notices).
