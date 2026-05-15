@@ -1,0 +1,5 @@
+# Sacrificial spike data — sampled BEFORE pre-registration so cannot enter
+# the eventual 300-record corpus. Notice IDs touched here are logged in
+# feasibility_spike_report.md's appendix so the Phase 1 sampling script
+# can exclude them.
+spike_data/
