@@ -5,6 +5,54 @@
 
 ---
 
+## 2026-05-15 — Predictions locked
+
+**Decision**: predictions in [`procurement-decisions/planning/predictions.md`](predictions.md) are locked against the experiment design at this commit hash. From this commit forward, the experiment design is fixed; all downstream artefacts (corpus, review pass, writeup) are evaluated against the design at this state.
+
+**Locked predictions**:
+
+- P1: agent-policy disagreement rate
+- P2: rule-firing distribution (PROC-001-S53 expected top driver)
+- P3: hallucinated citations rate
+- P4: reproducibility band (5–20% expected non-determinism)
+- P5: bundle round-trip success (100% expected)
+- P6-C: disagreement clusters on direct-award procurements (10pp falsification threshold; sample size scope: ≥20 direct-award records, ≥100 competitive-procurement records)
+- P7: agent treats notice existence as compliance evidence
+
+**Pre-lock state of the design**:
+
+- Twelve revision briefs applied (briefs 1-9 in initial commit; brief 10 deferred to build-phase as execution capture conventions; brief 11 as PR #1; brief 12 as PR #2)
+- Pre-lock editorial cleanup committed as PR #3 (Stripe-style borrowed positioning removed; Sam's-call placeholders resolved; no substantive content changes)
+- Two formal spike phases completed (Phase 0, Phase 0.5)
+- Personal citation verification of Procurement Regulations 2024 regs 32-36 against legislation.gov.uk
+- Pre-lock substrate sanity check (2,900 records pulled; OCID exclusion list at `planning/spike_data/sanity_check_12_ocids.jsonl`)
+- Single-model scope committed; multi-model deferred to Follow-up B
+- 24-hour cool-down completed with briefs 11, 12, and the editorial cleanup as substantive pre-lock revisions
+
+**Explicitly NOT locked (deferred to later stages)**:
+
+- Specific foundation model selection — deferred to build-phase kickoff per single-model commitment
+- Threshold values for above-threshold filter — deferred to build-phase verification against current Statutory Instruments under PA23 s.18
+- Empirical results in P1–P5 and P7 falsification criteria — these are filled in post-run, not at lock time
+
+**Tag**: `v0.1-predictions-locked` (applied as a separate operation after this commit lands)
+
+**Reason for locking**: the experiment design has reached the point where further refinement is unlikely to change the predictions. The cool-down surfaced three substantive revisions (briefs 11, 12, editorial cleanup) — that was its purpose. The substrate has been empirically checked. The legal precision has been verified. The methodology is fully specified. The language is at final state. Locking now means the build phase, dry run, full run, and human review pass all proceed against a fixed design. Findings get evaluated against this committed state.
+
+**What's next**:
+
+1. Build phase begins with revision brief 10 (execution capture conventions) as the first operation
+2. Phase A foundation work: staging tenant provisioning, verify.meshqu.com trust registry update, Grafana dashboard scoping, end-to-end smoke test
+3. Phase B harness build: UK Contracts Finder substrate adapter, policy authoring in MeshQu, Inspect AI evaluation pipeline, sampling and notice-ID freezing
+4. Phase C dry run (10 records)
+5. Phase D full run (300 records) + reproducibility re-run (30 records)
+6. Phase E bundle and verify round-trip
+7. Phase F human review pass (30 disagreement cases)
+8. Phase G writeup drafting
+9. Phase H publication
+
+---
+
 ## 2026-05-15 — Pre-lock editorial cleanup
 
 **Decision**: swept the planning harness for working-language artefacts, borrowed positioning, and resolved-but-not-updated placeholders. Editorial polish only; no substantive content changes.

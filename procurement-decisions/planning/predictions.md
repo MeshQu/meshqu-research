@@ -10,10 +10,14 @@
 
 ## Status
 
-- [ ] Drafted
-- [ ] Reviewed (Sam + optionally one advisor)
-- [ ] **Locked** (no further edits without a versioned addendum below)
+- [x] Drafted
+- [x] Reviewed (Sam + optionally one advisor)
+- [x] **Locked** (no further edits without a versioned addendum below)
 - [ ] Linked from writeup
+
+**Locked at:** 2026-05-15
+**Lock commit:** [TBD — updated post-commit in step 5]
+**Tag:** v0.1-predictions-locked
 
 ## Lock procedure
 
