@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-05-15 — Revision brief 11: PROC-001-S53 scope corrected to above-threshold; reg. 36 framing tightened
+
+**Decision**: PROC-001-S53 rule scope narrowed to above-threshold PA23-governed contracts only. Below-threshold contracts excluded from the 300-record sample. Reg. 36 framing in the provenance entry updated to distinguish reg. 36 (separate spec for below-threshold notices under s.87(3)) from regs 33-35 (which layer on reg. 32 for s.53(1) notices).
+
+**Source of finding**: Sam's personal citation verification against legislation.gov.uk during the predictions-lock cool-down. Confirmed regs 32-35 substantively accurate as described in the harness; identified that the harness's framing did not distinguish reg. 36's structural difference (self-contained spec for below-threshold notices under s.87(3), not layered on reg. 32) and that PROC-001-S53 as written would fire incorrectly on below-threshold contracts.
+
+**Alternatives**:
+
+- Keep PROC-001-S53 scope as-is and treat below-threshold misfirings as a known methodological limitation. Rejected — undermines the rule's evaluation discipline; below-threshold disagreement findings would be methodologically suspect.
+- Create a separate rule (PROC-001b-S87) for below-threshold publication timing under s.87(3). Rejected — s.87(3)'s "as soon as reasonably practicable" standard is not amenable to a strict numeric threshold check; not a good fit for a faithful rule in the experiment's first piece.
+- Scope the sample to above-threshold contracts only. **Chosen** — operationally simple, methodologically clean, preserves the PROC-001-S53 rule's evaluation integrity.
+
+**Reason**: the citation verification did its job: surfacing a real but bounded scope issue before predictions lock. The fix is small (sampling filter + provenance phrasing) and preserves the rule's interpretive accuracy. The honest disclosure that the experiment scopes to above-threshold contracts strengthens the methodology narrative; it makes the substrate-honesty discipline complete (three documented proxies / scope decisions now: regime, signature date, above-threshold).
+
+**Impact assessment**: the change affects the substrate adapter (new `above_threshold` filter), the sampling logic (now applies the filter before stratification), the PROC-001-S53 rule logic (now has an above-threshold trigger condition), and the methodology subsection's substrate-honesty paragraphs (now documents the third scope decision). The 300-record target is unchanged but applies to the above-threshold subset. Below-threshold disagreement findings, if any were observed in the corpus, would not be valid under PROC-001-S53 — they are now scope-excluded.
+
+**Build-phase implication (not addressed in this brief)**: PA23 Schedule 1 threshold values themselves need explicit numeric capture in the substrate adapter code at build time, with citation to the source SI under PA23 s.18. This is implicit in the brief and explicit in the build phase.
+
+---
+
 ## 2026-05-15 — Legal review tightening applied before predictions lock
 
 **Decision**: three tightening points applied in response to external legal review of the harness's citation provenance and proxy claims. None is a substantive error; all strengthen the credibility argument by being precise about what the underlying law actually says.

@@ -152,15 +152,16 @@ Each record becomes a `POST /v1/decisions/record` payload like:
 
 ### Publication-delay field mapping (for `PROC-001-S53`)
 
-The s.53 obligation maps to a small group of derived fields on the DecisionContext. Three are computed from verified OCDS fields; one is a documented proxy.
+The s.53 obligation maps to a small group of derived fields on the DecisionContext. Three are computed from verified OCDS fields; two are documented proxies / scope filters.
 
 - `contract_award_date` — direct read from `awards[0].date`. Populated 255/255 in the Phase 0 spike sample. **This is the award decision date, not the contract signature date.** PA23 s.53(1) measures the 30-day publication clock from contract signature; the OCDS substrate does not expose signature date directly. The experiment uses award date as a proxy. The proxy is documented in the methodology section and named explicitly in PROC-001-S53's logic description; award decision and contract signature are typically close together but legally distinct.
 - `contract_details_notice_published_date` — direct read from `awards[0].datePublished`. Populated 255/255 in the Phase 0 spike sample. Phase 0.5 confirmed the field carries original publication time (Crown Commercial Service `ocds_awards_datePublished_extension`: "the date that the award was published"; re-pull stability 19/19; UI parity 5/5).
 - `publication_delay_days` — **derived**: `contract_details_notice_published_date - contract_award_date`. Recorded in `metadata.derivation_notes`.
 - `publication_window_breached` — **derived**: `publication_delay_days > 30`. Recorded in `metadata.derivation_notes`. The 30-day cap is PA23 s.53.
 - `governed_by_pa23` — **derived as a proxy**: `contract_award_date > 2025-02-24` (PA23 commencement). Recorded in `metadata.derivation_notes` with explicit proxy framing. This is the field that determines whether `PROC-001-S53` even applies; the proxy nature is load-bearing for the rule's scope and is documented in [`experiment_design.md`](experiment_design.md) ("Substrate analysis preceding pre-registration"). Records with ambiguous regime are reported as a separate subset in the writeup, not silently excluded.
+- `above_threshold` — **derived as a boolean filter**: from the OCDS record's `tender.value.amount` (or `awards[0].value.amount` if tender value is unavailable) compared against the relevant PA23 threshold for the contract type (goods, services, works; central government vs sub-central; light-touch). The substrate adapter applies this filter at sample-construction time; records below threshold are excluded from the 300-record sample. The PROC-001-S53 rule applies only to records where `above_threshold = true`. Threshold values are documented in the substrate adapter code with citations to the source — PA23 Schedule 1, current values in effect as updated by Statutory Instruments under s.18.
 
-The corpus reports `PROC-001-S53` findings against the proxy-identified PA23 subset only. Findings on the five composite rules are reported against the full corpus.
+The corpus reports `PROC-001-S53` findings against the proxy-identified PA23 subset only, further filtered to above-threshold contracts. Findings on the five composite rules are reported against the full corpus.
 
 ### Locked decisions (see decision_log.md)
 
