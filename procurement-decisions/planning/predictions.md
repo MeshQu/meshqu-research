@@ -16,8 +16,8 @@
 - [ ] Linked from writeup
 
 **Locked at:** 2026-05-15
-**Lock commit:** [TBD — updated post-commit in step 5]
-**Tag:** v0.1-predictions-locked
+**Lock commit:** `bd7a795` (PR #4)
+**Tag:** `v0.1-predictions-locked`
 
 ## Lock procedure
 
