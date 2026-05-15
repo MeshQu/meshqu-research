@@ -5,6 +5,25 @@
 
 ---
 
+## 2026-05-15 — Pre-lock editorial cleanup
+
+**Decision**: swept the planning harness for working-language artefacts, borrowed positioning, and resolved-but-not-updated placeholders. Editorial polish only; no substantive content changes.
+
+**Changes applied**:
+
+- **"Stripe-style" borrowed positioning** replaced with direct descriptions of the work's actual character ("practitioner-direct commercial research report", "founder-direct voice, technical readers"). Forward-facing harness files updated: [`README.md`](README.md), [`writeup_outline.md`](writeup_outline.md) (3 references: opening line, byline rationale, voice-check step). Historical decision_log entries documenting the original 2026-05-14 positioning decision are preserved verbatim — they record what was decided at the time and shouldn't be retrospectively edited. The resolved-list at-a-glance summary is updated to reflect the cleaned wording with a back-reference to the original entry.
+- **"Sam's call" placeholders** resolved in the spike reports via appended resolution notes rather than editing original status lines. Phase 0 spike report records the GO WITH ADJUSTMENTS verdict and the three design pivots that followed. Phase 0.5 C1 spike report records that the date-semantics proxy was committed in revision brief 11. Spike reports are preserved as historical artefacts; resolution notes resolve the placeholders without rewriting the original findings.
+- **Pending-list cleanup**: the "Direct-cell over-sampling floor for PROC-001-S53" item is struck through, resolved by revised brief 12 (20-record floor). The "legislation.gov.uk verification of regs 32-36" item is struck through, resolved pre-lock via revision brief 11. The "Specific foundation model" item stays pending — that decision is genuinely deferred to build-phase kickoff.
+- **General sweep** for working-language artefacts (`I'm thinking`, `we discussed`, etc.) and cross-reference drift returned no findings — the harness was kept clean during planning.
+
+**Forward-looking notes that look like pending items but are not**: the `substrate.md` `above_threshold` field has a "to be confirmed at build-phase time" note for the actual statutory-instrument threshold values. The `predictions.md` TBDs are placeholders for empirical results that don't exist until the experiment runs. The `experiment_design.md` agent-provider TBD is a build-phase decision. None of these are pre-lock pending; they're correctly forward-looking and left as-is.
+
+**Source**: identified during pre-lock consistency read — initially "Stripe-style" and "Sam's call", broadened to a single focused sweep to avoid finding more items one at a time over subsequent exchanges.
+
+**Reason**: the locked design should read as genuinely final. Editorial scaffolding from planning shouldn't survive into the locked state. This is the final pre-lock cleanup; predictions lock follows as the next commit.
+
+---
+
 ## 2026-05-15 — Revision brief 12 (revised): direct-cell floor calibrated to substrate; sanity check past tense; single-model commitment
 
 **Decision**: three pending items from the planning phase closed before predictions lock, calibrated to the empirical substrate composition surfaced by the pre-lock sanity check:
@@ -579,8 +598,8 @@ A pre-build audit cross-checked the harness's claims against the actual code. Fo
 - ~~**Pre-registration surface**~~: resolved by revision brief 7 — the locked-predictions commit lands in the public `meshqu-research/procurement-decisions/planning/` repo. Sam executes the extraction before predictions lock per the operational checklist in the brief-7 decision_log entry above.
 - [ ] **Specific foundation model**: pick the model and pin the exact version at experiment time. Recorded in `metadata.agent_model_id` and `metadata.agent_model_version`. Decision deferred until execution starts; what matters now is that the choice gets pinned and published.
 - ~~**P6 reformulation**~~: resolved 2026-05-15 — P6-C (award method) selected. P6-A and P6-B removed from predictions.md. See decision_log entry above.
-- [ ] **Direct-cell over-sampling floor for `PROC-001-S53`**: the three "Direct" cells of the 3×3 grid need over-sampling so the PA23 subset has enough records for `PROC-001-S53` to fire informatively. Decide a target floor (e.g. minimum 60 PA23-subset direct-award records out of 300) before the sample script runs.
-- [ ] **legislation.gov.uk verification of regs 32-36**: Sam personally checks reg. 32 (core content), reg. 33 (frameworks), reg. 34 (call-offs), reg. 35 (direct awards), reg. 36 (below-threshold) against the live legislation.gov.uk text. URLs in revision brief 6. Required pre-predictions-lock to validate the citation cluster locked in `experiment_design.md`.
+- ~~**Direct-cell over-sampling floor for `PROC-001-S53`**~~: resolved 2026-05-15 — revised brief 12 set the floor at 20 records (≥10 per value band across £100k–£1m and >£1m), calibrated to the pre-lock sanity check finding (only 6 above-threshold direct-award records in the Phase 0.5+ sample). See revised brief 12 entry above.
+- ~~**legislation.gov.uk verification of regs 32-36**~~: resolved 2026-05-15 — verification completed pre-lock; reg. 36 framing tightened in revision brief 11 to distinguish s.87(3) below-threshold notices from s.53(1) (regs 32-35 layered on reg. 32).
 
 Resolved decisions (see entries above):
 
@@ -588,7 +607,7 @@ Resolved decisions (see entries above):
 - ✅ Substrate-agnostic harness (adapter pattern); methodology positioned as reusable
 - ✅ No specific future engagements named anywhere in the harness or writeup
 - ✅ Phase 0 feasibility spike scoped (sacrificial pull, Sam-decided verdict)
-- ✅ Positioning: Stripe-style commercial research report
+- ✅ Positioning: practitioner-direct commercial research report (originally framed as "Stripe-style" during planning; reframed at pre-lock cleanup — see 2026-05-14 positioning entry for the original decision)
 - ✅ Audience priority: engineer-first
 - ✅ Methodology weight: equal to results
 - ✅ "What this means" → single argument
@@ -599,7 +618,7 @@ Resolved decisions (see entries above):
 - ✅ Planning harness extracted to public `meshqu-research/procurement-decisions/planning/` before predictions lock
 - ✅ Repo structure: `procurement-decisions/` + `methodology/` (public methodology layer, private engagement layer)
 - ✅ Prometheus instrumentation audit pre-build (signing, Rekor, receipt-write, Fastify; `tenant` label coverage)
-- ✅ PROC-001-S53 citation cluster: PA23 s.53(1) + Procurement Regulations 2024 reg. 32-36 (legislation.gov.uk verification by Sam still pending pre-lock)
+- ✅ PROC-001-S53 citation cluster: PA23 s.53(1) + Procurement Regulations 2024 reg. 32-36 (legislation.gov.uk verification completed pre-lock; reg. 36 framing tightened in revision brief 11 to distinguish s.87(3) below-threshold notices from s.53(1))
 - ✅ Inspect AI selected as evaluation framework
 - ✅ Experiment positioned as triple-duty: research + methodology + product proof
 - ✅ Grafana observability captured as product-proof evidence (writeup Appendix B)
