@@ -84,6 +84,8 @@ One line per anomaly. Required fields:
 | `policy_evaluator_error` | MeshQu policy evaluator returned an error rather than a verdict |
 | `db_write_slow` | Receipt write took >1s; capacity signal |
 | `db_write_failed` | Receipt write failed entirely (should pause the run) |
+| `screenshot_capture_failed` | Grafana `/render` call failed (non-200, timeout, or non-PNG body). Severity `warn` — supporting evidence missed, not the operational record. Caller continues the run. |
+| `dashboard_mirror_drift` | At run start, the committed dashboard JSON in `results/observability/dashboards/` differs from what live Grafana is serving — screenshots would not reflect committed state. Severity `error` — run aborts before any captures land. |
 | `unexpected` | Catch-all for events that don't fit above categories; surface for taxonomy refinement |
 
 A new category SHOULD only be added when an observed anomaly genuinely doesn't fit. Adding a category is a small documentation update to this README plus the harness's anomaly emission code.
