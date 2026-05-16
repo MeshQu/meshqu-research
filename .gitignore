@@ -35,3 +35,9 @@ out/
 # OS / temp
 *.tmp
 Thumbs.db
+
+# Runtime audit JSONL — written by the runner on every run (smoke or real).
+# During smoke / dev these are throwaway. The real-run JSONL that
+# substantiates the writeup is added explicitly via `git add -f` as part
+# of the corpus publication commit.
+procurement-decisions/results/audit/*.jsonl
