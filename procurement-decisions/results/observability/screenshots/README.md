@@ -127,16 +127,13 @@ The harness implementation calculates this at run start (once per dashboard) and
 
 **Single panel** via `/render/d-solo/<uid>?panelId=N`. One image, one panel. Used for anomaly captures or pre-publication figure curation when calling out a specific panel ("the signing-latency p99 histogram during the run shows the long tail"). File size ~50-150KB; sharper crop suitable for inline writeup figures.
 
-### Renderer version gotcha
+### Renderer version (resolved — pinned to v3.12.5)
 
-`grafana/grafana-image-renderer:latest` resolves to v5.0.0, which introduced PDF as a possible output. When Grafana sends `encoding=` (empty) in its render-API call, v5 defaults to PDF — but Grafana sets the response `Content-Type: image/png` regardless, masking the issue until you try to open the file.
+`grafana/grafana-image-renderer:latest` resolves to v5.0.0, which introduced PDF as a possible output. When Grafana sends `encoding=` (empty) in its render-API call — Grafana 10.4.1 always does — v5 defaults to PDF, but labels the response `Content-Type: image/png` regardless, masking the issue until the file is opened.
 
-Two stable resolutions:
+**Resolved via OBS-204 (monorepo harness):** the renderer image is pinned to `grafana/grafana-image-renderer:3.12.5` in `monitoring/docker-compose.observability.yml`. v3.x defaults to PNG natively — no per-call workaround needed. The render URL pattern this README documents works as-is against the pinned version.
 
-- **Pin the renderer to v3.12.5** (`grafana/grafana-image-renderer:3.12.5`) in `monitoring/docker-compose.observability.yml`. v3.x defaults to PNG without the encoding param. No per-call workaround.
-- **Pass `encoding=png` explicitly** in every render call. This README's default-params table assumes this approach; the harness honours it.
-
-The build-phase decision for this is tracked as `OBS-204` in the monorepo's `.harness/multi-tenant-observability/` harness. The README's default of `encoding=png` works in both scenarios.
+`encoding=png` in the default-params table remains as belt-and-braces — harmless on v3.x, required if the pin ever moves to v5.x. The compose file's inline comment names the v5 swap path (`node -e ...` healthcheck + `encoding=png` everywhere) if the pin is ever revisited.
 
 ## File-size discipline
 
