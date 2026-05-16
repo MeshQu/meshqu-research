@@ -21,6 +21,7 @@ One line per processed decision. Required fields:
 {
   "ts": "ISO-8601 timestamp (UTC, milliseconds)",
   "run_id": "matches run-manifest.json's run_id",
+  "source": "inspect-eval | decision-load-smoke",
   "record_index": 147,
   "ocid": "ocds-b5fd17-…",
   "decision_id": "MeshQu decision UUID",
@@ -48,6 +49,44 @@ Optional fields (present when relevant):
 - `re_run_of`: if this is a reproducibility re-run, the original `decision_id` it's re-running.
 - `anomaly_refs`: array of anomaly event IDs from `anomalies.jsonl` if any fired during this decision.
 - `notebook_refs`: array of notebook entry IDs if the researcher explicitly linked a note to this decision.
+
+### `source` field — provenance discriminator
+
+Every row carries an explicit `source` so a reader can tell who wrote it. This matters because `decision_traces.jsonl` accumulates across the lifetime of the audit directory — smoke-test rows, dry-run rows, full-run rows, and reproducibility-rerun rows all coexist.
+
+| `source` value | Writer | Use case |
+|---|---|---|
+| `"inspect-eval"` | The runner's `RunController.after_record()` once the Inspect-AI eval loop integration lands | Production data path. All required fields populated. |
+| `"decision-load-smoke"` | `runner/scripts/decision-load.sh` during OBS-401 smoke validation | Vestigial scaffolding to exercise the audit-writer path before the Inspect-AI loop exists. Intentionally retired the moment `source: "inspect-eval"` writes begin. |
+
+### Nullability by source
+
+Smoke-scaffolding rows (`source: "decision-load-smoke"`) MAY have null on fields that are agent- or substrate-specific:
+
+| Field | `inspect-eval` | `decision-load-smoke` |
+|---|---|---|
+| `ts` | required | required |
+| `run_id` | required | required |
+| `source` | required | required |
+| `record_index` | required | required |
+| `decision_id` | required | required |
+| `policy_snapshot_digest` | required | required |
+| `meshqu_verdict` | required | required |
+| `latency_ms.meshqu_evaluate` | required | required |
+| `latency_ms.total` | required | required |
+| `receipt_integrity_hash` | required | required |
+| `receipt_signature_kid` | required | required |
+| `ocid` | required | nullable (no OCDS substrate) |
+| `agent_verdict` | required | nullable (no agent) |
+| `agent_reasoning_sha256` | required | nullable (no agent) |
+| `agree` | required | nullable (no agent comparison) |
+| `rules_fired` | required | required (empty array on ALLOW) |
+| `latency_ms.agent` | required | nullable (no agent) |
+| `latency_ms.rekor_anchor` | required | nullable (async fire-and-forget; not visible at write time) |
+| `rekor_log_index` | required | nullable (anchored after row is written) |
+| `rekor_log_entry_uuid` | required | nullable (anchored after row is written) |
+
+The validator (`runner/scripts/validate-smoke.py`) enforces source-conditional nullability — smoke rows pass with documented nulls; eval rows must populate everything. Schema drift between the two writers is the failure mode the discriminator prevents.
 
 ## anomalies.jsonl schema
 
