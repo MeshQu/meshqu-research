@@ -472,7 +472,7 @@
       },
       {
         "allValue": null,
-        "current": { "selected": true, "text": "experiment-procurement", "value": "experiment-procurement" },
+        "current": { "selected": true, "text": "00000000-0000-0000-0000-000000000002", "value": "00000000-0000-0000-0000-000000000002" },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
         "definition": "label_values(meshqu_decisions_total, tenant)",
         "hide": 0,

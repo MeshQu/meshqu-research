@@ -84,11 +84,20 @@ else
 fi
 
 # 4. meshqu-api /metrics endpoint reachable (used by Prometheus scrape).
-http=$(curl -sS -o /dev/null -w "%{http_code}" "$MESHQU_API_URL/metrics" || echo "000")
+# /metrics is bearer-protected on staging/production. Pass
+# MESHQU_RUNNER_METRICS_BEARER_TOKEN if set; an empty value (local dev)
+# still pings the endpoint unauthenticated.
+metrics_auth_header=()
+if [ -n "${MESHQU_RUNNER_METRICS_BEARER_TOKEN:-}" ]; then
+  metrics_auth_header=(-H "Authorization: Bearer $MESHQU_RUNNER_METRICS_BEARER_TOKEN")
+fi
+http=$(curl -sS -o /dev/null -w "%{http_code}" \
+  ${metrics_auth_header[@]+"${metrics_auth_header[@]}"} \
+  "$MESHQU_API_URL/metrics" || echo "000")
 if [ "$http" = "200" ]; then
   check "meshqu-api /metrics" "PASS" "(Prometheus scrape target)"
 else
-  check "meshqu-api /metrics" "FAIL" "HTTP $http"
+  check "meshqu-api /metrics" "FAIL" "HTTP $http (set MESHQU_RUNNER_METRICS_BEARER_TOKEN for bearer-protected endpoints)"
 fi
 
 # 5. Prometheus reachable + scraping meshqu-api.
