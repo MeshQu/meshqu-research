@@ -93,6 +93,8 @@ The experiment will also surface:
 - **Drift** — when the agent's reasoning narrative diverges from what the policy enforces. This is more interesting than pure violations because it's the case where the agent confidently rationalises past the rule.
 - **Reproducibility** — same input + same snapshot = same decision. Demonstrated by re-running a subset.
 
+All findings — from anomalies to drift cases to reproducibility numbers — accumulate in [`procurement-decisions/results/`](../results/README.md) under the execution-capture and notebook discipline committed at revision brief 10. Per-decision audit traces live in `results/audit/`; observations and findings live in `results/notebook/`; the writeup quotes from this directory rather than reconstructing.
+
 ## What's explicitly NOT in scope
 
 - No customer data. No customer commitments.

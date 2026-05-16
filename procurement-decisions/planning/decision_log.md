@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-05-16 — Revision brief 10 applied: execution capture and research notebook discipline
+
+**Decision**: brief 10 (deferred from planning into build phase, per the predictions-lock entry) is applied. The `procurement-decisions/results/` directory is scaffolded with seven README files documenting the discipline that governs everything the experiment produces during execution. Two complementary kinds of artefact: machine-readable telemetry (per-decision audit JSONL, anomaly events, checkpoint markers, dashboard JSON, signed receipt corpus) and human-readable interpretation (per-day notebook entries, discrete findings documents, curated screenshots). Both anchor to the same run via `run-manifest.json`. The writeup quotes from this directory; the writeup does not reconstruct.
+
+**Discipline rules committed**:
+
+- **Notebook is append-only.** Edits to past entries get a `[corrected YYYY-MM-DD]` note rather than silent overwrites. Same family of credibility argument as pre-registration: contemporaneous record over story-after-the-fact.
+- **Audit JSONL files are append-only at run time.** Harness writes new lines; nothing rewrites past lines. Schemas committed for `decision_traces.jsonl`, `anomalies.jsonl`, `checkpoints.jsonl` in [`results/audit/README.md`](results/audit/README.md).
+- **Reference IDs over inline copies.** Notebook entries reference `decision_id`, `record <index>`, `audit/decision_traces.jsonl line N`, `anomaly_id`, `screenshot <filename>`, `P1..P7`, `OBS-NNN`, `findings/<NNN>` — never paste raw OCDS records, full agent reasoning, or signing keys into the notebook.
+- **Findings cite pre-registered predictions by ID.** The "Bears on:" field is mandatory in every findings document; methodology-level findings say so explicitly rather than leaving it blank.
+- **Dashboards JSON before screenshots.** Dashboard JSON committed (mirrored from monorepo `monitoring/grafana/dashboards/`) before screenshots so the screenshot evidence is grounded in the auditable dashboard.
+- **Findings document promotion bar.** A per-day note becomes a findings document only when the observation has repeated enough (typically 3+ references), is specific enough to test, and the writeup might cite it. Keeps `findings/` as the load-bearing analysis layer rather than a noise dump.
+
+**What gets committed vs gitignored**: `run-manifest.json`, `corpus.tar`, `audit/*.jsonl`, `observability/dashboards/*.json`, `observability/screenshots/*.png`, `notebook/*.md`, `notebook/findings/*.md` all committed. Per-receipt unbundled `corpus/` files gitignored (reconstructable from `corpus.tar`). `planning/spike_data/` already gitignored separately (sacrificial pre-pre-registration data).
+
+**Alternatives considered**:
+
+- Put the discipline conventions in a separate `planning/execution-capture-conventions.md` file rather than as `results/*/README.md` files. Rejected: the conventions belong co-located with the artefacts they govern. A future agent or researcher opening `results/notebook/` should see the discipline document immediately, not have to follow a cross-reference into `planning/`.
+- Defer the directory scaffolding until build phase (only the convention text, no actual directories created at brief 10 application time). Rejected: empty directories with README files commit cleanly and signal intent to anyone reading the public repo before the run. Build phase populates them with content; the structure is there from day one.
+- Skip the per-day notebook discipline; use only post-run findings documents. Rejected: contemporaneous notes capture observations at the time of observation, before they blur. Three months between the run and writeup drafting; without per-day notes, the writeup reconstructs from memory rather than quoting.
+
+**Reason**: brief 10 was deferred from planning into build phase because the discipline only becomes load-bearing once the harness starts producing artefacts. With predictions locked and build phase opening, the discipline needs to be in place before any artefact lands — otherwise the first artefact lands without convention, the second lands inconsistently against it, and the discipline is retrofitted rather than honoured. Brief 10 establishes the discipline before the first artefact rather than after.
+
+**Cross-references**: [`results/README.md`](results/README.md) is the top-level discipline document. [`experiment_design.md`](experiment_design.md) §4 (Execution capture and research notebook) cross-references it. [`project_context.md`](project_context.md)'s "What's a 'MeshQu catch' and what isn't" section closes with the cross-reference. The multi-tenant-observability harness in the monorepo provides the Grafana dashboards that `results/observability/dashboards/` mirrors.
+
+**What's next**: build phase begins. The substrate adapter (Phase B) and the harness execution path (Phase B/C) honour the schemas in `results/audit/README.md`. The dry run (Phase C) and full run (Phase D) populate `results/` per these conventions; the notebook captures observations as they happen.
+
+---
+
 ## 2026-05-15 — Predictions locked
 
 **Decision**: predictions in [`procurement-decisions/planning/predictions.md`](predictions.md) are locked against the experiment design at this commit hash. From this commit forward, the experiment design is fixed; all downstream artefacts (corpus, review pass, writeup) are evaluated against the design at this state.

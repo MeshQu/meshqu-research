@@ -211,6 +211,10 @@ A second subset is **replayed** through the meshqu-verifier CLI from the bundled
 
 Reproducibility does not depend on the original execution environment. A reader cloning the repository can run the harness against the published policy snapshot using their own MeshQu instance (production, staging, or local) and produce a corpus that round-trips through verify.meshqu.com identically — the receipt verification flow uses the bundled public key, not a particular environment's trust anchors. The original corpus was generated in MeshQu's staging environment against a tenant provisioned specifically for this experiment.
 
+### 4. Execution capture and research notebook
+
+Per-decision audit traces, anomaly events, checkpoint markers, Grafana screenshots, and the researcher's notebook all land under [`procurement-decisions/results/`](../results/README.md). The discipline separates **machine-readable telemetry** (audit JSONL, dashboard JSON, corpus tar) from **human-readable interpretation** (per-day notebook entries, findings documents, curated screenshots). Both anchor to the same run via `run-manifest.json`. The writeup quotes from this directory; it does not reconstruct from memory. Discipline rules — append-only notebook, reference-by-ID over inline copies, findings cite predictions by P1..P7 — are documented in [`results/README.md`](../results/README.md), [`results/audit/README.md`](../results/audit/README.md), and [`results/notebook/README.md`](../results/notebook/README.md).
+
 ## Human review pass
 
 A sample of disagreement cases (target N=30) is reviewed by the experimenter against the published procurement frameworks. For each:
