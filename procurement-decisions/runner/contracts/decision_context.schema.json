@@ -48,7 +48,7 @@
               "description": "PROC-003. awards[0].suppliers[0].id (canonicalised: trimmed, original casing preserved)."
             },
             "conflict_of_interest_declaration": {
-              "description": "PROC-004 (presence). NOT IN OCDS — emitted only when a future substrate variant derives it from a richer source. Today: omitted, PROC-004 cannot fire."
+              "description": "PROC-004 (COI declaration). NOT IN OCDS — omitted by the substrate. PROC-004 is gated by a `when` clause requiring this field to be present (`{ field: 'conflict_of_interest_declaration', exists: true }`), so absence skips the rule rather than triggering it (NA-reason: 'conflict of interest declaration is missing'). A future substrate variant that derives COI from a richer source will cause PROC-004 to evaluate. The `when`-clause gate was applied 2026-05-17 after the 3-record smoke surfaced that the prior wiring fired PROC-004 on absence — see planning/decision_log.md 'Post-smoke policy clarification' entry."
             },
             "procurement_method_open_flag": {
               "type": "string",

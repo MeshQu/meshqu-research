@@ -5,6 +5,49 @@
 
 ---
 
+## 2026-05-17 — Post-smoke policy clarification: gate PROC-004-COI behind `exists`
+
+**Decision**: PROC-004-COI is amended in the ratified policy (`experiment-procurement` tenant) to add a `when` clause requiring `conflict_of_interest_declaration` to be present before the rule evaluates. This brings the rule's behaviour into line with its authorial intent (already documented in `runner/contracts/decision_context.schema.json`) without changing what the rule tests when the field IS present. A new policy snapshot is produced; the original snapshot is preserved for audit completeness.
+
+**What the smoke surfaced**: the 3-record smoke run (`smoke-0507305a-ed44-4882-b455-a720fee8e603`) returned `meshqu_verdict=DENY` on all 3 records with `violations=['PROC-004-COI']` (B additionally carried the expected `PROC-001-S53`). PROC-004 fires on field absence by default. Since the OCDS substrate emits NO `conflict_of_interest_declaration` (it isn't in OCDS), every record from this substrate tripped PROC-004 uniformly. The headline MeshQu verdict collapsed to a constant DENY, which would have destroyed the agreement projection at the 300-record scale.
+
+**Authorial-intent evidence**: the canonical contract at [`runner/contracts/decision_context.schema.json`](../runner/contracts/decision_context.schema.json) already documented the absence-doesn't-fire intent before the smoke:
+
+> "PROC-004 (presence). NOT IN OCDS — emitted only when a future substrate variant derives it from a richer source. Today: omitted, PROC-004 cannot fire."
+
+The "cannot fire" line was factually wrong — the rule WAS firing on absence — but the surrounding sentences make the intent unambiguous. The clarification aligns runtime behaviour with the already-published contract, not with a new preference discovered after seeing data.
+
+**Why this is a methodologically defensible edit (not goalpost-moving)**:
+
+- No corpus exists yet. Edits before any agreement data is collected cannot be reverse-engineered to favour a result. The 300-record full run hasn't started; the dry run hasn't started; the only execution is a 3-record smoke whose purpose was to surface integration problems exactly like this one.
+- The rule actually under test — **PROC-001-S53** — is untouched. PROC-001-S53 fired correctly on the smoke (record B, 35-day delay above threshold) and remained silent on records that didn't violate it. The s.53 publication-delay rule is the regulator-fidelity claim being tested; it stays frozen no matter what the smoke shows. PROC-004 is supporting cast.
+- The alternative ("leave it and document") makes the experiment less interpretable. With every record DENY-ing uniformly on PROC-004, the headline `agreement = (agent_verdict == meshqu_verdict)` statistic becomes degenerate (agent ALLOW = 100% "disagreement" regardless of whether the agent correctly identified the s.53 violation). You'd have to redefine agreement as per-rule comparison, which is a more contestable methodological pivot than adding a one-line `when` clause.
+
+**Exact rule edit (applied via the v2 console editor against the staging `experiment-procurement` tenant)**:
+
+Add a `when` clause to PROC-004-COI:
+
+```json
+{ "field": "conflict_of_interest_declaration", "exists": true }
+```
+
+The v2 editor surfaces this via the operator dropdown labelled "exists" ([apps/meshqu-console/src/components/policies/rule-editor-v2/inline-editor.tsx:1263](../../apps/meshqu-console/src/components/policies/rule-editor-v2/inline-editor.tsx#L1263)). Backed by [`packages/meshqu-core/src/rules/when.ts:34-37`](../../packages/meshqu-core/src/rules/when.ts#L34-L37) — the evaluator skips the rule entirely when the field is absent and the NA-reason formatter renders "conflict of interest declaration is missing" for the audit receipt.
+
+**Snapshot bookkeeping (load-bearing for the audit trail + writeup)**:
+
+- **Pre-clarification snapshot** (referenced in smoke `smoke-0507305a-ed44-4882-b455-a720fee8e603`): `policy_snapshot_id = c6256a8e-55ae-41ba-a265-2d61211e0ca9`. The 3 smoke receipts under this snapshot stand as evidence of the pre-clarification behaviour. They are NOT discarded — they form the empirical record of why the clarification was made.
+- **Post-clarification snapshot**: TBD — recorded here once re-ratified in the staging console. Every receipt in the dry-run + full-run will bind to this snapshot; receipts under the pre-clarification snapshot are easily distinguishable by `policy_snapshot_id`.
+
+**Out-of-scope edits explicitly NOT made**:
+
+- PROC-001-S53 stays frozen. It is the experiment's experimental rule; touching it post-smoke would invalidate the predictions-lock.
+- The other 4 rules (PROC-002, PROC-003, PROC-005, PROC-006) stay frozen. The smoke didn't surface behaviour mismatches on them; absence of evidence isn't a license to edit.
+- The substrate adapter stays frozen. Its honest-omission of `conflict_of_interest_declaration` is correct (OCDS doesn't carry COI). Fabricating a default would silently lie to the policy.
+
+**Reason**: the smoke surfaced a wiring gap between PROC-004's documented intent and its evaluator behaviour. The fix is minimal (one `when` clause), reversible (the rule still tests COI when COI is present), defensible (no corpus exists yet, and authorial intent was already documented), and preserves the experiment's regulator-fidelity claim by leaving PROC-001-S53 untouched. The alternative — leaving the gap and documenting it — would corrupt the agreement projection by reducing every record's MeshQu verdict to a constant.
+
+---
+
 ## 2026-05-17 — Foundation model locked: `gpt-5.4-2026-03-05` at temperature 0
 
 **Decision**: the experiment's single foundation model is **`gpt-5.4-2026-03-05`** (OpenAI), accessed via the standard chat-completions API at `temperature=0`. This is the lock the planning phase's pending-decision item ("Specific foundation model — deferred to build-phase kickoff") finally resolves. Model + version + temperature get recorded in each receipt's `fields.agent_model_id`, `fields.agent_model_version`, `fields.agent_temperature` so the receipt's integrity hash binds them.
