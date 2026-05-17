@@ -36,10 +36,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import random
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 
 # ---------------------------------------------------------------------------
@@ -57,6 +58,30 @@ DEFAULT_MAX_COMPLETION_TOKENS = 500
 """Generous headroom for the agent's three-key JSON response. The system
 prompt caps reasoning at 60 words; 500 tokens absorbs any reasonable
 overhead from JSON framing + the model's tokenisation."""
+
+
+# ---------------------------------------------------------------------------
+# Retry policy — bounded backoff for transient OpenAI errors
+# ---------------------------------------------------------------------------
+
+DEFAULT_RETRY_MAX_ATTEMPTS = 3
+"""3 attempts total: initial + 2 retries. Keeps a 300-record run bounded
+in the worst case (300 × 3 × max_backoff ≈ tractable) while still
+absorbing the typical transient 429 / 5xx / timeout pattern."""
+
+DEFAULT_RETRY_INITIAL_BACKOFF_SECONDS = 1.0
+DEFAULT_RETRY_MAX_BACKOFF_SECONDS = 30.0
+"""Exponential backoff capped at 30s. OpenAI's typical Retry-After on
+rate limit is well under this; the cap exists to defend against a
+broken server returning absurdly high Retry-After values."""
+
+_RETRYABLE_KINDS: frozenset[str] = frozenset({"rate_limit", "timeout", "server", "network"})
+"""Kinds the retry loop will retry. Notably absent:
+- `auth` — credentials are deterministically wrong; retry won't help.
+- `unsupported_param` — caller (the json_object → plain_text fallback)
+  needs to see it immediately, not after 3 retries.
+- `unknown` — better to surface than silently retry an unclassified
+  error that might be a logic bug."""
 
 
 # ---------------------------------------------------------------------------
@@ -197,6 +222,11 @@ class AgentResponse:
     output_mode: Literal["json_object", "plain_text", "unknown"]
     parse_status: Literal["ok", "invalid_json", "wrong_shape", "invalid_verdict"]
     parse_detail: str = ""
+    # Number of retries the OpenAI call burned before producing this
+    # response (0 on the happy path). Surfaces into decision_traces and
+    # the run-end summary so the writeup can report "k retries fired,
+    # 0 records lost" rather than just "no errors observed".
+    retry_count: int = 0
 
 
 @dataclass
@@ -233,6 +263,11 @@ class Agent:
         temperature: float = LOCKED_TEMPERATURE,
         max_completion_tokens: int = DEFAULT_MAX_COMPLETION_TOKENS,
         client: Any = None,
+        retry_max_attempts: int = DEFAULT_RETRY_MAX_ATTEMPTS,
+        retry_initial_backoff_seconds: float = DEFAULT_RETRY_INITIAL_BACKOFF_SECONDS,
+        retry_max_backoff_seconds: float = DEFAULT_RETRY_MAX_BACKOFF_SECONDS,
+        sleep_fn: Callable[[float], None] = time.sleep,
+        jitter_fn: Callable[[], float] = random.random,
     ) -> None:
         # Lazy import — keeps the module importable in test envs that
         # don't have openai installed (tests use the `client=` injection
@@ -247,6 +282,11 @@ class Agent:
         self._max_completion_tokens = max_completion_tokens
         self._system_prompt = system_prompt
         self._system_prompt_sha256 = sha256_system_prompt(system_prompt)
+        self._retry_max_attempts = retry_max_attempts
+        self._retry_initial_backoff_seconds = retry_initial_backoff_seconds
+        self._retry_max_backoff_seconds = retry_max_backoff_seconds
+        self._sleep_fn = sleep_fn
+        self._jitter_fn = jitter_fn
 
     @property
     def model_id(self) -> str:
@@ -279,7 +319,7 @@ class Agent:
         """
 
         request_started = time.monotonic()
-        raw, output_mode = self._call_with_format(user_message)
+        raw, output_mode, retry_count = self._call_with_format(user_message)
         latency_ms = int((time.monotonic() - request_started) * 1000)
 
         # Parse
@@ -296,6 +336,7 @@ class Agent:
                 output_mode=output_mode,
                 parse_status="invalid_json",
                 parse_detail=str(err),
+                retry_count=retry_count,
             )
 
         if not isinstance(parsed, dict):
@@ -309,6 +350,7 @@ class Agent:
                 output_mode=output_mode,
                 parse_status="wrong_shape",
                 parse_detail=f"Top-level JSON value was {type(parsed).__name__}, expected object",
+                retry_count=retry_count,
             )
 
         verdict = normalise_verdict(parsed.get("verdict"))
@@ -323,6 +365,7 @@ class Agent:
                 output_mode=output_mode,
                 parse_status="invalid_verdict",
                 parse_detail=f"verdict={parsed.get('verdict')!r} not in {{allow, review, deny}}",
+                retry_count=retry_count,
             )
 
         reasoning_text = str(parsed.get("reasoning") or "")
@@ -342,19 +385,29 @@ class Agent:
             latency_ms=latency_ms,
             output_mode=output_mode,
             parse_status="ok",
+            retry_count=retry_count,
         )
 
     # ------------------------------------------------------------------
     # Internals
     # ------------------------------------------------------------------
 
-    def _call_with_format(self, user_message: str) -> tuple[str, Literal["json_object", "plain_text"]]:
+    def _call_with_format(
+        self, user_message: str
+    ) -> tuple[str, Literal["json_object", "plain_text"], int]:
         """Try JSON-object mode first, fall back to plain-text on
-        format-not-supported. Anything else (network, auth, rate-limit)
-        propagates as AgentCallError."""
+        format-not-supported. Anything else (auth, unknown) propagates
+        as AgentCallError. Transient errors (rate_limit, timeout,
+        server, network) are retried with bounded backoff by
+        `_call_with_retry`.
+
+        Returns (raw_content, output_mode, total_retry_count). The
+        retry count aggregates retries across BOTH the json_object
+        attempt and the plain_text fallback so the writeup can report
+        "k retries fired across the full call sequence"."""
 
         # Common kwargs for both modes
-        common = dict(
+        common: dict[str, Any] = dict(
             model=self._model_id,
             messages=[
                 {"role": "system", "content": self._system_prompt},
@@ -366,25 +419,68 @@ class Agent:
 
         # Preferred: JSON object mode
         try:
-            resp = self._client.chat.completions.create(
-                **common,
-                response_format={"type": "json_object"},
+            resp, json_retries = self._call_with_retry(
+                {**common, "response_format": {"type": "json_object"}},
             )
-            return resp.choices[0].message.content or "", "json_object"
-        except Exception as err:  # noqa: BLE001 — classified below
-            classified = _classify_openai_error(err)
-            if classified.kind == "unsupported_param":
-                # Fall through to plain-text mode
-                pass
-            else:
-                raise classified
+            return resp.choices[0].message.content or "", "json_object", json_retries
+        except AgentCallError as err:
+            if err.kind != "unsupported_param":
+                raise
+            # Fall through to plain-text mode. Retries spent here are
+            # discarded — by definition we got the unsupported_param
+            # response on the first try (it's a deterministic
+            # rejection, not a transient one).
 
         # Fallback: plain-text JSON prompting
-        try:
-            resp = self._client.chat.completions.create(**common)
-            return resp.choices[0].message.content or "", "plain_text"
-        except Exception as err:  # noqa: BLE001
-            raise _classify_openai_error(err)
+        resp, text_retries = self._call_with_retry(common)
+        return resp.choices[0].message.content or "", "plain_text", text_retries
+
+    def _call_with_retry(
+        self, kwargs: dict[str, Any]
+    ) -> tuple[Any, int]:
+        """Call OpenAI with bounded exponential backoff for transient
+        errors. Returns (response, retry_count) on success; raises
+        AgentCallError on terminal failure (auth, unsupported_param,
+        unknown, or transient kind that exhausted attempts).
+
+        Backoff: starts at `retry_initial_backoff_seconds`, doubles per
+        attempt, capped at `retry_max_backoff_seconds`. Jitter is ±20%
+        of the backoff value so concurrent runs don't synchronise their
+        retry storms. Honors `Retry-After` from the OpenAI error
+        response when present — that's the server's own guidance and
+        beats our exponential formula."""
+
+        attempt = 0
+        retries_used = 0
+        backoff = self._retry_initial_backoff_seconds
+        last_error: AgentCallError | None = None
+
+        while attempt < self._retry_max_attempts:
+            try:
+                return self._client.chat.completions.create(**kwargs), retries_used
+            except Exception as err:  # noqa: BLE001 — classified below
+                classified = _classify_openai_error(err)
+                if classified.kind not in _RETRYABLE_KINDS:
+                    # auth / unsupported_param / unknown — terminal.
+                    raise classified
+                last_error = classified
+                attempt += 1
+                if attempt >= self._retry_max_attempts:
+                    break
+                retries_used += 1
+                # Honor Retry-After if present, else exponential backoff.
+                retry_after = _extract_retry_after_seconds(err)
+                wait = retry_after if retry_after is not None else backoff
+                wait = min(wait, self._retry_max_backoff_seconds)
+                # Jitter: ±20% of the chosen wait.
+                jitter = wait * 0.2 * (self._jitter_fn() * 2 - 1)
+                self._sleep_fn(max(0.0, wait + jitter))
+                backoff *= 2
+
+        # Exhausted attempts. last_error must be set — the loop only
+        # exits via `break` after a retryable classification.
+        assert last_error is not None
+        raise last_error
 
 
 def _classify_openai_error(err: Exception) -> AgentCallError:
@@ -408,3 +504,30 @@ def _classify_openai_error(err: Exception) -> AgentCallError:
     if "InternalServerError" in name or "APIError" in name:
         return AgentCallError(kind="server", detail=msg)
     return AgentCallError(kind="unknown", detail=f"{name}: {msg}")
+
+
+def _extract_retry_after_seconds(err: Exception) -> float | None:
+    """Best-effort extraction of `Retry-After` from an OpenAI SDK error.
+
+    OpenAI's RateLimitError carries the original httpx.Response on
+    `.response`. The header may be in seconds (e.g. "5") or HTTP-date
+    format; we honour the simple seconds case and ignore HTTP-date
+    (rare from OpenAI in practice). Returns None when unavailable or
+    unparseable — the caller falls back to exponential backoff."""
+
+    response = getattr(err, "response", None)
+    if response is None:
+        return None
+    headers = getattr(response, "headers", None)
+    if headers is None:
+        return None
+    try:
+        value = headers.get("Retry-After") or headers.get("retry-after")
+    except (AttributeError, TypeError):
+        return None
+    if not value:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None

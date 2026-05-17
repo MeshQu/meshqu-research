@@ -160,7 +160,13 @@ def run_dir(tmp_path: Path) -> Path:
     return rd
 
 
-def _make_config(run_dir: Path, repo_dir: Path, count: int = 1) -> EvalLoopConfig:
+def _make_config(
+    run_dir: Path,
+    repo_dir: Path,
+    count: int = 1,
+    *,
+    inter_request_pause_seconds: float = 0.0,
+) -> EvalLoopConfig:
     # Patch the system prompt to avoid hitting the real file.
     prompt_path = run_dir / "system_prompt.md"
     prompt_path.write_text("Test system prompt.")
@@ -177,6 +183,7 @@ def _make_config(run_dir: Path, repo_dir: Path, count: int = 1) -> EvalLoopConfi
         substrate_source={"feed": "ocds-stub"},
         record_target_count=count,
         system_prompt_path=prompt_path,
+        inter_request_pause_seconds=inter_request_pause_seconds,
     )
 
 
@@ -544,3 +551,108 @@ class TestMultiRecordLoop:
         # Three trace rows
         rows = (run_dir / "decision_traces.jsonl").read_text().splitlines()
         assert len(rows) == 3
+
+
+# ---------------------------------------------------------------------------
+# Inter-request pacing
+# ---------------------------------------------------------------------------
+
+
+class TestInterRequestPause:
+    def test_pauses_between_records_not_before_first(
+        self, tmp_path: Path, run_dir: Path
+    ) -> None:
+        config = _make_config(
+            run_dir, repo_dir=tmp_path, count=3, inter_request_pause_seconds=0.5
+        )
+        audit = AuditWriter(run_dir, config.run_id)
+        agent = _StubAgent(responses=[_agent_response_ok("ALLOW")] * 3)
+        meshqu = _StubMeshQuClient(responses=[_receipt(f"d{i}", "ALLOW") for i in range(3)])
+        adapted = {
+            f"r{i}": _StubAdaptedRecord(
+                ocid=f"ocds-{i}",
+                context={"decision_type": "x", "fields": {}},
+                substrate_notes={},
+            )
+            for i in range(1, 4)
+        }
+        sleeps: list[float] = []
+
+        run_eval_loop(
+            config=config,
+            records=[{"id": f"r{i}"} for i in range(1, 4)],
+            substrate_callable=_make_adapter(adapted),
+            provenance_summary_callable=_empty_provenance_summary,
+            audit_writer=audit,
+            meshqu_client=meshqu,  # type: ignore[arg-type]
+            agent=agent,  # type: ignore[arg-type]
+            sleep_fn=sleeps.append,
+        )
+
+        # 3 records → 2 inter-request sleeps (between records 1-2 and 2-3).
+        assert sleeps == [0.5, 0.5]
+
+    def test_no_sleep_when_pause_is_zero(
+        self, tmp_path: Path, run_dir: Path
+    ) -> None:
+        config = _make_config(
+            run_dir, repo_dir=tmp_path, count=2, inter_request_pause_seconds=0.0
+        )
+        audit = AuditWriter(run_dir, config.run_id)
+        agent = _StubAgent(responses=[_agent_response_ok("ALLOW")] * 2)
+        meshqu = _StubMeshQuClient(responses=[_receipt(f"d{i}", "ALLOW") for i in range(2)])
+        adapted = {
+            f"r{i}": _StubAdaptedRecord(
+                ocid=f"ocds-{i}",
+                context={"decision_type": "x", "fields": {}},
+                substrate_notes={},
+            )
+            for i in range(1, 3)
+        }
+        sleeps: list[float] = []
+
+        run_eval_loop(
+            config=config,
+            records=[{"id": f"r{i}"} for i in range(1, 3)],
+            substrate_callable=_make_adapter(adapted),
+            provenance_summary_callable=_empty_provenance_summary,
+            audit_writer=audit,
+            meshqu_client=meshqu,  # type: ignore[arg-type]
+            agent=agent,  # type: ignore[arg-type]
+            sleep_fn=sleeps.append,
+        )
+
+        assert sleeps == []
+
+    def test_retry_count_persists_into_trace_row(
+        self, tmp_path: Path, run_dir: Path
+    ) -> None:
+        """Agent retries should surface in decision_traces.jsonl rows so
+        the writeup can correlate retries with downstream behaviour."""
+        config = _make_config(run_dir, repo_dir=tmp_path)
+        audit = AuditWriter(run_dir, config.run_id)
+        # Bake retry_count=2 into the canned agent response.
+        agent_resp = _agent_response_ok("ALLOW")
+        agent_resp.retry_count = 2
+        agent = _StubAgent(responses=[agent_resp])
+        meshqu = _StubMeshQuClient(responses=[_receipt("dec-rx", "ALLOW")])
+
+        adapted = {
+            "r1": _StubAdaptedRecord(
+                ocid="ocds-1",
+                context={"decision_type": "x", "fields": {}},
+                substrate_notes={},
+            )
+        }
+        run_eval_loop(
+            config=config,
+            records=[{"id": "r1"}],
+            substrate_callable=_make_adapter(adapted),
+            provenance_summary_callable=_empty_provenance_summary,
+            audit_writer=audit,
+            meshqu_client=meshqu,  # type: ignore[arg-type]
+            agent=agent,  # type: ignore[arg-type]
+        )
+
+        trace = json.loads((run_dir / "decision_traces.jsonl").read_text().splitlines()[0])
+        assert trace["agent_retry_count"] == 2
