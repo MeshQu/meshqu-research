@@ -239,6 +239,13 @@ class AgentCallError(Exception):
 
     kind: Literal["network", "auth", "rate_limit", "server", "timeout", "unknown"]
     detail: str
+    # Number of retries spent before the call ultimately failed (or
+    # was aborted on a terminal classification). Carried on the error
+    # so the json_object → plain_text fallback in `_call_with_format`
+    # can carry retries across the mode switch — otherwise a sequence
+    # like (429, 429, unsupported_param, success) would under-report
+    # retry_count by 2 in the trace row.
+    retry_count: int = 0
 
     def __str__(self) -> str:
         return f"{self.kind}: {self.detail}"
@@ -418,6 +425,7 @@ class Agent:
         )
 
         # Preferred: JSON object mode
+        carry_over_retries = 0
         try:
             resp, json_retries = self._call_with_retry(
                 {**common, "response_format": {"type": "json_object"}},
@@ -426,14 +434,19 @@ class Agent:
         except AgentCallError as err:
             if err.kind != "unsupported_param":
                 raise
-            # Fall through to plain-text mode. Retries spent here are
-            # discarded — by definition we got the unsupported_param
-            # response on the first try (it's a deterministic
-            # rejection, not a transient one).
+            # Fall through to plain-text mode. Capture any retries spent
+            # before the unsupported_param response so they aren't lost
+            # from the aggregate count — sequence like (429, 429,
+            # unsupported_param, success) must report retry_count=2.
+            carry_over_retries = err.retry_count
 
         # Fallback: plain-text JSON prompting
         resp, text_retries = self._call_with_retry(common)
-        return resp.choices[0].message.content or "", "plain_text", text_retries
+        return (
+            resp.choices[0].message.content or "",
+            "plain_text",
+            carry_over_retries + text_retries,
+        )
 
     def _call_with_retry(
         self, kwargs: dict[str, Any]
@@ -462,6 +475,10 @@ class Agent:
                 classified = _classify_openai_error(err)
                 if classified.kind not in _RETRYABLE_KINDS:
                     # auth / unsupported_param / unknown — terminal.
+                    # Stamp retries_used onto the error so the caller
+                    # (e.g. _call_with_format's fallback) can carry
+                    # them into the aggregate retry count.
+                    classified.retry_count = retries_used
                     raise classified
                 last_error = classified
                 attempt += 1
@@ -470,16 +487,25 @@ class Agent:
                 retries_used += 1
                 # Honor Retry-After if present, else exponential backoff.
                 retry_after = _extract_retry_after_seconds(err)
-                wait = retry_after if retry_after is not None else backoff
-                wait = min(wait, self._retry_max_backoff_seconds)
-                # Jitter: ±20% of the chosen wait.
-                jitter = wait * 0.2 * (self._jitter_fn() * 2 - 1)
-                self._sleep_fn(max(0.0, wait + jitter))
+                if retry_after is not None:
+                    # Retry-After is a MINIMUM wait — downward jitter
+                    # would violate the server's back-pressure guidance
+                    # and likely cause repeat 429s. Use +0..+20% only.
+                    wait = min(retry_after, self._retry_max_backoff_seconds)
+                    jitter = wait * 0.2 * self._jitter_fn()
+                    self._sleep_fn(wait + jitter)
+                else:
+                    # Exponential backoff: ±20% jitter is fine because
+                    # there's no server-imposed floor to respect.
+                    wait = min(backoff, self._retry_max_backoff_seconds)
+                    jitter = wait * 0.2 * (self._jitter_fn() * 2 - 1)
+                    self._sleep_fn(max(0.0, wait + jitter))
                 backoff *= 2
 
         # Exhausted attempts. last_error must be set — the loop only
         # exits via `break` after a retryable classification.
         assert last_error is not None
+        last_error.retry_count = retries_used
         raise last_error
 
 
