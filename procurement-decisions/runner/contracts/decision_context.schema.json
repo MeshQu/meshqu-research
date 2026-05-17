@@ -22,7 +22,7 @@
         },
         "fields": {
           "type": "object",
-          "description": "Flat field set the ratified policy's 6 rules evaluate against. Booleans MUST be the strings 'true'/'false' to match the policy's when-clause authoring (decision_log F13 cross-over finding); flipping to JSON booleans silently breaks rule firing.",
+          "description": "Flat field set sent to MeshQu and bound into the receipt's integrity hash. Two producers contribute keys: (a) the **substrate adapter** emits the substantive policy-evaluable fields below (the ratified policy's 6 rules only read these); (b) the **eval loop** injects the `agent_*` audit-only fields after the agent call returns and before posting to MeshQu. Both groups live in the same map so they bind into one integrity hash. The policy never evaluates `agent_*` keys — they're hash-bound metadata only. Booleans MUST be the strings 'true'/'false' to match the policy's when-clause authoring (decision_log F13 cross-over finding); flipping to JSON booleans silently breaks rule firing.",
           "additionalProperties": false,
           "properties": {
             "publication_delay_days": {
@@ -69,6 +69,40 @@
               "type": "number",
               "minimum": 0,
               "description": "PROC-006. (amendments[0].value.amount / original contract value). Only emitted when both numerator and denominator are derivable. NULL allowed when not a modification — see no-silent-defaults rule."
+            },
+
+            "agent_model_id": {
+              "type": "string",
+              "description": "AUDIT-ONLY (not evaluated). Locked model id (e.g. 'gpt-5.4-2026-03-05'). Injected by the eval loop after the agent call returns. Mirrors agent.LOCKED_MODEL_ID."
+            },
+            "agent_model_version": {
+              "type": ["string", "null"],
+              "description": "AUDIT-ONLY (not evaluated). Reserved for the rare case where OpenAI's response surfaces a more specific version than the locked model id; null otherwise."
+            },
+            "agent_temperature": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2,
+              "description": "AUDIT-ONLY (not evaluated). Locked temperature (0.0 in this experiment). Bound into the receipt so a reproducibility check can prove the agent ran at the declared temperature."
+            },
+            "agent_prompt_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "description": "AUDIT-ONLY (not evaluated). SHA-256 of the system prompt at run start. Computed once per run; identical across all records in a run."
+            },
+            "agent_reasoning_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "description": "AUDIT-ONLY (not evaluated). SHA-256 of the agent's reasoning text for THIS record (normalised: trim + LF). Full reasoning lives in the agent_outputs sidecar; only the hash is bound into the receipt."
+            },
+            "agent_recommended_verdict": {
+              "type": "string",
+              "enum": ["ALLOW", "DENY", "REVIEW"],
+              "description": "AUDIT-ONLY (not evaluated). The agent's normalised verdict for the agreement projection. The MeshQu policy verdict is computed independently from substrate fields; this field captures what the agent thought."
+            },
+            "agent_recommended_action": {
+              "type": ["string", "null"],
+              "description": "AUDIT-ONLY (not evaluated). The agent's free-text recommended action (e.g. 'approve', 'escalate to counsel'). Null when the agent didn't produce one."
             }
           }
         },
