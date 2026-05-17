@@ -638,43 +638,94 @@ def provenance_summary(
 # ---------------------------------------------------------------------------
 
 
+CONTRACTS_FINDER_OCDS_URL = (
+    "https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search"
+)
+"""UK Contracts Finder OCDS Search endpoint. No auth required; OGL-licensed.
+Live schema verified 2026-05-17. The post-PA23 successor (UK Find a Tender
+Service, https://www.find-tender.service.gov.uk/api/) is the upgrade path
+for Follow-up A — see planning/writeup_outline.md."""
+
+CONTRACTS_FINDER_PAGE_LIMIT = 100
+"""Page size per request. Real API caps at 100 (confirmed via spike +
+2026-05-17 re-probe). Caller-side `limit` is enforced after page
+assembly so the loop never fetches more pages than needed."""
+
+
 def fetch_ocds_records(
     *,
-    feed_url: str,
+    feed_url: str = CONTRACTS_FINDER_OCDS_URL,
     since: date | None = None,
     until: date | None = None,
     limit: int | None = None,
+    stages: str = "award",
     session: Any = None,
 ) -> list[dict[str, Any]]:
-    """Fetch OCDS records from the configured feed URL.
+    """Fetch OCDS records from the Contracts Finder OCDS Search endpoint.
 
-    The Contracts Finder OCDS endpoint exposes releases as paginated JSON.
-    `feed_url` is configurable so the same fetcher works against the
-    public feed AND against a local fixture-mirroring server during tests.
+    Wire format (verified live 2026-05-17):
 
-    Caller passes a `session` (a requests.Session or test double) to
-    control networking; default is a fresh requests.Session().
+      GET <feed_url>?stages=award&publishedFrom=YYYY-MM-DD&publishedTo=YYYY-MM-DD&limit=100
+      Response: { "releases": [...], "links": {"next": "<full url>"}, ... }
 
-    Returns the flat list of release dicts across pages, optionally
-    truncated to `limit`.
+    Pagination uses `links.next`, which is a **full URL** with all query
+    params baked in (NOT a cursor string the caller composes). The
+    fetcher follows it verbatim until `links.next` is absent. Passing
+    `params=` to the next-page request would APPEND, doubling
+    parameters and breaking the cursor — so subsequent requests carry
+    no extra params.
+
+    Argument semantics:
+
+      `feed_url` — defaults to CONTRACTS_FINDER_OCDS_URL. Override for
+          tests + future Find-a-Tender migration.
+
+      `since` / `until` — translated to `publishedFrom` / `publishedTo`.
+          These scope by NOTICE PUBLICATION DATE, not award date.
+          Records may have award dates outside the window; that's
+          expected, the substrate adapter computes `governed_by_pa23`
+          from the award date itself.
+
+      `limit` — truncates the returned list AFTER assembly. The per-
+          request page size is fixed at CONTRACTS_FINDER_PAGE_LIMIT;
+          the fetcher just stops paginating once `len(out) >= limit`.
+
+      `stages` — defaults to "award" (the experiment cares about
+          awarded contracts). Other valid values per the API: "tender"
+          (notices), "implementation" (contracts), "planning".
+
+      `session` — requests.Session or test double for network control.
+
+    Returns the flat list of release dicts across all fetched pages,
+    optionally truncated to `limit`.
     """
 
     import requests  # local import — keeps this module importable without requests
 
     sess = session or requests.Session()
     out: list[dict[str, Any]] = []
-    cursor: str | None = None
 
-    while True:
-        params: dict[str, Any] = {}
-        if since:
-            params["since"] = since.isoformat()
-        if until:
-            params["until"] = until.isoformat()
-        if cursor:
-            params["cursor"] = cursor
+    # Initial request — caller-side params.
+    initial_params: dict[str, Any] = {
+        "stages": stages,
+        "limit": CONTRACTS_FINDER_PAGE_LIMIT,
+    }
+    if since:
+        initial_params["publishedFrom"] = since.isoformat()
+    if until:
+        initial_params["publishedTo"] = until.isoformat()
 
-        resp = sess.get(feed_url, params=params, timeout=30)
+    next_url: str | None = feed_url
+    is_initial = True
+
+    while next_url is not None:
+        if is_initial:
+            resp = sess.get(next_url, params=initial_params, timeout=30)
+            is_initial = False
+        else:
+            # links.next already encodes every query param — passing
+            # `params=` here would double-encode + break pagination.
+            resp = sess.get(next_url, timeout=30)
         resp.raise_for_status()
         payload = resp.json()
 
@@ -684,6 +735,6 @@ def fetch_ocds_records(
         if limit is not None and len(out) >= limit:
             return out[:limit]
 
-        cursor = (payload.get("links") or {}).get("next_cursor")
-        if not cursor:
-            return out
+        next_url = (payload.get("links") or {}).get("next")
+
+    return out
