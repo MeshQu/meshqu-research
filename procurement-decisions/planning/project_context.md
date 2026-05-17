@@ -106,14 +106,14 @@ All findings — from anomalies to drift cases to reproducibility numbers — ac
 
 ## Branch / commit conventions
 
-- Branch: `agentic-procurement-experiment/<phase>` if any code lands in the monorepo. Most of this experiment lives in a separate public repo (to be created when execution starts).
-- Task ID prefix (when execution starts): `APE-`.
+- The experiment lives in this repo (`meshqu-research`). The original `.harness/agentic-procurement-experiment/` in the `tradequ` monorepo is now a stub pointing here (extracted 2026-05-15 per revision brief 7, before predictions lock, so the pre-registration commit lives in a publicly auditable repo).
+- PR-per-piece-of-work, squash-merged to `main`. PRs to date: see `git log --oneline` and the `Recent Shipped Work` section of memory in the build environment.
+- No task-ID prefix in commit messages; conventional-commit `type(scope):` is the convention (e.g. `feat(runner): …`, `plan(decision-log): …`).
 
-## When to refer to this harness vs the main roadmap
+## When to refer to this harness vs the monorepo
 
-- **This harness**: anything related to running and publishing the experiment.
-- **`.harness/aarm-roadmap/`**: anything related to MeshQu's product capability roadmap. The experiment is read-only on that roadmap; it doesn't reshape it.
-- **`MESHQU_AARM_FEATURE_ANALYSIS.md`**: the underlying analysis the roadmap is built on.
+- **This harness** (`procurement-decisions/`): anything related to running and publishing this experiment — design, predictions, decision log, substrate adapter, runner, results, writeup.
+- **The `tradequ` monorepo**: the MeshQu product itself (API, console, demo, verifier, packages). The experiment is read-only on the product code — it consumes shipped primitives, doesn't reshape them.
 
 ## References
 
