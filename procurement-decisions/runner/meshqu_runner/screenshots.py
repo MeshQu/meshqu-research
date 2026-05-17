@@ -28,6 +28,15 @@ from urllib.parse import urlencode
 
 import requests
 
+# Capture the exception classes at module-load time so they stay bound
+# to the REAL classes even when tests monkey-patch `screenshots.requests`
+# with a fake module that doesn't expose `.exceptions`.
+from requests.exceptions import (  # noqa: E402
+    ConnectionError as _RequestsConnectionError,
+    ReadTimeout as _ReadTimeout,
+    RequestException as _RequestException,
+)
+
 from .audit import AnomalyEvent, AuditWriter
 from .config import RunnerConfig
 
@@ -162,20 +171,49 @@ class ScreenshotCapturer:
         out_path = self.config.screenshots_dir / filename
         out_path.parent.mkdir(parents=True, exist_ok=True)
 
+        # Single retry on transient network failure (ReadTimeout /
+        # ConnectionError). The first dry-run on staging saw a 1/7
+        # capture timeout against the Railway-hosted renderer —
+        # cold-start latency spikes are real but rarely repeat
+        # back-to-back, so one retry recovers them cheaply. Non-network
+        # failures (non-200, non-PNG body) are NOT retried — those are
+        # deterministic and re-running would just re-fail.
+        #
+        # Exception classes captured into local names at module load so
+        # they stay bound to the REAL classes when tests monkey-patch
+        # `scr.requests` with a fake module.
         start = time.monotonic()
-        try:
-            response = requests.get(
-                url,
-                auth=(self.config.grafana_user, self.config.grafana_password),
-                timeout=self.config.render_timeout_seconds,
-            )
-        except requests.RequestException as exc:
+        response = None
+        last_exc: _RequestException | None = None
+        for attempt in (1, 2):
+            try:
+                response = requests.get(
+                    url,
+                    auth=(self.config.grafana_user, self.config.grafana_password),
+                    timeout=self.config.render_timeout_seconds,
+                )
+                break  # success — exit retry loop
+            except (_ReadTimeout, _RequestsConnectionError) as exc:
+                last_exc = exc
+                if attempt == 2:
+                    break  # exhausted retries, fall through to failure log
+                # Else: try once more, no backoff (the first timeout
+                # already consumed render_timeout_seconds — by the time
+                # we re-issue, the renderer has likely warmed up).
+            except _RequestException as exc:
+                # Non-retryable network exception (DNS failure, malformed
+                # URL, etc.). Don't burn a retry on it.
+                last_exc = exc
+                break
+
+        if response is None:
             duration = time.monotonic() - start
+            assert last_exc is not None
             self._log_capture_failure(
                 run_phase=run_phase,
                 event=event,
-                summary=f"render request failed: {type(exc).__name__}",
-                detail=f"url={url} error={exc}",
+                summary=f"render request failed: {type(last_exc).__name__}",
+                detail=f"url={url} error={last_exc} attempts={attempt}",
                 status_code=None,
                 content_type=None,
             )
@@ -186,7 +224,7 @@ class ScreenshotCapturer:
                 duration_seconds=duration,
                 status_code=None,
                 content_type=None,
-                error=str(exc),
+                error=str(last_exc),
             )
 
         duration = time.monotonic() - start

@@ -243,8 +243,16 @@ def main() -> int:
     print()
 
     # RunnerConfig pulls Grafana env vars via from_env(); pin results_dir
-    # explicitly so screenshots/audit land under our run-specific tree.
+    # for the shared dashboards/ mirror but ROUTE the per-run artefacts
+    # (anomalies, checkpoints, screenshots) UNDER the run-specific
+    # directory via the audit_dir_override + screenshots_dir_override
+    # plumbing. This keeps every PNG + audit row co-located with the
+    # manifest + decision_traces for the same run — curation for the
+    # writeup becomes "copy from one run_dir/ tree", not an archaeology
+    # dig across results/audit/, results/observability/screenshots/, etc.
     os.environ["MESHQU_RUNNER_RESULTS_DIR"] = str(results_root)
+    os.environ["MESHQU_RUNNER_AUDIT_DIR"] = str(run_dir)
+    os.environ["MESHQU_RUNNER_SCREENSHOTS_DIR"] = str(run_dir / "screenshots")
     runner_config = RunnerConfig.from_env()
 
     audit = AuditWriter(run_dir, run_id)
@@ -363,10 +371,11 @@ def main() -> int:
         return 1
 
     print()
-    print(f"OK: {summary.records_with_receipt}/{len(records)} receipts in {run_dir}")
-    print(
-        f"    screenshots:   {runner_config.screenshots_dir}"
-    )
+    print(f"OK: {summary.records_with_receipt}/{len(records)} receipts")
+    print(f"    run_dir:     {run_dir}")
+    print(f"    screenshots: {runner_config.screenshots_dir}")
+    print(f"    anomalies:   {runner_config.audit_dir / 'anomalies.jsonl'}")
+    print(f"    checkpoints: {runner_config.audit_dir / 'checkpoints.jsonl'}")
     return 0
 
 

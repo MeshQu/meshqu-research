@@ -180,3 +180,67 @@ def test_capture_rejects_non_png_body(tmp_path: Path, monkeypatch) -> None:
     anomaly_line = (capturer.config.audit_dir / "anomalies.jsonl").read_text().splitlines()[0]
     parsed = json.loads(anomaly_line)
     assert "renderer pin drift" in parsed["detail"]
+
+
+def test_capture_retries_once_on_read_timeout_then_succeeds(tmp_path: Path, monkeypatch) -> None:
+    """First dry-run on staging saw a 1/7 capture timeout against the
+    Railway-hosted renderer. One retry recovers cold-start spikes cheaply."""
+    import meshqu_runner.screenshots as scr
+    import requests as real_requests
+
+    png_bytes = b"\x89PNG\r\n\x1a\n" + b"\x00" * 256
+
+    class _OkResp:
+        status_code = 200
+        headers = {"Content-Type": "image/png"}
+        content = png_bytes
+
+    class _FlakyRequests:
+        """Raises ReadTimeout on first call, succeeds on second."""
+
+        RequestException = real_requests.RequestException
+
+        def __init__(self):
+            self.call_count = 0
+
+        def get(self, *args, **kwargs):
+            self.call_count += 1
+            if self.call_count == 1:
+                raise real_requests.exceptions.ReadTimeout("renderer cold start")
+            return _OkResp()
+
+    flaky = _FlakyRequests()
+    monkeypatch.setattr(scr, "requests", flaky)
+
+    capturer = _make_capturer(tmp_path)
+    result = capturer.capture(run_phase="dry-run", event="checkpoint-002")
+    assert result.ok is True, f"Retry should have recovered; got error={result.error}"
+    assert flaky.call_count == 2  # exactly one retry, no more
+
+
+def test_capture_gives_up_after_one_retry_on_persistent_timeout(tmp_path: Path, monkeypatch) -> None:
+    """Bounded retry: two consecutive ReadTimeouts produce a logged
+    failure with attempts=2 in the detail."""
+    import meshqu_runner.screenshots as scr
+    import requests as real_requests
+
+    class _AlwaysTimeout:
+        RequestException = real_requests.RequestException
+
+        def __init__(self):
+            self.call_count = 0
+
+        def get(self, *args, **kwargs):
+            self.call_count += 1
+            raise real_requests.exceptions.ReadTimeout("persistent timeout")
+
+    flaky = _AlwaysTimeout()
+    monkeypatch.setattr(scr, "requests", flaky)
+
+    capturer = _make_capturer(tmp_path)
+    result = capturer.capture(run_phase="dry-run", event="run-start")
+    assert result.ok is False
+    assert flaky.call_count == 2  # initial + 1 retry, then give up
+    anomaly_line = (capturer.config.audit_dir / "anomalies.jsonl").read_text().splitlines()[0]
+    parsed = json.loads(anomaly_line)
+    assert "attempts=2" in parsed["detail"]
