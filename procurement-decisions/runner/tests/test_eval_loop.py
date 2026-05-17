@@ -177,6 +177,7 @@ def _make_config(
         run_dir=run_dir,
         meshqu_api_url="https://api.example.com/",
         meshqu_api_key="sk-test",
+        meshqu_tenant_id="243f19a5-4d4f-4070-9ec1-8170e8260e26",
         meshqu_tenant_label="experiment-procurement",
         agent_api_key="ai-test",
         substrate_adapter_version="0.1.0",

@@ -41,3 +41,9 @@ Thumbs.db
 # substantiates the writeup is added explicitly via `git add -f` as part
 # of the corpus publication commit.
 procurement-decisions/results/audit/*.jsonl
+
+# Eval-loop per-run artefacts (manifest, run_end, decision_traces.jsonl,
+# anomalies.jsonl, agent_outputs/, recovered_traces.jsonl). Same rule as
+# above — throwaway during smoke / dev; real-run artefacts get added
+# explicitly via `git add -f` as part of corpus publication.
+procurement-decisions/results/runs/

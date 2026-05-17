@@ -24,9 +24,18 @@ loop hits. It exists for three reasons:
    surface as `MeshQuClientError` with a `kind` enum. The eval loop's
    anomaly log can categorise without re-parsing exception messages.
 
-Auth model: API key in `Authorization: Bearer …` header. The MeshQu
-auth middleware resolves the tenant from the key, so we don't need to
-send an `x-tenant-id` header.
+Auth model: TWO headers, both required:
+  - `Authorization: Bearer <api_key>` — proves the caller holds a valid
+    key.
+  - `x-meshqu-tenant-id: <uuid>` — the tenant scope for this request.
+    The API rejects with 400 MISSING_TENANT_ID if absent
+    (apps/meshqu-api/src/middleware/tenant.ts), so the client takes the
+    tenant UUID at construction time and stamps it on every request.
+
+(The first smoke run hit MISSING_TENANT_ID on all three records under
+the earlier assumption that the API key alone scoped the request. The
+four-layer tenant isolation model in the monorepo's CLAUDE.md is real:
+the request header is one of those layers.)
 """
 
 from __future__ import annotations
@@ -182,6 +191,7 @@ class MeshQuClient:
         *,
         base_url: str,
         api_key: str,
+        tenant_id: str,
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
         session: requests.Session | None = None,
     ) -> None:
@@ -189,9 +199,12 @@ class MeshQuClient:
             raise ValueError("base_url must be non-empty")
         if not api_key:
             raise ValueError("api_key must be non-empty")
+        if not tenant_id:
+            raise ValueError("tenant_id must be non-empty")
         # Normalise: strip trailing slash so urljoin paths are predictable.
         self._base_url = base_url.rstrip("/")
         self._api_key = api_key
+        self._tenant_id = tenant_id
         self._timeout_seconds = timeout_seconds
         self._session = session or requests.Session()
 
@@ -221,6 +234,7 @@ class MeshQuClient:
 
         headers = {
             "Authorization": f"Bearer {self._api_key}",
+            "x-meshqu-tenant-id": self._tenant_id,
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
