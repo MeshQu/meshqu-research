@@ -28,6 +28,13 @@ AnomalyCategory = Literal[
     "db_write_failed",
     "screenshot_capture_failed",
     "dashboard_mirror_drift",
+    # Receipt landed at MeshQu but the local post-receipt write
+    # (sidecar / manifest patch / decision_traces row) failed. The
+    # remote receipt is durable; the local trace is missing. Recovery
+    # script: scan anomalies.jsonl for this category, fetch the
+    # cached receipt via the captured idempotency key, and replay the
+    # local writes.
+    "receipt_orphaned",
     "unexpected",
 ]
 
