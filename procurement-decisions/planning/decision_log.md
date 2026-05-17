@@ -5,6 +5,57 @@
 
 ---
 
+## 2026-05-17 — Foundation model locked: `gpt-5.4-2026-03-05` at temperature 0
+
+**Decision**: the experiment's single foundation model is **`gpt-5.4-2026-03-05`** (OpenAI), accessed via the standard chat-completions API at `temperature=0`. This is the lock the planning phase's pending-decision item ("Specific foundation model — deferred to build-phase kickoff") finally resolves. Model + version + temperature get recorded in each receipt's `fields.agent_model_id`, `fields.agent_model_version`, `fields.agent_temperature` so the receipt's integrity hash binds them.
+
+**Why this specific model**:
+
+- **Standard tier, general-purpose.** Not pro (overkill, no methodological gain for compliance review), not mini / nano (capability gap would understate the writeup's "representative foundation model" claim), not codex (code-specialised, wrong domain), not chat-tuned (different optimisation profile).
+- **Date-pinned.** `gpt-5.4-2026-03-05` is the dated GA variant, not the floating `gpt-5.4`. Reproducibility of the experiment in 6/12/24 months requires the exact version; floating model aliases drift silently.
+- **Honors `temperature=0`.** The design's reproducibility commitment requires per-token determinism where the API allows. Verified against the live OpenAI API on 2026-05-17 — accepts the parameter, returns deterministic-token output.
+- **Released 2026-03-05** — ~2.5 months proven at experiment time. Mature enough to be reliable, recent enough to be representative of what a procurement reviewer would actually use today.
+- **Quality probe.** A pre-lock compliance-review prompt returned: *"Concerning: a £500,000 UK public contract with no recorded competitive tendering raises a significant procurement compliance and value-for-money risk, unless there is a clearly documented lawful exemption (for example, urgency, sole supplier, or framework call-off) supported by an audit trail."* — references correct PA23 exemption categories unprompted; demonstrates domain knowledge sufficient for the experiment's compliance-review task.
+
+**Substrate-honesty note (cross-references `substrate.md`)**:
+
+The newest OpenAI model at experiment time, **`gpt-5.5-2026-04-23`** (released ~3 weeks before lock), **was rejected**. The OpenAI API rejects `temperature=0` on GPT-5.5 with: `"'temperature' does not support 0 with this model. Only the default (1) value is supported."` This is the OpenAI signal that 5.5 operates as a reasoning-style model under the hood — chain-of-thought is internal, deterministic-token output is no longer exposed.
+
+This crosses the experiment's design boundary. The single-model commitment in this experiment is explicitly for a single-pass implicit-reasoning model; reasoning-style models (5.5, the o-series) belong in **Follow-up B (the agent context gradient piece)** per the planning phase's split. Picking 5.5 here would confound the methodology by introducing explicit deliberation that isn't measured.
+
+The experiment therefore uses the **most recent model honoring the design's temperature commitment** — `gpt-5.4-2026-03-05`. The writeup's substrate-honesty subsection discloses this trade-off explicitly: state-of-the-art is moving toward reasoning-by-default; the experiment uses the most recent representative pre-reasoning standard model rather than retrofit the design to accommodate reasoning behaviour.
+
+**API quirks for the runner / substrate adapter to honour**:
+
+- Uses `max_completion_tokens` (NOT `max_tokens` — older API convention). Both `gpt-5.4` and `gpt-5.5` enforce this; only `gpt-4o`-era models still accept `max_tokens`.
+- `temperature: 0` accepted (verified).
+- Standard chat-completions endpoint at `https://api.openai.com/v1/chat/completions`.
+- `OPENAI_API_KEY` already provisioned in Doppler `shared/stg` (the monorepo console reuses it for the rule-summarise + rule-parse features at `apps/meshqu-console/src/app/api/rules/{parse,summarise}/route.ts`).
+- Inspect AI supports OpenAI via standard env var conventions.
+
+**Alternatives considered + rejected**:
+
+- **`gpt-5.5-2026-04-23`**: newest standard model. Rejected — forces `temperature=1`, methodologically inconsistent with the design's reproducibility commitment + crosses into reasoning-model territory reserved for Follow-up B.
+- **`gpt-5.5-pro-2026-04-23`** / **`gpt-5.4-pro-2026-03-04`**: pro tier. Rejected — overkill for compliance-review reasoning, additional cost without methodological gain, same reasoning-model concern applies to 5.5-pro.
+- **`gpt-5.4-mini-2026-03-17`** / **`gpt-5.4-nano-2026-03-17`**: smaller tiers. Rejected — the writeup's "representative foundation model" claim depends on a model that real reviewers would reach for, not the cheapest. Mini/nano's reasoning quality on nuanced PA23 cases wouldn't generalise.
+- **`gpt-5.3-chat-latest`**: chat-tuned. Rejected — "latest" is a moving target (bad for reproducibility), and the chat-tuning optimises for conversational behaviour rather than compliance-review focus.
+- **`gpt-5.3-codex`** / **`gpt-5.2-codex`**: code-specialised. Rejected — wrong domain.
+- **`o1` / `o3` / `o4` family**: reasoning models. Rejected — same reason as GPT-5.5; the experiment explicitly excludes reasoning-style models, reserved for Follow-up B.
+- **`gpt-4o-2024-11-20`**: would have been the fallback if no GPT-5 family member honoured `temperature=0`. Rejected as primary because GPT-5.4 is newer + more representative. Retained as the backstop pick if access-tier issues prevent GPT-5.4 use at run time.
+- **Anthropic Claude (Sonnet 4.6 / Opus 4.7)**: different provider. Rejected — single-provider single-model commitment per planning phase. Anthropic models are appropriately tested in **Follow-up B (agent context gradient)**, not this experiment. Cost difference at this experiment's scale (~$5-15 total) is not load-bearing.
+- **Google Gemini / Mistral / HF Inference**: same single-provider reason as above; explicit Inspect AI providers but not in scope.
+
+**Lock metadata**:
+
+- Locked at: 2026-05-17
+- Lock commit: `<filled after merge>`
+- Tag: `v0.2-model-locked` (to be applied post-merge)
+- Cross-reference: the planning phase's pending-decision item ("Specific foundation model: pick the model and pin the exact version at experiment time") is hereby resolved.
+
+**Reason**: per the planning phase's commitment, the specific foundation model decision was deferred to build-phase kickoff. Build phase is now active (experiment-procurement tenant bootstrapped, policy authored + ratified, runner harness in flight). The model decision is the last gating item before the substrate adapter + Inspect AI integration can begin. Locking now closes that gate. The chosen model honours every methodological commitment in the design (single-model, single-provider, single-version, single-temperature, pre-reasoning behaviour); the substrate-honesty disclosure handles the only trade-off (couldn't use the absolute-newest model because it crossed into reasoning territory).
+
+---
+
 ## 2026-05-16 — Revision brief 10 applied: execution capture and research notebook discipline
 
 **Decision**: brief 10 (deferred from planning into build phase, per the predictions-lock entry) is applied. The `procurement-decisions/results/` directory is scaffolded with seven README files documenting the discipline that governs everything the experiment produces during execution. Two complementary kinds of artefact: machine-readable telemetry (per-decision audit JSONL, anomaly events, checkpoint markers, dashboard JSON, signed receipt corpus) and human-readable interpretation (per-day notebook entries, discrete findings documents, curated screenshots). Both anchor to the same run via `run-manifest.json`. The writeup quotes from this directory; the writeup does not reconstruct.
