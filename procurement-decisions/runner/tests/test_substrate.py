@@ -567,3 +567,178 @@ class TestContractConformance:
         # Emitted keys must be a subset of contract keys (no rogue fields)
         rogue = emitted_keys - contract_field_keys
         assert not rogue, f"Adapter emitted fields not in the contract: {rogue}"
+
+
+# ---------------------------------------------------------------------------
+# Fetcher — Contracts Finder OCDS Search wire format
+# ---------------------------------------------------------------------------
+
+
+from datetime import date as _date  # noqa: E402  (deliberate test-local import)
+
+from meshqu_runner.substrate import (  # noqa: E402
+    CONTRACTS_FINDER_OCDS_URL,
+    CONTRACTS_FINDER_PAGE_LIMIT,
+    fetch_ocds_records,
+)
+
+
+class _StubResponse:
+    def __init__(self, payload, status: int = 200):
+        self._payload = payload
+        self.status_code = status
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise AssertionError(f"HTTP {self.status_code}")
+
+    def json(self):
+        return self._payload
+
+
+class _StubSession:
+    """Replays canned responses; records every GET call for assertion."""
+
+    def __init__(self, responses):
+        self._responses = list(responses)
+        self.calls = []
+
+    def get(self, url, params=None, timeout=None):
+        self.calls.append({"url": url, "params": params, "timeout": timeout})
+        if not self._responses:
+            raise AssertionError("stub session ran out of canned responses")
+        return self._responses.pop(0)
+
+
+class TestFetcherSinglePage:
+    def test_single_page_returns_releases_in_order(self):
+        session = _StubSession([
+            _StubResponse({"releases": [{"ocid": "a"}, {"ocid": "b"}], "links": {}}),
+        ])
+        out = fetch_ocds_records(
+            since=_date(2025, 8, 1),
+            until=_date(2025, 8, 15),
+            session=session,
+        )
+        assert [r["ocid"] for r in out] == ["a", "b"]
+
+    def test_initial_request_carries_correct_params(self):
+        session = _StubSession([_StubResponse({"releases": [], "links": {}})])
+        fetch_ocds_records(
+            since=_date(2025, 8, 1),
+            until=_date(2025, 8, 15),
+            session=session,
+        )
+        call = session.calls[0]
+        assert call["url"] == CONTRACTS_FINDER_OCDS_URL
+        assert call["params"]["stages"] == "award"
+        assert call["params"]["limit"] == CONTRACTS_FINDER_PAGE_LIMIT
+        assert call["params"]["publishedFrom"] == "2025-08-01"
+        assert call["params"]["publishedTo"] == "2025-08-15"
+
+    def test_default_feed_url_is_production(self):
+        session = _StubSession([_StubResponse({"releases": [], "links": {}})])
+        fetch_ocds_records(session=session)
+        assert session.calls[0]["url"] == CONTRACTS_FINDER_OCDS_URL
+
+
+class TestFetcherPagination:
+    def test_follows_links_next_until_absent(self):
+        session = _StubSession([
+            _StubResponse({
+                "releases": [{"ocid": "a"}],
+                "links": {"next": "https://example.com/page2"},
+            }),
+            _StubResponse({
+                "releases": [{"ocid": "b"}],
+                "links": {"next": "https://example.com/page3"},
+            }),
+            _StubResponse({"releases": [{"ocid": "c"}], "links": {}}),
+        ])
+        out = fetch_ocds_records(session=session)
+        assert [r["ocid"] for r in out] == ["a", "b", "c"]
+        assert len(session.calls) == 3
+
+    def test_next_url_followed_verbatim_without_params(self):
+        """Regression: passing params= to the next-page request would
+        double-encode and break the cursor token embedded in links.next."""
+        session = _StubSession([
+            _StubResponse({
+                "releases": [{"ocid": "a"}],
+                "links": {"next": "https://example.com/cursor=opaque"},
+            }),
+            _StubResponse({"releases": [], "links": {}}),
+        ])
+        fetch_ocds_records(
+            since=_date(2025, 8, 1),
+            until=_date(2025, 8, 15),
+            session=session,
+        )
+        # Initial request: params set
+        assert session.calls[0]["params"] is not None
+        # Page 2: NO params — the next URL already encodes everything
+        assert session.calls[1]["params"] is None
+        assert session.calls[1]["url"] == "https://example.com/cursor=opaque"
+
+
+class TestFetcherLimit:
+    def test_limit_stops_pagination_early(self):
+        session = _StubSession([
+            _StubResponse({
+                "releases": [{"ocid": "a"}, {"ocid": "b"}, {"ocid": "c"}],
+                "links": {"next": "https://example.com/page2"},
+            }),
+        ])
+        out = fetch_ocds_records(limit=2, session=session)
+        assert [r["ocid"] for r in out] == ["a", "b"]
+        assert len(session.calls) == 1  # didn't follow links.next
+
+    def test_limit_across_multiple_pages(self):
+        session = _StubSession([
+            _StubResponse({
+                "releases": [{"ocid": "a"}, {"ocid": "b"}],
+                "links": {"next": "https://example.com/page2"},
+            }),
+            _StubResponse({
+                "releases": [{"ocid": "c"}, {"ocid": "d"}],
+                "links": {"next": "https://example.com/page3"},  # not followed
+            }),
+        ])
+        out = fetch_ocds_records(limit=3, session=session)
+        assert [r["ocid"] for r in out] == ["a", "b", "c"]
+        assert len(session.calls) == 2
+
+    def test_no_limit_fetches_all_pages(self):
+        session = _StubSession([
+            _StubResponse({
+                "releases": [{"ocid": "a"}],
+                "links": {"next": "https://example.com/page2"},
+            }),
+            _StubResponse({"releases": [{"ocid": "b"}], "links": {}}),
+        ])
+        out = fetch_ocds_records(session=session)
+        assert len(out) == 2
+
+
+class TestFetcherStages:
+    def test_default_stage_is_award(self):
+        session = _StubSession([_StubResponse({"releases": [], "links": {}})])
+        fetch_ocds_records(session=session)
+        assert session.calls[0]["params"]["stages"] == "award"
+
+    def test_stages_override(self):
+        session = _StubSession([_StubResponse({"releases": [], "links": {}})])
+        fetch_ocds_records(stages="tender,award", session=session)
+        assert session.calls[0]["params"]["stages"] == "tender,award"
+
+
+class TestFetcherErrorHandling:
+    def test_http_error_propagates(self):
+        session = _StubSession([_StubResponse({"error": "x"}, status=500)])
+        with pytest.raises(AssertionError):
+            fetch_ocds_records(session=session)
+
+    def test_empty_response_returns_empty_list(self):
+        session = _StubSession([_StubResponse({"releases": [], "links": {}})])
+        out = fetch_ocds_records(session=session)
+        assert out == []
