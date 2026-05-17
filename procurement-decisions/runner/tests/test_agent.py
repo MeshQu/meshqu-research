@@ -404,9 +404,31 @@ class TestRetryBehaviour:
 
         resp = agent.evaluate("payload")
         assert resp.verdict == "ALLOW"
-        # Retry-After=5s → sleep is 5s ± 20% jitter
+        # Retry-After=5s is a MINIMUM. With positive-only jitter (+0..+20%)
+        # we expect 5s ≤ slept ≤ 6s — never below the server's floor.
         assert len(sleep.durations) == 1
-        assert 4.0 <= sleep.durations[0] <= 6.0
+        assert 5.0 <= sleep.durations[0] <= 6.0
+
+    def test_retry_after_never_sleeps_below_server_floor(self) -> None:
+        """Regression: ±20% jitter could undershoot Retry-After=5 to 4s,
+        violating the server's back-pressure guidance. Force jitter_fn
+        to return 0 (worst-case downward bias if signed jitter were
+        applied) and assert the sleep is still >= Retry-After."""
+        client = _StubClient()
+        client.completions.responses.append(_rate_limit_with_retry_after("5"))
+        client.completions.responses.append('{"verdict":"allow","reasoning":"x"}')
+        sleep = _CapturingSleep()
+        agent = Agent(
+            api_key="sk-test",
+            system_prompt="P",
+            client=client,
+            retry_max_attempts=3,
+            sleep_fn=sleep,
+            jitter_fn=lambda: 0.0,
+        )
+
+        agent.evaluate("payload")
+        assert sleep.durations == [5.0]  # no negative jitter applied
 
     def test_caps_retry_after_at_max_backoff(self) -> None:
         client = _StubClient()
@@ -425,8 +447,30 @@ class TestRetryBehaviour:
 
         agent.evaluate("payload")
         assert len(sleep.durations) == 1
-        # cap=10s, ±20% jitter → at most 12s
-        assert sleep.durations[0] <= 12.0
+        # cap=10s, positive-only jitter (+0..+20%) → 10s ≤ slept ≤ 12s
+        assert 10.0 <= sleep.durations[0] <= 12.0
+
+    def test_retries_carry_across_json_to_plain_text_fallback(self) -> None:
+        """Regression: a sequence like (429, 429, unsupported_param,
+        success) used to report retry_count=0 because the
+        unsupported_param fallback discarded the retries spent in
+        json_object mode. Must report retry_count=2."""
+        client = _StubClient()
+        # json_object mode: two transient 429s, then unsupported_param.
+        client.completions.responses.append(_RateLimitError("slow"))
+        client.completions.responses.append(_RateLimitError("slow"))
+        client.completions.responses.append(
+            _BadRequestError("response_format unsupported_parameter")
+        )
+        # plain_text mode: success on first attempt.
+        client.completions.responses.append('{"verdict":"allow","reasoning":"x"}')
+        sleep = _CapturingSleep()
+        agent = _make_agent(client, retry_max_attempts=3, sleep_fn=sleep)
+
+        resp = agent.evaluate("payload")
+        assert resp.parse_status == "ok"
+        assert resp.output_mode == "plain_text"
+        assert resp.retry_count == 2  # carry-over from json_object mode
 
     def test_retry_count_persists_through_parse_failure(self) -> None:
         """A successful HTTP call after retries that returns malformed
