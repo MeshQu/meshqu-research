@@ -36,7 +36,7 @@ The v2 editor surfaces this via the operator dropdown labelled "exists" ([apps/m
 **Snapshot bookkeeping (load-bearing for the audit trail + writeup)**:
 
 - **Pre-clarification snapshot** (referenced in smoke `smoke-0507305a-ed44-4882-b455-a720fee8e603`): `policy_snapshot_id = c6256a8e-55ae-41ba-a265-2d61211e0ca9`. The 3 smoke receipts under this snapshot stand as evidence of the pre-clarification behaviour. They are NOT discarded — they form the empirical record of why the clarification was made.
-- **Post-clarification snapshot**: TBD — recorded here once re-ratified in the staging console. Every receipt in the dry-run + full-run will bind to this snapshot; receipts under the pre-clarification snapshot are easily distinguishable by `policy_snapshot_id`.
+- **Post-clarification snapshot**: `policy_snapshot_id = cbf12348-6248-48f7-a06f-4e0304cc237e`. Re-ratified 2026-05-17 in the staging console with the `when: {field: 'conflict_of_interest_declaration', exists: true}` gate on PROC-004-COI. Verified by re-running the 3-record smoke (`smoke-d5787f81-18a8-448e-981a-a54398f0ab25`) — all 3 MeshQu verdicts matched the design spec (A=ALLOW, B=DENY, C=ALLOW); only PROC-001-S53 fires on B; PROC-004 silent across all 3 records (substrate omits the field → rule skipped, NA-reason recorded). Every dry-run + full-run receipt binds to THIS snapshot; pre-clarification receipts (the 3 from `smoke-0507305a-…`) are distinguishable by `policy_snapshot_id = c6256a8e-…`.
 
 **Out-of-scope edits explicitly NOT made**:
 
