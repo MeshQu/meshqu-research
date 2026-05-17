@@ -56,6 +56,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import time
 import uuid
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -265,6 +266,7 @@ def _build_decision_trace(
         "agent_output_mode": agent.output_mode,
         "agent_parse_status": agent.parse_status,
         "agent_latency_ms": agent.latency_ms,
+        "agent_retry_count": agent.retry_count,
         "substrate_summary": dict(substrate_summary),
     }
 
@@ -335,6 +337,13 @@ class EvalLoopConfig:
     agent_model_id: str = LOCKED_MODEL_ID
     agent_temperature: float = LOCKED_TEMPERATURE
     agent_max_completion_tokens: int = 500
+    # Polite pacing between records. 0 = no pause (use for dry-runs
+    # where you want fast iteration). 0.25s default is conservative
+    # enough that a 300-record run adds only 75s but keeps us well
+    # under OpenAI's typical paid-tier RPM caps. Independent of the
+    # agent's own retry-on-rate-limit; this is just back-pressure to
+    # avoid hitting that limit in the first place.
+    inter_request_pause_seconds: float = 0.25
 
 
 def run_eval_loop(
@@ -347,6 +356,7 @@ def run_eval_loop(
     meshqu_client: MeshQuClient | None = None,
     agent: Agent | None = None,
     on_after_record: Callable[[int, RecordOutcome], None] | None = None,
+    sleep_fn: Callable[[float], None] = time.sleep,
 ) -> RunSummary:
     """Drive the loop. Returns a RunSummary; also writes manifest +
     run_end + decision_traces.jsonl + agent-output sidecars as side
@@ -406,6 +416,11 @@ def run_eval_loop(
 
     try:
         for record_index, record in enumerate(records):
+            # Polite pacing: pause BEFORE each record except the first.
+            # Pausing before rather than after means a Ctrl-C between
+            # records doesn't incur a doomed sleep.
+            if record_index > 0 and config.inter_request_pause_seconds > 0:
+                sleep_fn(config.inter_request_pause_seconds)
             summary.records_attempted += 1
             outcome = _process_record(
                 record_index=record_index,
