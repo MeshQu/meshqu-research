@@ -168,13 +168,18 @@ class TestRunEnd:
             run_id="rid",
             status="completed",
             records_attempted=10,
-            records_with_receipt=8,
+            records_with_receipt=7,
             records_with_agent_parse_failure=1,
-            records_with_meshqu_error=1,
+            records_with_agent_call_error=1,
+            records_with_meshqu_error=0,
+            records_with_orphaned_receipt=1,
             policy_snapshot_id="snap-uuid",
         )
         write_run_end(run_dir, end)
         body = json.loads(run_end_path(run_dir).read_text())
         assert body["status"] == "completed"
         assert body["records_attempted"] == 10
+        assert body["records_with_receipt"] == 7
+        assert body["records_with_agent_call_error"] == 1
+        assert body["records_with_orphaned_receipt"] == 1
         assert body["policy_snapshot_id"] == "snap-uuid"

@@ -97,7 +97,15 @@ class RunEnd:
     records_attempted: int
     records_with_receipt: int
     records_with_agent_parse_failure: int
+    records_with_agent_call_error: int
     records_with_meshqu_error: int
+    # Receipt landed at MeshQu but a local post-receipt write
+    # (sidecar / manifest patch / trace) failed. Reconciliation path:
+    # rerun the same record with its idempotency key; MeshQu returns
+    # the cached receipt and the trace row lands. Documented separately
+    # from records_with_receipt so the writeup's headline counts stay
+    # honest (an orphaned-receipt record is NOT a successful one).
+    records_with_orphaned_receipt: int
     # Resolved at first successful receipt; persisted here for convenience
     # so post-run scripts don't need to open the manifest separately.
     policy_snapshot_id: str | None = None
@@ -275,7 +283,9 @@ def build_run_end(
     records_attempted: int,
     records_with_receipt: int,
     records_with_agent_parse_failure: int,
+    records_with_agent_call_error: int,
     records_with_meshqu_error: int,
+    records_with_orphaned_receipt: int,
     policy_snapshot_id: str | None,
     abort_reason: str | None = None,
 ) -> RunEnd:
@@ -288,7 +298,9 @@ def build_run_end(
         records_attempted=records_attempted,
         records_with_receipt=records_with_receipt,
         records_with_agent_parse_failure=records_with_agent_parse_failure,
+        records_with_agent_call_error=records_with_agent_call_error,
         records_with_meshqu_error=records_with_meshqu_error,
+        records_with_orphaned_receipt=records_with_orphaned_receipt,
         policy_snapshot_id=policy_snapshot_id,
         abort_reason=abort_reason,
     )

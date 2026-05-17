@@ -388,6 +388,9 @@ class TestReceiptAtomicity:
         anomaly = json.loads((run_dir / "anomalies.jsonl").read_text().splitlines()[0])
         assert anomaly["category"] == "agent_timeout"
         assert summary.records_with_agent_call_error == 1
+        # Regression: must persist into run_end.json (was previously dropped)
+        run_end = json.loads((run_dir / "run_end.json").read_text())
+        assert run_end["records_with_agent_call_error"] == 1
 
     def test_meshqu_error_skips_trace(
         self, tmp_path: Path, run_dir: Path
@@ -422,6 +425,74 @@ class TestReceiptAtomicity:
         anomaly = json.loads((run_dir / "anomalies.jsonl").read_text().splitlines()[0])
         assert anomaly["category"] == "db_write_failed"
         assert summary.records_with_meshqu_error == 1
+
+
+# ---------------------------------------------------------------------------
+# Orphaned-receipt path — receipt at MeshQu, local write fails
+# ---------------------------------------------------------------------------
+
+
+class _RaisingAuditWriter(AuditWriter):
+    """AuditWriter that raises on write_decision_trace — simulates a
+    local disk failure after the MeshQu receipt already landed.
+
+    Inherits write_anomaly behaviour so the eval loop can still record
+    the orphan event."""
+
+    def write_decision_trace(self, trace: dict) -> None:  # type: ignore[override]
+        raise OSError("disk full")
+
+
+class TestOrphanedReceipt:
+    def test_local_write_failure_after_receipt_emits_orphan_anomaly(
+        self, tmp_path: Path, run_dir: Path
+    ) -> None:
+        config = _make_config(run_dir, repo_dir=tmp_path)
+        audit = _RaisingAuditWriter(run_dir, config.run_id)
+        agent = _StubAgent(responses=[_agent_response_ok("ALLOW")])
+        meshqu = _StubMeshQuClient(responses=[_receipt("dec-orphan", "ALLOW")])
+        adapted = {
+            "r1": _StubAdaptedRecord(
+                ocid="ocds-orphan",
+                context={"decision_type": "x", "fields": {}},
+                substrate_notes={},
+            )
+        }
+
+        summary = run_eval_loop(
+            config=config,
+            records=[{"id": "r1"}],
+            substrate_callable=_make_adapter(adapted),
+            provenance_summary_callable=_empty_provenance_summary,
+            audit_writer=audit,
+            meshqu_client=meshqu,  # type: ignore[arg-type]
+            agent=agent,  # type: ignore[arg-type]
+        )
+
+        # MeshQu WAS called (orphan means receipt exists remotely)
+        assert len(meshqu.calls) == 1
+        # NOT counted as a successful receipt
+        assert summary.records_with_receipt == 0
+        assert summary.records_with_orphaned_receipt == 1
+        # Anomaly recorded with decision_id + idempotency_key for recovery
+        anomalies = [
+            json.loads(line)
+            for line in (run_dir / "anomalies.jsonl").read_text().splitlines()
+        ]
+        assert len(anomalies) == 1
+        anomaly = anomalies[0]
+        assert anomaly["category"] == "receipt_orphaned"
+        assert anomaly["severity"] == "error"
+        assert anomaly["context"]["decision_id"] == "dec-orphan"
+        assert anomaly["context"]["idempotency_key"]
+        # Outcome reports orphan + carries the decision_id so the test
+        # harness/recovery script can act on summary.outcomes too.
+        assert summary.outcomes[0].outcome == "orphaned_receipt"
+        assert summary.outcomes[0].decision_id == "dec-orphan"
+        # run_end persists the orphan counter
+        run_end = json.loads((run_dir / "run_end.json").read_text())
+        assert run_end["records_with_orphaned_receipt"] == 1
+        assert run_end["records_with_receipt"] == 0
 
 
 # ---------------------------------------------------------------------------

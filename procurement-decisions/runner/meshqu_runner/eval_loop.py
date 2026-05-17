@@ -16,8 +16,7 @@ For each record in the corpus:
 
     3. agent.evaluate(user_message) → AgentResponse
        - On parse failure: write anomaly, skip record. NO decision_traces
-         row, NO MeshQu call. (Per Brief #2 receipt-write atomicity:
-         either a complete row lands or no row at all.)
+         row, NO MeshQu call.
 
     4. inject_agent_fields(context, …agent outputs) → enriched context
 
@@ -26,10 +25,20 @@ For each record in the corpus:
        - Idempotency key = sha256("{run_id}/{ocid|record_index}")
          so a resume after partial-run never produces a duplicate row.
 
-    6. Write decision_traces.jsonl row (atomic — agent + MeshQu both ok)
-       Write agent-output sidecar at results/runs/<run_id>/agent_outputs/
-       <decision_id>.json so the writeup can quote reasoning verbatim
-       without bloating decision_traces rows.
+    6. Write decision_traces.jsonl row + agent-output sidecar at
+       results/runs/<run_id>/agent_outputs/<decision_id>.json so the
+       writeup can quote reasoning verbatim without bloating trace rows.
+
+       **Atomicity caveat**: the MeshQu receipt is already created
+       before step 6 runs. If any local write fails after the API call,
+       the remote receipt exists but the local trace row is missing —
+       this is NOT a fully atomic commit (cross-system 2PC isn't
+       available). The loop catches such failures and emits a
+       `receipt_orphaned` anomaly carrying the decision_id +
+       idempotency_key so a recovery script can fetch the cached
+       receipt and complete the local writes. The record is NOT
+       counted in `records_with_receipt` — orphans are counted
+       separately in `records_with_orphaned_receipt`.
 
     7. On the FIRST successful receipt, patch the run manifest with the
        resolved policy_snapshot_id.
@@ -105,7 +114,7 @@ class RecordOutcome:
 
     record_index: int
     ocid: str | None
-    outcome: str  # "receipt" | "skip_agent_parse" | "skip_agent_call" | "skip_meshqu"
+    outcome: str  # "receipt" | "skip_agent_parse" | "skip_agent_call" | "skip_meshqu" | "orphaned_receipt"
     detail: str = ""
     decision_id: str | None = None
     agent_verdict: str | None = None
@@ -124,6 +133,12 @@ class RunSummary:
     records_with_agent_parse_failure: int = 0
     records_with_agent_call_error: int = 0
     records_with_meshqu_error: int = 0
+    # Receipt landed at MeshQu but a local post-receipt write failed.
+    # NOT counted as a successful record — the local trace is missing.
+    # See AnomalyCategory `receipt_orphaned` for the reconciliation
+    # path. Surfaces into run_end.json so the writeup's headline
+    # counts stay honest.
+    records_with_orphaned_receipt: int = 0
     policy_snapshot_id: str | None = None
     outcomes: list[RecordOutcome] = field(default_factory=list)
 
@@ -423,7 +438,9 @@ def run_eval_loop(
                     records_attempted=summary.records_attempted,
                     records_with_receipt=summary.records_with_receipt,
                     records_with_agent_parse_failure=summary.records_with_agent_parse_failure,
+                    records_with_agent_call_error=summary.records_with_agent_call_error,
                     records_with_meshqu_error=summary.records_with_meshqu_error,
+                    records_with_orphaned_receipt=summary.records_with_orphaned_receipt,
                     policy_snapshot_id=summary.policy_snapshot_id,
                     abort_reason=abort_reason,
                 ),
@@ -439,7 +456,9 @@ def run_eval_loop(
             records_attempted=summary.records_attempted,
             records_with_receipt=summary.records_with_receipt,
             records_with_agent_parse_failure=summary.records_with_agent_parse_failure,
+            records_with_agent_call_error=summary.records_with_agent_call_error,
             records_with_meshqu_error=summary.records_with_meshqu_error,
+            records_with_orphaned_receipt=summary.records_with_orphaned_receipt,
             policy_snapshot_id=summary.policy_snapshot_id,
             abort_reason=abort_reason,
         ),
@@ -564,30 +583,79 @@ def _process_record(
             detail=str(err),
         )
 
-    # ----- Atomic commit: sidecar → manifest patch → decision_traces row -
+    # ----- Post-receipt local writes ------------------------------------
+    #
+    # NOTE on atomicity: the MeshQu receipt has already been created when
+    # we reach here. If any of the three local writes below (sidecar,
+    # manifest patch, decision_traces row) fails, the remote receipt
+    # still exists but the local trace is incomplete. This is NOT a
+    # fully atomic commit — true cross-system atomicity would require
+    # a 2-phase commit MeshQu does not offer.
+    #
+    # Mitigation: catch any failure, emit a `receipt_orphaned` anomaly
+    # carrying enough information (decision_id, idempotency_key) for a
+    # recovery script to fetch the cached receipt and complete the
+    # local writes. The record is NOT counted as a successful receipt.
 
-    _write_agent_output_sidecar(
-        run_dir=config.run_dir,
-        decision_id=receipt.decision_id,
-        agent=agent_response,
-        user_message=user_message,
-    )
+    try:
+        _write_agent_output_sidecar(
+            run_dir=config.run_dir,
+            decision_id=receipt.decision_id,
+            agent=agent_response,
+            user_message=user_message,
+        )
 
-    if summary.policy_snapshot_id is None:
-        # First successful receipt: pin the policy_snapshot_id into the
-        # manifest so reproducibility-rerun knows which snapshot to
-        # replay against.
-        update_manifest_policy_snapshot_id(config.run_dir, receipt.policy_snapshot_id)
-        summary.policy_snapshot_id = receipt.policy_snapshot_id
+        if summary.policy_snapshot_id is None:
+            # First successful receipt: pin the policy_snapshot_id into the
+            # manifest so reproducibility-rerun knows which snapshot to
+            # replay against.
+            update_manifest_policy_snapshot_id(config.run_dir, receipt.policy_snapshot_id)
+            summary.policy_snapshot_id = receipt.policy_snapshot_id
 
-    trace = _build_decision_trace(
-        record_index=record_index,
-        ocid=ocid,
-        receipt=receipt,
-        agent=agent_response,
-        substrate_summary=substrate_summary,
-    )
-    audit_writer.write_decision_trace(trace)
+        trace = _build_decision_trace(
+            record_index=record_index,
+            ocid=ocid,
+            receipt=receipt,
+            agent=agent_response,
+            substrate_summary=substrate_summary,
+        )
+        audit_writer.write_decision_trace(trace)
+    except Exception as err:  # noqa: BLE001 — must catch to record the orphan
+        audit_writer.write_anomaly(
+            AnomalyEvent(
+                run_id=config.run_id,
+                category="receipt_orphaned",
+                severity="error",
+                summary=(
+                    "MeshQu receipt landed but local post-receipt write failed; "
+                    "remote receipt exists, local trace is incomplete"
+                ),
+                detail=f"{type(err).__name__}: {err}",
+                context={
+                    "record_index": record_index,
+                    "ocid": ocid,
+                    "decision_id": receipt.decision_id,
+                    "policy_snapshot_id": receipt.policy_snapshot_id,
+                    "integrity_hash": receipt.integrity_hash,
+                    # Recovery script needs the idempotency_key to re-fetch
+                    # the cached receipt without creating a duplicate.
+                    "idempotency_key": _idempotency_key(
+                        config.run_id, record_index, ocid
+                    ),
+                },
+            )
+        )
+        summary.records_with_orphaned_receipt += 1
+        return RecordOutcome(
+            record_index=record_index,
+            ocid=ocid,
+            outcome="orphaned_receipt",
+            detail=f"{type(err).__name__}: {err}",
+            decision_id=receipt.decision_id,
+            agent_verdict=agent_response.verdict,
+            meshqu_verdict=receipt.decision,
+        )
+
     summary.records_with_receipt += 1
 
     return RecordOutcome(
