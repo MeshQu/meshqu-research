@@ -28,6 +28,8 @@ Required env vars:
    OPENAI_API_KEY                            (your OpenAI key)
    MESHQU_API_URL                            (staging URL)
    MESHQU_EXPERIMENT_PROCUREMENT_API_KEY     (tenant API key)
+   MESHQU_EXPERIMENT_PROCUREMENT_TENANT_ID   (tenant UUID — sent as
+                                              x-meshqu-tenant-id header)
 
 Optional:
    MESHQU_SMOKE_RUN_DIR                      (default: results/runs/smoke-<ts>/)
@@ -162,21 +164,24 @@ EXPECTED_MESHQU_VERDICTS = {
 # ---------------------------------------------------------------------------
 
 
-def _preflight() -> tuple[str, str, str]:
+def _preflight() -> tuple[str, str, str, str]:
     missing: list[str] = []
     openai_key = os.environ.get("OPENAI_API_KEY", "")
     meshqu_url = os.environ.get("MESHQU_API_URL", "")
     meshqu_key = os.environ.get("MESHQU_EXPERIMENT_PROCUREMENT_API_KEY", "")
+    meshqu_tenant_id = os.environ.get("MESHQU_EXPERIMENT_PROCUREMENT_TENANT_ID", "")
     if not openai_key:
         missing.append("OPENAI_API_KEY")
     if not meshqu_url:
         missing.append("MESHQU_API_URL")
     if not meshqu_key:
         missing.append("MESHQU_EXPERIMENT_PROCUREMENT_API_KEY")
+    if not meshqu_tenant_id:
+        missing.append("MESHQU_EXPERIMENT_PROCUREMENT_TENANT_ID")
     if missing:
         print(f"error: missing env vars: {', '.join(missing)}", file=sys.stderr)
         sys.exit(2)
-    return openai_key, meshqu_url, meshqu_key
+    return openai_key, meshqu_url, meshqu_key, meshqu_tenant_id
 
 
 def _print_outcome_table(summary) -> None:
@@ -213,7 +218,7 @@ def _print_outcome_table(summary) -> None:
 
 
 def main() -> int:
-    openai_key, meshqu_url, meshqu_key = _preflight()
+    openai_key, meshqu_url, meshqu_key, meshqu_tenant_id = _preflight()
 
     results_root = Path(
         os.environ.get(
@@ -238,6 +243,7 @@ def main() -> int:
         run_dir=run_dir,
         meshqu_api_url=meshqu_url,
         meshqu_api_key=meshqu_key,
+        meshqu_tenant_id=meshqu_tenant_id,
         meshqu_tenant_label="experiment-procurement",
         agent_api_key=openai_key,
         substrate_adapter_version=ADAPTER_VERSION,
@@ -265,7 +271,9 @@ def main() -> int:
         substrate_callable=ocds_to_decision_context,
         provenance_summary_callable=provenance_summary,
         audit_writer=audit,
-        meshqu_client=MeshQuClient(base_url=meshqu_url, api_key=meshqu_key),
+        meshqu_client=MeshQuClient(
+            base_url=meshqu_url, api_key=meshqu_key, tenant_id=meshqu_tenant_id
+        ),
         agent=Agent(api_key=openai_key, system_prompt=load_system_prompt()),
         on_after_record=_progress,
     )

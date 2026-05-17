@@ -111,10 +111,14 @@ SAMPLE_RECEIPT_PAYLOAD = {
 }
 
 
+TEST_TENANT_ID = "243f19a5-4d4f-4070-9ec1-8170e8260e26"
+
+
 def _make_client(session: _StubSession) -> MeshQuClient:
     return MeshQuClient(
         base_url="https://api.example.com/",
         api_key="key-test",
+        tenant_id=TEST_TENANT_ID,
         session=session,  # type: ignore[arg-type]
     )
 
@@ -201,7 +205,7 @@ class TestRecordDecisionHappyPath:
         client.record_decision(context={"decision_type": "x", "fields": {}})
         assert session.calls[0]["url"] == "https://api.example.com/v1/decisions/record"
 
-    def test_request_carries_bearer_and_correlation_id(self) -> None:
+    def test_request_carries_bearer_tenant_and_correlation_id(self) -> None:
         session = _StubSession()
         session.next_response = _StubResponse(status_code=200, body=SAMPLE_RECEIPT_PAYLOAD)
         client = _make_client(session)
@@ -211,8 +215,18 @@ class TestRecordDecisionHappyPath:
         )
         headers = session.calls[0]["headers"]
         assert headers["Authorization"] == "Bearer key-test"
+        # Regression for the first-smoke-run bug: tenant header MUST be sent.
+        # Without it, the API returns 400 MISSING_TENANT_ID.
+        assert headers["x-meshqu-tenant-id"] == TEST_TENANT_ID
         assert headers["Content-Type"] == "application/json"
         assert headers["x-correlation-id"] == "corr-xyz"
+
+    def test_tenant_header_sent_even_without_correlation_id(self) -> None:
+        session = _StubSession()
+        session.next_response = _StubResponse(status_code=200, body=SAMPLE_RECEIPT_PAYLOAD)
+        client = _make_client(session)
+        client.record_decision(context={"decision_type": "x", "fields": {}})
+        assert session.calls[0]["headers"]["x-meshqu-tenant-id"] == TEST_TENANT_ID
 
     def test_idempotency_key_serialised_into_body_options(self) -> None:
         session = _StubSession()
@@ -321,8 +335,12 @@ class TestRecordDecisionErrorClassification:
 class TestConstructorValidation:
     def test_rejects_empty_base_url(self) -> None:
         with pytest.raises(ValueError):
-            MeshQuClient(base_url="", api_key="k")
+            MeshQuClient(base_url="", api_key="k", tenant_id=TEST_TENANT_ID)
 
     def test_rejects_empty_api_key(self) -> None:
         with pytest.raises(ValueError):
-            MeshQuClient(base_url="https://x/", api_key="")
+            MeshQuClient(base_url="https://x/", api_key="", tenant_id=TEST_TENANT_ID)
+
+    def test_rejects_empty_tenant_id(self) -> None:
+        with pytest.raises(ValueError):
+            MeshQuClient(base_url="https://x/", api_key="k", tenant_id="")

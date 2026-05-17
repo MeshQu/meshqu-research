@@ -41,6 +41,7 @@ CLI:
 Env fallback for credentials:
     MESHQU_API_URL
     MESHQU_EXPERIMENT_PROCUREMENT_API_KEY
+    MESHQU_EXPERIMENT_PROCUREMENT_TENANT_ID  (tenant UUID)
 """
 
 from __future__ import annotations
@@ -408,6 +409,12 @@ def _parse_args(argv: Iterable[str]) -> argparse.Namespace:
         help="API key (default: env MESHQU_EXPERIMENT_PROCUREMENT_API_KEY)",
     )
     parser.add_argument(
+        "--tenant-id",
+        default=os.environ.get("MESHQU_EXPERIMENT_PROCUREMENT_TENANT_ID"),
+        help="Tenant UUID — sent as x-meshqu-tenant-id (default: env "
+        "MESHQU_EXPERIMENT_PROCUREMENT_TENANT_ID)",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Scan + report orphans without re-POSTing or writing files",
@@ -424,14 +431,17 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     client: MeshQuClient | None = None
     if not args.dry_run:
-        if not args.base_url or not args.api_key:
+        if not args.base_url or not args.api_key or not args.tenant_id:
             print(
-                "error: --base-url and --api-key required (or set MESHQU_API_URL "
-                "and MESHQU_EXPERIMENT_PROCUREMENT_API_KEY)",
+                "error: --base-url, --api-key, --tenant-id required (or set "
+                "MESHQU_API_URL, MESHQU_EXPERIMENT_PROCUREMENT_API_KEY, and "
+                "MESHQU_EXPERIMENT_PROCUREMENT_TENANT_ID)",
                 file=sys.stderr,
             )
             return 2
-        client = MeshQuClient(base_url=args.base_url, api_key=args.api_key)
+        client = MeshQuClient(
+            base_url=args.base_url, api_key=args.api_key, tenant_id=args.tenant_id
+        )
 
     summary = recover_orphans(run_dir=args.run_dir, client=client, dry_run=args.dry_run)
 

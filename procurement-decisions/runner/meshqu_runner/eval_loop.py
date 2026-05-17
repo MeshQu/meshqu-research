@@ -327,6 +327,11 @@ class EvalLoopConfig:
     run_dir: Path  # results/runs/<run_id>/ — manifest + sidecars live here
     meshqu_api_url: str
     meshqu_api_key: str
+    # Tenant UUID — sent as `x-meshqu-tenant-id` on every POST. The MeshQu
+    # API rejects requests without this header (400 MISSING_TENANT_ID)
+    # regardless of the API key. Distinct from `meshqu_tenant_label`, which
+    # is the human-readable slug captured in the manifest for the writeup.
+    meshqu_tenant_id: str
     meshqu_tenant_label: str
     agent_api_key: str
     substrate_adapter_version: str
@@ -391,6 +396,7 @@ def run_eval_loop(
         meshqu_client = MeshQuClient(
             base_url=config.meshqu_api_url,
             api_key=config.meshqu_api_key,
+            tenant_id=config.meshqu_tenant_id,
         )
 
     # Manifest goes down first — every later artefact references run_id.
