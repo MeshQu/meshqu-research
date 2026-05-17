@@ -48,8 +48,8 @@ The experiment therefore uses the **most recent model honoring the design's temp
 **Lock metadata**:
 
 - Locked at: 2026-05-17
-- Lock commit: `<filled after merge>`
-- Tag: `v0.2-model-locked` (to be applied post-merge)
+- Lock commit: `aefd65fb1ab0419e8b16c4d92b237b833f336d30` (PR #14)
+- Tag: `v0.2-model-locked`
 - Cross-reference: the planning phase's pending-decision item ("Specific foundation model: pick the model and pin the exact version at experiment time") is hereby resolved.
 
 **Reason**: per the planning phase's commitment, the specific foundation model decision was deferred to build-phase kickoff. Build phase is now active (experiment-procurement tenant bootstrapped, policy authored + ratified, runner harness in flight). The model decision is the last gating item before the substrate adapter + Inspect AI integration can begin. Locking now closes that gate. The chosen model honours every methodological commitment in the design (single-model, single-provider, single-version, single-temperature, pre-reasoning behaviour); the substrate-honesty disclosure handles the only trade-off (couldn't use the absolute-newest model because it crossed into reasoning territory).
