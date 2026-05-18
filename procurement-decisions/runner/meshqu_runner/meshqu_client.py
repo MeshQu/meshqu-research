@@ -41,10 +41,22 @@ the request header is one of those layers.)
 from __future__ import annotations
 
 import json
+import random
+import time
 from dataclasses import dataclass, field
-from typing import Any, Literal, Mapping
+from typing import Any, Callable, Literal, Mapping
 
 import requests
+
+# Capture the exception classes at module-load time so retry-loop except
+# clauses stay bound to the REAL classes even when tests monkey-patch
+# `meshqu_client.requests` with a fake module (mirrors the discipline
+# in screenshots.py).
+from requests.exceptions import (  # noqa: E402
+    ConnectionError as _RequestsConnectionError,
+    RequestException as _RequestException,
+    Timeout as _Timeout,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -56,6 +68,39 @@ DEFAULT_TIMEOUT_SECONDS = 30.0
 load. 30s is the generous outer bound — anything longer is a real
 server issue, not a transient slow path, and the eval loop should log
 it as an anomaly rather than wait."""
+
+
+# ---------------------------------------------------------------------------
+# Retry policy — bounded backoff for transient MeshQu errors
+# ---------------------------------------------------------------------------
+
+DEFAULT_RETRY_MAX_ATTEMPTS = 3
+"""3 attempts total: initial + 2 retries. Mirrors agent.py's discipline.
+Added 2026-05-18 after the first staging corpus-run attempt
+(`dry-run-5ac1e02c-…`) hit two TCP resets in the first 17 records,
+above the pre-run checklist's 5% kill threshold — see notebook
+`2026-05-18-aborted-run.md` + finding `004-meshqu-client-network-retry-gap.md`."""
+
+DEFAULT_RETRY_INITIAL_BACKOFF_SECONDS = 1.0
+DEFAULT_RETRY_MAX_BACKOFF_SECONDS = 30.0
+
+_RETRYABLE_KINDS: frozenset[str] = frozenset(
+    {"network", "timeout", "server_error", "rate_limit"}
+)
+"""Kinds the retry loop will retry. Network/timeout/server_error/rate_limit
+are typically transient (Railway worker recycling, keep-alive idle close,
+5xx blips, 429 backpressure). Notably absent:
+- `auth` (401/403) — credentials are deterministically wrong; retry
+  won't help and would waste tokens.
+- `client_error` (other 4xx) — deterministic request shape error
+  (e.g. the smoke's `MISSING_TENANT_ID` 400). Retry would re-fail.
+- `decode_error` / `shape_error` — server returned 2xx but a malformed
+  body. Retry won't make the body well-formed.
+
+Idempotency-key safety: the eval loop passes a deterministic key per
+record. A retry that arrives at MeshQu after the server already
+committed just returns the cached receipt — no double-charge, no
+duplicate row. This is load-bearing for the retry design."""
 
 CANONICAL_AGENT_FIELD_KEYS: tuple[str, ...] = (
     "agent_model_id",
@@ -104,6 +149,12 @@ class ReceiptSummary:
     transparency_anchor: dict[str, Any] | None
     violations: list[dict[str, Any]] = field(default_factory=list)
     raw_response: dict[str, Any] = field(default_factory=dict)
+    # Retries the client burned before getting this receipt (0 on the
+    # happy path). Surfaces into decision_traces.jsonl as
+    # `meshqu_retry_count` alongside `agent_retry_count`. Lets the
+    # writeup report "k MeshQu retries fired, 0 corpus losses" rather
+    # than "no transient errors observed".
+    retry_count: int = 0
 
 
 @dataclass
@@ -125,6 +176,11 @@ class MeshQuClientError(Exception):
     detail: str
     status_code: int | None = None
     response_body: str | None = None
+    # Retries the client burned before the error was raised (0 on the
+    # very first attempt). Mirrors `AgentCallError.retry_count` so the
+    # eval loop's anomaly context carries the same diagnostic field
+    # for both halves of the call sequence.
+    retry_count: int = 0
 
     def __str__(self) -> str:
         suffix = f" [HTTP {self.status_code}]" if self.status_code else ""
@@ -194,6 +250,11 @@ class MeshQuClient:
         tenant_id: str,
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
         session: requests.Session | None = None,
+        retry_max_attempts: int = DEFAULT_RETRY_MAX_ATTEMPTS,
+        retry_initial_backoff_seconds: float = DEFAULT_RETRY_INITIAL_BACKOFF_SECONDS,
+        retry_max_backoff_seconds: float = DEFAULT_RETRY_MAX_BACKOFF_SECONDS,
+        sleep_fn: Callable[[float], None] = time.sleep,
+        jitter_fn: Callable[[], float] = random.random,
     ) -> None:
         if not base_url:
             raise ValueError("base_url must be non-empty")
@@ -207,6 +268,11 @@ class MeshQuClient:
         self._tenant_id = tenant_id
         self._timeout_seconds = timeout_seconds
         self._session = session or requests.Session()
+        self._retry_max_attempts = retry_max_attempts
+        self._retry_initial_backoff_seconds = retry_initial_backoff_seconds
+        self._retry_max_backoff_seconds = retry_max_backoff_seconds
+        self._sleep_fn = sleep_fn
+        self._jitter_fn = jitter_fn
 
     # ------------------------------------------------------------------
 
@@ -241,58 +307,124 @@ class MeshQuClient:
         if correlation_id is not None:
             headers["x-correlation-id"] = correlation_id
 
-        try:
-            resp = self._session.post(
-                url,
-                data=json.dumps(body),
-                headers=headers,
-                timeout=self._timeout_seconds,
-            )
-        except requests.exceptions.Timeout as err:
-            raise MeshQuClientError(kind="timeout", detail=str(err)) from err
-        except requests.exceptions.ConnectionError as err:
-            raise MeshQuClientError(kind="network", detail=str(err)) from err
-        except requests.exceptions.RequestException as err:
-            raise MeshQuClientError(kind="network", detail=str(err)) from err
+        body_bytes = json.dumps(body)
+        resp, retries_used = self._call_with_retry(url, body_bytes, headers)
+        receipt = self._parse_response(resp)
+        receipt.retry_count = retries_used
+        return receipt
 
-        return self._parse_response(resp)
+    # ------------------------------------------------------------------
+
+    def _call_with_retry(
+        self,
+        url: str,
+        body_bytes: str,
+        headers: dict[str, str],
+    ) -> tuple[requests.Response, int]:
+        """Send POST with bounded retry on transient errors. Returns
+        (response, retry_count) on the first 2xx response. Raises
+        MeshQuClientError on terminal HTTP errors or exhausted retries.
+
+        Retry decisions:
+          - Network/timeout exceptions → retryable, loop
+          - 2xx → return for parsing
+          - 401/403 (auth) → terminal, raise
+          - 429 (rate_limit) → retryable; honor Retry-After header
+          - other 4xx (client_error) → terminal, raise
+          - 5xx (server_error) → retryable
+
+        Backoff: starts at `retry_initial_backoff_seconds`, doubles per
+        attempt, capped at `retry_max_backoff_seconds`. Exponential
+        backoff uses ±20% jitter. When honoring `Retry-After`, jitter
+        is positive-only — the header value is a minimum wait per
+        RFC 7231 §7.1.3; downward jitter would violate the server's
+        back-pressure guidance.
+
+        retry_count is stamped onto any raised MeshQuClientError so
+        the eval loop's anomaly log carries the diagnostic field even
+        on the give-up path."""
+
+        attempt = 0
+        retries_used = 0
+        backoff = self._retry_initial_backoff_seconds
+        last_error: MeshQuClientError | None = None
+
+        while attempt < self._retry_max_attempts:
+            attempt += 1
+            retry_after: float | None = None
+            classified: MeshQuClientError | None = None
+
+            try:
+                resp = self._session.post(
+                    url,
+                    data=body_bytes,
+                    headers=headers,
+                    timeout=self._timeout_seconds,
+                )
+            except _Timeout as err:
+                classified = MeshQuClientError(
+                    kind="timeout", detail=str(err), retry_count=retries_used
+                )
+            except (_RequestsConnectionError, _RequestException) as err:
+                classified = MeshQuClientError(
+                    kind="network", detail=str(err), retry_count=retries_used
+                )
+            else:
+                # Got a Response — classify by HTTP status.
+                status = resp.status_code
+                if 200 <= status < 300:
+                    return resp, retries_used
+                kind = _classify_http_status(status)
+                classified = MeshQuClientError(
+                    kind=kind,
+                    detail=f"HTTP {status}",
+                    status_code=status,
+                    response_body=_safe_truncate(resp.text),
+                    retry_count=retries_used,
+                )
+                if kind not in _RETRYABLE_KINDS:
+                    # auth / client_error — terminal. Stamp + raise.
+                    raise classified
+                if kind == "rate_limit":
+                    retry_after = _extract_retry_after_from_response(resp)
+
+            # We're in retryable territory. Decide whether to loop or give up.
+            assert classified is not None
+            assert classified.kind in _RETRYABLE_KINDS
+            last_error = classified
+
+            if attempt >= self._retry_max_attempts:
+                break
+
+            retries_used += 1
+
+            if retry_after is not None:
+                # Retry-After is a MINIMUM wait — positive-only jitter.
+                wait = min(retry_after, self._retry_max_backoff_seconds)
+                jitter = wait * 0.2 * self._jitter_fn()
+                self._sleep_fn(wait + jitter)
+            else:
+                # Exponential backoff with ±20% jitter (no server floor).
+                wait = min(backoff, self._retry_max_backoff_seconds)
+                jitter = wait * 0.2 * (self._jitter_fn() * 2 - 1)
+                self._sleep_fn(max(0.0, wait + jitter))
+            backoff *= 2
+
+        # Exhausted retries on a retryable kind.
+        assert last_error is not None
+        last_error.retry_count = retries_used
+        raise last_error
 
     # ------------------------------------------------------------------
 
     def _parse_response(self, resp: requests.Response) -> ReceiptSummary:
+        """Parse a 2xx Response into a ReceiptSummary. Status-code
+        classification has already been handled by `_call_with_retry`
+        — this method assumes a successful HTTP response and only
+        validates body decode + shape. Raises MeshQuClientError on
+        `decode_error` or `shape_error` (both terminal — retries
+        won't reshape a malformed response)."""
         status = resp.status_code
-
-        # Classify HTTP errors before attempting JSON decode. 4xx/5xx
-        # bodies may still be JSON (error envelopes) but they're not
-        # receipts — surface them as errors with the body attached.
-        if status == 401 or status == 403:
-            raise MeshQuClientError(
-                kind="auth",
-                detail=f"auth rejected (HTTP {status})",
-                status_code=status,
-                response_body=_safe_truncate(resp.text),
-            )
-        if status == 429:
-            raise MeshQuClientError(
-                kind="rate_limit",
-                detail="rate limited",
-                status_code=status,
-                response_body=_safe_truncate(resp.text),
-            )
-        if 400 <= status < 500:
-            raise MeshQuClientError(
-                kind="client_error",
-                detail=f"client error (HTTP {status})",
-                status_code=status,
-                response_body=_safe_truncate(resp.text),
-            )
-        if 500 <= status < 600:
-            raise MeshQuClientError(
-                kind="server_error",
-                detail=f"server error (HTTP {status})",
-                status_code=status,
-                response_body=_safe_truncate(resp.text),
-            )
 
         # 2xx — decode + extract.
         try:
@@ -396,3 +528,36 @@ def _safe_truncate(text: str, limit: int = 2048) -> str:
     if len(text) <= limit:
         return text
     return text[:limit] + f"...[truncated, {len(text) - limit} bytes omitted]"
+
+
+def _classify_http_status(
+    status: int,
+) -> Literal["auth", "rate_limit", "client_error", "server_error"]:
+    """Map an HTTP response status to a MeshQuClientError kind.
+    Used by `_call_with_retry` to decide retry-vs-terminal before
+    parsing the response body."""
+    if status == 401 or status == 403:
+        return "auth"
+    if status == 429:
+        return "rate_limit"
+    if 400 <= status < 500:
+        return "client_error"
+    return "server_error"  # 5xx
+
+
+def _extract_retry_after_from_response(resp: requests.Response) -> float | None:
+    """Best-effort `Retry-After` extraction from a requests.Response.
+
+    Honors the seconds form (e.g. `Retry-After: 5`); ignores HTTP-date
+    form (rare from MeshQu in practice). Returns None when absent or
+    unparseable — the caller falls back to exponential backoff."""
+    try:
+        value = resp.headers.get("Retry-After") or resp.headers.get("retry-after")
+    except (AttributeError, TypeError):
+        return None
+    if not value:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None

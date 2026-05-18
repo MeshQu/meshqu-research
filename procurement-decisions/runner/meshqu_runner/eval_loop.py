@@ -267,6 +267,7 @@ def _build_decision_trace(
         "agent_parse_status": agent.parse_status,
         "agent_latency_ms": agent.latency_ms,
         "agent_retry_count": agent.retry_count,
+        "meshqu_retry_count": receipt.retry_count,
         "substrate_summary": dict(substrate_summary),
     }
 

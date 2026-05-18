@@ -657,3 +657,40 @@ class TestInterRequestPause:
 
         trace = json.loads((run_dir / "decision_traces.jsonl").read_text().splitlines()[0])
         assert trace["agent_retry_count"] == 2
+
+    def test_meshqu_retry_count_persists_into_trace_row(
+        self, tmp_path: Path, run_dir: Path
+    ) -> None:
+        """Mirror of agent_retry_count: MeshQu retries (added 2026-05-18
+        after the aborted run surfaced the gap) must surface in the
+        trace row so the writeup can report 'k network resets absorbed,
+        0 corpus losses' rather than 'no errors observed'."""
+        config = _make_config(run_dir, repo_dir=tmp_path)
+        audit = AuditWriter(run_dir, config.run_id)
+        agent = _StubAgent(responses=[_agent_response_ok("ALLOW")])
+        # Bake retry_count=3 into the canned receipt.
+        receipt = _receipt("dec-mqu-rx", "ALLOW")
+        receipt.retry_count = 3
+        meshqu = _StubMeshQuClient(responses=[receipt])
+
+        adapted = {
+            "r1": _StubAdaptedRecord(
+                ocid="ocds-1",
+                context={"decision_type": "x", "fields": {}},
+                substrate_notes={},
+            )
+        }
+        run_eval_loop(
+            config=config,
+            records=[{"id": "r1"}],
+            substrate_callable=_make_adapter(adapted),
+            provenance_summary_callable=_empty_provenance_summary,
+            audit_writer=audit,
+            meshqu_client=meshqu,  # type: ignore[arg-type]
+            agent=agent,  # type: ignore[arg-type]
+        )
+
+        trace = json.loads((run_dir / "decision_traces.jsonl").read_text().splitlines()[0])
+        assert trace["meshqu_retry_count"] == 3
+        # Sanity: agent_retry_count still defaults to 0 on the happy path
+        assert trace["agent_retry_count"] == 0
