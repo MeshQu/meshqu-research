@@ -150,3 +150,29 @@ Sam pasted a screenshot of the staging-console analytics for the experiment-proc
 ### Open watching brief
 
 - **0 MeshQu REVIEW** is a structural property of how the policy is authored (binary "violation present? → DENY else ALLOW"). Some MeshQu policies (not this one) author REVIEW thresholds explicitly. Worth mentioning in the writeup that the asymmetry is a policy-design choice, not a platform limitation.
+
+---
+
+## Correction to the analytics-screenshot section above (mid-run)
+
+Earlier in this file, the "Zero MeshQu REVIEW verdicts in 176 evaluations" observation said:
+
+> "MeshQu's policy is binary — ALLOW or DENY based on whether any rule fires; there's no synthesized REVIEW outcome."
+
+That's wrong, or at least misleading. Sam pointed it out mid-run.
+
+**MeshQu the platform supports a REVIEW verdict.** What's true is that **this experiment's policies were authored as binary** — every rule's severity is `critical`, the policy doesn't include explicit REVIEW thresholds for borderline cases, and the evaluator's "any critical violation → DENY else ALLOW" reduction therefore produces ALLOW/DENY only. That's a policy-authorship choice in `experiment-procurement`'s policy `900996de-…`, not a platform property.
+
+**Why the distinction matters for the writeup**:
+
+- "MeshQu can only produce binary verdicts" would be a platform-limitation framing — and it would be false.
+- "These specific procurement policies were authored binary, while the agent's verdict space is three-state" is a **design-decision framing** — and it opens the actual interesting research question: **should some of the rules (e.g. PROC-001-S53 at 31-day delay vs 119-day delay) have had REVIEW thresholds for borderline cases?** A 31-day publication delay and a 119-day publication delay are both PROC-001-S53 DENYs under the current policy, but a reviewer might reasonably treat them very differently.
+- This is a stronger writeup hook than the original: the agent's REVIEW-by-default isn't necessarily over-cautious — it might be picking up gradient information the binary policy is throwing away. That reframes the P1 disagreement from "agent is wrong" to "agent is naming something the policy authoring chose not to encode."
+
+**Implications for the post-run notebook entry**:
+
+- The asymmetric-projection caveat still holds — naive `==` agreement is still wrong because the verdict spaces have different cardinalities. But the cause should be named correctly as policy-authoring choice, not platform behavior.
+- The P1 reframing question now has a third option alongside "precision-style" and "per-rule": **"what would the agreement projection look like if PROC-001-S53 had a REVIEW threshold at e.g. 60-90 days?"** That's a counterfactual analysis the writeup can run against the corpus (treating 30-60 days as a hypothetical REVIEW band, 60+ as DENY). The corpus is rich enough to support it.
+- F-future candidate: "The procurement policy was authored binary. Some PROC-001-S53 violations are 31 days late and some are 119 days late — both DENY under the current policy. The corpus suggests a policy redesign with REVIEW thresholds would change the agent/policy agreement story materially." Not a finding for THIS experiment (which uses the policy as-ratified) but a write-up hook + a follow-up-research candidate.
+
+The original observation up the file stays as-written for the audit trail. This entry is the correction.
