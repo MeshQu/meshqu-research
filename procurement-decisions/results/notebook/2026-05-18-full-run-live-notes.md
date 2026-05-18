@@ -12,7 +12,7 @@
 
 ## Pattern emerging: above-threshold + late publication + missing open-flag → triple critical, agent REVIEWs
 
-Two records pasted in real time during the run, same structural shape:
+Multiple records pasted in real time during the run, same structural shape. The agent consistently chooses REVIEW with `recommended_action` text that names the specific rule territories in plain English but does not escalate to DENY.
 
 ### Record 36 — £57M contract, 33-day delay
 
@@ -27,9 +27,9 @@ Two records pasted in real time during the run, same structural shape:
 - **Agent**: `REVIEW` with `recommended_action="Obtain procedure rationale and notice trail"`
 - **Rekor anchor**: `entry_uuid=108e9186e8c5677a25bce5f8d63511fc7f9ef20c50ec0299d8cce4dd9908545d04c9e7af27a35364`, `log_index=1566819550`
 
-**Why it matters for the writeup**:
-- First record (in our real-time view) where **PROC-002-AUTHORITY fires** — the £500k authority threshold is much harder to hit on the OCDS substrate's lower-value records, so seeing it on a £57M public contract is the rule working as designed.
-- The agent's `recommended_action` text **maps directly onto two of the three MeshQu violations**: "procedure rationale" → PROC-005, "notice trail" → PROC-001-S53. The agent **sees** the structural issues and **names** them — but still chooses REVIEW over DENY.
+**Why it matters**:
+- First record where **PROC-002-AUTHORITY fires** — the £500k authority threshold is much harder to hit on the OCDS substrate's lower-value records, so seeing it on a £57M public contract is the rule working as designed.
+- The agent's `recommended_action` text **maps directly onto two of the three MeshQu violations**: "procedure rationale" → PROC-005, "notice trail" → PROC-001-S53. Agent sees + names the structural issues but chooses REVIEW over DENY.
 
 ### Record 61 — £3.3M contract, 119-day delay
 
@@ -44,19 +44,109 @@ Two records pasted in real time during the run, same structural shape:
 - **Agent**: `REVIEW` with `recommended_action="Verify procedure basis and publication compliance"`
 - **Rekor anchor**: `entry_uuid=108e9186e8c5677a548c2425092f1447fe178b8cc97ef80ddf03121ad336a94c5aa165a131581179`, `log_index=1566824794`
 
-**Why it matters for the writeup**:
+**Why it matters**:
 - 119-day publication delay is **way past** the s.53 30-day window. Real-world record of a public contract whose details notice landed nearly 4 months late.
-- Same agent pattern as record 36: `REVIEW` verdict + a recommended_action that **names the specific rule territories** in plain English ("procedure basis" → PROC-005, "publication compliance" → PROC-001-S53). Two-record streak is the start of a pattern — flag for the writeup's drift framing (the agent reasons toward the right concerns but doesn't commit to a verdict that names them as violations).
+- Same agent verbal pattern as record 36 (verb + "procedure" + "publication"); two-record streak.
 
-## Cross-record observations (early-run, may shift as more records land)
+### Record 72 — £336k contract, 59-day delay (PROC-002 correctly silent)
 
-- **PROC-004-COI**: consistently NA on both records (`when: exists: true` gate working as designed; substrate honestly omits the field). This is yesterday's [F002 clarification](findings/002-proc-004-coi-absence-clarification.md) doing its job — without it both these records would have a fourth `PROC-004-COI` violation that adds nothing.
-- **PROC-006-MOD-CAP**: consistently NA on non-modification records. Working.
-- **Agent REVIEW-by-default pattern (suspected at 10-record dry-run scale)**: still holds at ~60-record scale. Agent is reasoning about specific compliance issues — not generic "needs review" — but never escalating to DENY. Watch how this holds across the full 300. P1 (agreement rate) and P6 (direct-award disagreement cluster) both have something to say about this if the pattern persists.
-- **Substrate behaviour**: `procurement_method_open_flag` is omitted in both records (consistent with the schema's `enum: ["true"]` shape — only emitted when method was open). This is the rule's by-design absence-fires logic working: when the field is absent + the `when` clause matches (above-threshold + no direct-award justification), PROC-005 fires.
+- **OCID**: `ocds-b5fd17-a044ca88-7d4c-451e-afe6-2f3247205efc`
+- **correlation_id**: `dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d/72`
+- **Timestamp**: 2026-05-18T10:46:08Z
+- **Substrate**: `contract_value=336,000`, `publication_delay_days=59`, `above_threshold=true`, `governed_by_pa23=true`, `procurement_method_open_flag` OMITTED, `direct_award_justification_present=false`, `supplier_id="GB-COH-02579852"` (real Companies House number — different ID scheme than records 36/61's `GB-CFS-*`)
+- **MeshQu**: DENY (4 evaluated, 2 NA). **Two** violations (not three — PROC-002 NA because £336k < £500k):
+  - PROC-001-S53 — `publication_delay_days=59` > 30
+  - PROC-005-OPEN-TENDER — `procurement_method_open_flag` missing
+- **Agent**: `REVIEW` with `recommended_action="Obtain procedure and publication justification"`
+- **Rekor anchor**: `entry_uuid=108e9186e8c5677aa9a68f8b4139b9089b70464f802f0420d2dcb5a23c0ee117240d96ba3900851a`, `log_index=1566827700`
+
+**Why it matters**:
+- **Contrast with records 36/61/85**: above-PA23-threshold but under-authority-threshold zone (£139k < `contract_value` < £500k). PROC-002-AUTHORITY correctly does NOT fire — the authority-threshold rule's specificity is working.
+- **Supplier ID scheme variety surfaced**: `GB-COH-02579852` is a real Companies House registration number (records 36/61 had `GB-CFS-*` which is Contracts Finder Supplier IDs). Both schemes flow through the substrate adapter without normalisation issues.
+
+### Record 81 — £32k contract, 29-day delay (below threshold; likely ALLOW — agent still REVIEWs)
+
+- **OCID**: `ocds-b5fd17-b50fe3af-421f-497c-b405-764d48ff89c0`
+- **correlation_id**: `dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d/81`
+- **Substrate**: `contract_value=32,754`, `publication_delay_days=29` (just inside the 30-day limit), `above_threshold=false` (under PA23 sub-central threshold), `governed_by_pa23=true`, `procurement_method_open_flag` OMITTED, `direct_award_justification_present=false`, `supplier_id="GB-COH-07183575"`
+- **MeshQu**: result not captured in real-time paste; from substrate values **inferred to be ALLOW** (PROC-001-S53 and PROC-005-OPEN-TENDER both have `when: above_threshold=true` so both NA on this below-threshold record). Verify post-run via `decision_traces.jsonl` line 81.
+- **Agent**: `REVIEW` with `recommended_action="Verify award procedure and justification record"`
+
+**Why it matters**:
+- **Strongest evidence yet of agent REVIEW-by-default**: this is the cleanest record we've seen — below-threshold, narrow-margin delay (29d, inside the 30d limit). MeshQu almost certainly ALLOWs. Agent still REVIEWs.
+- Agent's `recommended_action` mentions "award procedure" + "justification record" — but PROC-005-OPEN-TENDER is NA on this record (because `above_threshold=false`). **Agent is being cautious about issues the policy explicitly excludes for this record class**. Drift candidate for the writeup.
+
+### Record 85 — £2M contract, 33-day delay (near-duplicate of record 36 shape)
+
+- **OCID**: `ocds-b5fd17-8cac0fcb-4df1-46c1-8a06-9556a2646fbe`
+- **correlation_id**: `dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d/85`
+- **Timestamp**: 2026-05-18T10:47:30Z
+- **Substrate**: `contract_value=2,009,954`, `publication_delay_days=33` (same as record 36), `above_threshold=true`, `governed_by_pa23=true`, `procurement_method_open_flag` OMITTED, `direct_award_justification_present=false`, `supplier_id="GB-COH-144585"`
+- **MeshQu**: DENY (4 evaluated, 2 NA). Same three violations as records 36 + 61:
+  - PROC-001-S53 — `publication_delay_days=33` > 30
+  - PROC-002-AUTHORITY — `contract_value=£2M` > £500k
+  - PROC-005-OPEN-TENDER — `procurement_method_open_flag` missing
+- **Agent**: `REVIEW` with `recommended_action="Verify procedure basis and notice trail"`
+- **Rekor anchor**: `entry_uuid=108e9186e8c5677ac6abbf65d3f26bda715ac4233b6a0bf77375bc6b03fd08d0ad9ff2122e867736`, `log_index=1566830863`
+
+**Why it matters**:
+- **Near-identical shape to record 36** (same 33-day delay, same three violations, just lower contract value). Reproducibility-friendly: two different records, same substrate-driven verdict path. The writeup gets a clean "same-shape inputs → same-shape outputs" reproducibility example.
+- Agent's `recommended_action` is **structurally near-identical to record 36** ("rationale and notice trail" → "basis and notice trail"). The agent's verbal output is converging on a stable template across multi-violation records — interesting from an LLM-stability angle (P4 territory).
+
+## Cross-record observations (live; will be re-verified against full corpus)
+
+- **Agent REVIEW-by-default pattern**: 5 / 5 of the flagged records → agent REVIEW. Zero agent DENYs in our real-time view, even on records with severe violations (PROC-001-S53 119d, PROC-002 at £57M) and even on the below-threshold likely-ALLOW record 81. Holding strongly at ~85-record scale. If this holds at 300, it's the writeup's headline P1 + P6 finding.
+- **Agent verbal template**: `recommended_action` consistently uses [verb] + ["procedure" | "publication" | "notice trail" | "justification"]. Five records, five variants of the same template. Worth a stylometric note in the writeup's "reasoning is data" section.
+- **PROC-001-S53 firing distribution (so far)**: 33d (record 36), 33d (record 85), 59d (record 72), 119d (record 61). All real-world late publications, all detected. Substrate honesty win.
+- **PROC-002-AUTHORITY firing**: 3 / 4 above-threshold records (36, 61, 85 yes; 72 below £500k). Will need full-corpus distribution to say whether high-value records dominate the DENY column.
+- **PROC-004-COI**: consistently NA across every flagged record (`when: exists: true` gate working as designed). Yesterday's [F002 clarification](findings/002-proc-004-coi-absence-clarification.md) doing its job.
+- **PROC-006-MOD-CAP**: consistently NA on non-modification records. None of the flagged records are modifications.
+- **Substrate variety**: `GB-CFS-*` and `GB-COH-*` supplier ID schemes both flowing through the substrate adapter without normalisation issues. Different OCDS publishers; substrate stays honest about what it received.
 
 ## Open watching briefs (not findings yet)
 
-- **Will any record produce agent=DENY?** As of record 61, 0 / ~60 records have agent DENY. Hypothesis: the foundation model under temperature 0 is structurally cautious on compliance verdicts. Falsified if even one record produces agent DENY before the run ends.
-- **PROC-002-AUTHORITY firing rate**: 2/2 of the multi-violation records have it. What fraction of the full corpus exceeds £500k? Substrate provenance summary at run-end will tell.
-- **Multi-violation vs single-violation distribution**: how often does a record violate multiple rules vs just one? Worth a post-run breakdown for the writeup.
+- **Will any record produce agent=DENY before the run ends?** Five flagged, zero. Hypothesis: temperature-0 foundation model is structurally cautious on compliance verdicts. Falsified if any record produces agent DENY.
+- **PROC-002-AUTHORITY firing rate across full corpus**: 3/4 of flagged above-threshold records have it, but the flagged set is curated. Full distribution will tell us how much of the corpus is high-value.
+- **Multi-violation vs single-violation distribution**: 36/61/85 → triple, 72 → double, 81 → likely zero. Full breakdown needs the corpus.
+- **Verbal-template stability**: 5 records, 5 near-identical phrasings of `recommended_action`. Does it ever break the template? Worth checking against the full corpus for "Bears on P4" (LLM non-determinism band).
+
+---
+
+## ~T+5min into the run — in-app analytics screenshot (staging console)
+
+Sam pasted a screenshot of the staging-console analytics for the experiment-procurement tenant at ~176 evaluations. Confirms the patterns from the per-record entries above + adds aggregate-scale observations not visible record-by-record.
+
+### Headline numbers (decision-type `procurement_decision`, all-time-but-effectively-2026-05-18)
+
+- **Evaluations**: 176
+- **Pass rate**: 49% (Allow 86 / Review 0 / Deny 90)
+- **Failures by severity**: Critical 156, High 3, Medium 0, Low 0
+- **Total violations**: 159 (avg 1.77 per DENY record — matches our per-record observations of 2-3 violations per DENY)
+
+### Most triggered rules
+
+| Rule | Firings | % of evaluations | Severity |
+|---|---|---|---|
+| PROC-005-OPEN-TENDER | 80 | 50.3% | critical |
+| PROC-002-AUTHORITY | 44 | 27.7% | critical |
+| PROC-001-S53 | 32 | 20.1% | critical |
+| PROC-004-COI | 3 | 1.9% | **high** |
+
+### Observations the dashboard makes that record-by-record didn't
+
+- **Zero MeshQu REVIEW verdicts in 176 evaluations.** MeshQu's policy is binary — ALLOW or DENY based on whether any rule fires; there's no synthesized REVIEW outcome. Combined with the agent's REVIEW-by-default streak (5/5 in our flagged records → all REVIEW), this means **P1's agreement projection is asymmetric**: every time the agent picks REVIEW (which is most of the time), agreement = False against MeshQu's ALLOW-or-DENY binary. The writeup must treat agreement non-naively — `==` between three-state agent and two-state MeshQu loses signal. Possible reframings: (a) "did agent's REVIEW correctly flag a record MeshQu DENY'd?" (a precision-style metric), (b) per-rule comparison rather than verdict comparison, (c) ROC-style analysis treating agent REVIEW as a recall threshold. Decision deferred to post-run analysis session.
+- **PROC-005-OPEN-TENDER is the most-fired rule (50.3%).** Half of UK public-procurement records in this window aren't "open" tenders by default; substrate honestly omits the open flag and PROC-005's presence rule fires. Real-world finding about procurement-method distribution, not just an artifact.
+- **PROC-001-S53 fired on 32 / 176 records ≈ 18%.** Roughly one in five contracts in the corpus window missed the s.53 30-day publication window. This is the experimental rule's real-world hit rate — the writeup's headline number.
+- **PROC-004-COI fired 3 times.** This is EXACTLY the count from yesterday's pre-clarification smoke (`smoke-0507305a-…`, 3 records that all DENY'd on PROC-004 under the pre-clarification snapshot `c6256a8e-…`). After F002's clarification was applied (snapshot `cbf12348-…`), PROC-004 has fired **zero times in the 173 post-clarification records**. The dashboard is empirically confirming F002 is doing exactly what it was designed to do: the 3 historical firings are bound forever to the pre-clarification snapshot id; everything after is clean.
+- **Volume chart shape**: experiment-procurement tenant traffic is effectively zero before 2026-05-13 (the first phase-A receipts), small bumps on 2026-05-17 (yesterday's smoke + dry-runs), enormous spike on 2026-05-18 dominated by today's runs. The dashboard tells the truth about when this tenant became live.
+
+### Bears on (writeup)
+
+- **P1 (agreement rate)**: needs the asymmetric-projection caveat. Naive `==` comparison loses signal because of the verdict-cardinality mismatch.
+- **P2 (rule-firing distribution)**: PROC-005-OPEN-TENDER topping the chart and PROC-001-S53 at 18% is the substantive procurement-policy finding the writeup builds on.
+- **F002 promotion to `stable`**: the dashboard's PROC-004-COI=3 count is direct empirical confirmation that the post-clarification snapshot has zero spurious COI firings. After the corpus run completes, F002 can be promoted with this analytics screenshot as evidence.
+- **Section 6 (reasoning is data)**: the dashboard itself is an artifact — proves the receipt corpus is queryable in production-grade observability tools, not just JSONL. Reinforces "what an AI-assisted decision's audit trail actually looks like" framing.
+
+### Open watching brief
+
+- **0 MeshQu REVIEW** is a structural property of how the policy is authored (binary "violation present? → DENY else ALLOW"). Some MeshQu policies (not this one) author REVIEW thresholds explicitly. Worth mentioning in the writeup that the asymmetry is a policy-design choice, not a platform limitation.
