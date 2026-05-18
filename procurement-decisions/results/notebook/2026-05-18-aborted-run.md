@@ -84,3 +84,27 @@ Linked: `recovery_summary.json` in the aborted dir (orphans_total=0, recovered=0
 
 - **Section 7 (limitations / methodology in action)**: this aborted run is illustrative of why the pre-set thresholds matter. The decision to kill at 11.8% (early-window) rather than wait for the final rate to settle is exactly the kind of discipline pre-registration is supposed to enforce. The methodology says we honor the threshold *especially* when it's inconvenient.
 - **P5 (bundle round-trip)**: unaffected. Bundle endpoint verified live during preflight on a representative receipt.
+
+---
+
+## 12:10 — retry patch shipped (PR #30, `10f5475d`)
+
+Bounded retry added to `meshqu_client.py` mirroring `agent.py`'s `_call_with_retry` pattern from yesterday's PR #20. Same defaults (3 attempts, 1s→30s exponential, ±20% jitter / positive-only on `Retry-After`), same `_RETRYABLE_KINDS` discipline (`network`/`timeout`/`server_error`/`rate_limit` retryable; `auth`/`client_error`/`decode_error`/`shape_error` terminal).
+
+`retry_count` field added to both `ReceiptSummary` and `MeshQuClientError` — threaded into `decision_traces.jsonl` rows as `meshqu_retry_count` alongside the existing `agent_retry_count`. Eval loop unchanged otherwise.
+
+Critical design choice: MISSING_TENANT_ID-shape 400s are classified as `client_error` → terminal. A regression test pins this — the smoke's deterministic config bug fails fast on attempt 1 rather than burning the retry budget on three identical re-fails. If the corpus re-run hits a config issue, anomalies.jsonl surfaces it immediately + the operator can fix + restart, same protection the smoke had.
+
+202 tests pass (was 192; +9 retry-behavior on the client + 1 trace-integration test in the eval loop). Audit-runtime principle: agent.py was re-read from disk before mirroring the pattern (not from session memory of how I authored it yesterday).
+
+Linked: PR #30 `10f5475d`, F004 (still draft — promotion gated on the re-run confirming the keep-alive hypothesis).
+
+## Ready for re-run
+
+- Same OCDS window (`2024-12-01 → 2026-04-30`).
+- Same snapshot (`cbf12348-…`).
+- Same agent config (locked model, temperature 0, prompt sha256 unchanged).
+- Same dry-run script (`scripts/dry_run_eval_loop.py --limit 300`).
+- Fresh `run_id` — won't collide with the aborted run's traces.
+
+Post-run analysis question to answer: did retries absorb network resets cleanly (F004's hypothesis), or do they persist even with retry (escalate to Railway-side diagnosis)? `decision_traces.jsonl`'s new `meshqu_retry_count` column will show.
