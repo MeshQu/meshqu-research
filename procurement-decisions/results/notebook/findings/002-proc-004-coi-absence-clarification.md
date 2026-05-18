@@ -34,11 +34,16 @@ P2 (rule-firing distribution) needs a callout that PROC-004 is structurally NA a
 The 300-record corpus run (`dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d`, effective n=283 after OCDS dedup) produced **zero PROC-004-COI firings**. Confirmed by the in-app analytics dashboard (PROC-004-COI count = 3 across all-time tenant evaluations, which exactly matches the 3 pre-clarification smoke records under snapshot `c6256a8e-…`) and by direct query of the corpus:
 
 ```
-$ jq -r '.violations[]?' decision_traces.jsonl | sort | uniq -c
-     38 PROC-001-S53
-     43 PROC-002-AUTHORITY
-     78 PROC-005-OPEN-TENDER
+$ jq -s 'unique_by(.decision_id) | map(.violations // []) | add | sort \
+    | group_by(.) | map({rule: .[0], n: length})' decision_traces.jsonl
+[
+  { "rule": "PROC-001-S53",         "n": 54 },
+  { "rule": "PROC-002-AUTHORITY",   "n": 74 },
+  { "rule": "PROC-005-OPEN-TENDER", "n": 131 }
+]
 ```
+
+*[Numbers corrected 2026-05-18 during writeup cross-reference verification. The original `uniq -c` counts (38/43/78) recorded here had inherited from a mid-run dashboard read at ~T+5min (~176 evaluations); the deduped final-corpus counts (54/74/131) are computed via the jq above. The headline finding — PROC-004-COI fires zero times across all 283 post-clarification records — is unchanged and is the load-bearing claim of F002.]*
 
 PROC-004-COI is absent from the violation list across all 283 post-clarification decisions. The `when: {field: 'conflict_of_interest_declaration', exists: true}` gate fires NA on every OCDS-sourced record (because OCDS doesn't carry the field), exactly as designed.
 
