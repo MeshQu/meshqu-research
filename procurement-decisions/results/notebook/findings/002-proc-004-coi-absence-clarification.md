@@ -28,3 +28,18 @@ The clarification is methodologically defensible (not pre-registration goalpost-
 ## What this changes about the writeup
 
 P2 (rule-firing distribution) needs a callout that PROC-004 is structurally NA across this corpus, not absent because no record violated it. Section 7 (limitations) gets a paragraph on the substrate-policy alignment gap and how the smoke surfaced it before corpus collection. Methodology section can cite this as an example of the smoke/dry-run-then-corpus discipline working as designed — the predictions-lock principle requires the rules to be fixed in advance, but it does NOT require shipping known mis-wirings through to the corpus when the smoke catches them.
+
+## Full-scale empirical confirmation — 2026-05-18 corpus run (n=283 unique decisions)
+
+The 300-record corpus run (`dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d`, effective n=283 after OCDS dedup) produced **zero PROC-004-COI firings**. Confirmed by the in-app analytics dashboard (PROC-004-COI count = 3 across all-time tenant evaluations, which exactly matches the 3 pre-clarification smoke records under snapshot `c6256a8e-…`) and by direct query of the corpus:
+
+```
+$ jq -r '.violations[]?' decision_traces.jsonl | sort | uniq -c
+     38 PROC-001-S53
+     43 PROC-002-AUTHORITY
+     78 PROC-005-OPEN-TENDER
+```
+
+PROC-004-COI is absent from the violation list across all 283 post-clarification decisions. The `when: {field: 'conflict_of_interest_declaration', exists: true}` gate fires NA on every OCDS-sourced record (because OCDS doesn't carry the field), exactly as designed.
+
+The finding is empirically confirmed at full scale. The clarification has prevented 283 spurious DENYs in this single corpus alone; the proportion would scale linearly with any corpus drawn from this substrate.
