@@ -176,3 +176,57 @@ That's wrong, or at least misleading. Sam pointed it out mid-run.
 - F-future candidate: "The procurement policy was authored binary. Some PROC-001-S53 violations are 31 days late and some are 119 days late — both DENY under the current policy. The corpus suggests a policy redesign with REVIEW thresholds would change the agent/policy agreement story materially." Not a finding for THIS experiment (which uses the policy as-ratified) but a write-up hook + a follow-up-research candidate.
 
 The original observation up the file stays as-written for the audit trail. This entry is the correction.
+
+---
+
+## AARM Bundle A — the platform roadmap already names this gap
+
+Recording mid-run so the framing doesn't get lost.
+
+The verdict-cardinality asymmetry (agent: ALLOW/REVIEW/DENY; this experiment's policy: ALLOW/DENY) is **not a platform limitation and not a new finding the writeup discovers**. It's a gap MeshQu's product roadmap has already identified and planned for. The experiment provides **empirical support** for already-planned platform work, which is a stronger writeup story than "we found a gap":
+
+### What's planned: [Bundle A — Verdict v2](https://github.com/MeshQu/tradequ/blob/main/.harness/aarm-roadmap/bundles/BUNDLE-A-verdict-v2.md) (Q1–Q2 2027)
+
+Three candidates shipped together against a single receipt v3 envelope migration:
+
+- **[C1 — Classification](https://github.com/MeshQu/tradequ/blob/main/.harness/aarm-roadmap/candidates/C1-classification.md)** (Q3 2026, Tier 1, ships first). Adds a classification dimension on rules: `forbidden | context_deny | context_allow | context_defer`. **Complementary to severity** — severity says "how bad," classification says "what kind of rule." Decouples the two jobs severity currently does.
+- **[C2 — MODIFY](https://github.com/MeshQu/tradequ/blob/main/.harness/aarm-roadmap/candidates/C2-modify-verdict.md)** (Q1 2027). Adds a fifth verdict: "approve with transformed parameters" (e.g. a £57M procurement clamped to the authority-tier max). Receipt records both original and modified parameters, cryptographically bound.
+- **[C3 — DEFER vs STEP_UP](https://github.com/MeshQu/tradequ/blob/main/.harness/aarm-roadmap/candidates/C3-defer-stepup.md)** (Q1 2027). Splits the current REVIEW verdict into STEP_UP (decision shape is understood, needs elevated authority) and DEFER (decision can't be made yet, needs more context).
+
+### The writeup framing this unlocks
+
+The honest paragraph for the writeup:
+
+> "During the corpus run we observed an asymmetric verdict-space mismatch: the foundation model reasons in three states (ALLOW / REVIEW / DENY) plus a free-text recommended_action; the experiment policy was authored binary because all rules carry severity=critical and the current evaluator reduces critical → DENY. The platform roadmap already identifies this gap (AARM Bundle A — Verdict v2, planned Q1–Q2 2027) and plans a classification dimension plus MODIFY and DEFER/STEP_UP verdicts to address it. This corpus is a record of what binary-policy verdict projection looks like at scale across real-world procurement records; future corpora under Verdict v2 would be the comparator. The asymmetry is not an artifact of platform capability — MeshQu the platform supports REVIEW (and will support MODIFY / STEP_UP / DEFER) — but a function of how this specific policy was authored against the currently-shipped verdict primitive."
+
+That framing is stronger than the alternative ("we found a UX gap") for three reasons:
+
+1. **It's true.** The roadmap pre-dates the experiment. The gap was named conceptually before the corpus surfaced it empirically. Both halves of the argument deserve credit.
+2. **It connects to product strategy.** The writeup becomes a piece of evidence in a longer-running conversation about what audit-trail primitives need to evolve into. Not just "AI + rules disagree."
+3. **It generalises beyond procurement.** The "binary policies project away gradient information that AI systems naturally encode" point is independent of the s.53 publication-delay rule. A future researcher applying this methodology in a different domain (LC validation, AML, healthcare prior authorisation) would hit the same wall and the same Bundle A solution.
+
+### Counterfactual analysis the corpus enables
+
+The corpus is rich enough to support a re-projection without re-running: **"what would agreement have looked like if PROC-001-S53 had a REVIEW band at 31–60 days and DENY only at 60+ days?"** The pre-registration discipline stays intact (we don't retrospectively change PROC-001's authored thresholds for the headline finding) but the writeup gets to show:
+
+- Headline: agreement under the binary policy as-authored.
+- Counterfactual: agreement under a hypothetical 3-tier policy.
+- Difference between the two: an empirical estimate of how much of the "agent over-cautious" gap is actually "policy under-expressive."
+
+That's a concrete piece of supplementary analysis that turns the verdict-cardinality observation from a methodological caveat into a substantive finding.
+
+### What's NOT in Bundle A (and what we're shipping anyway)
+
+The standalone Tier-1 visibility fix — "show the live severity → verdict mapping under the severity picker in the v2 editor" — is **not part of Bundle A**. Bundle A fixes the underlying conceptual problem (verdicts and classification) but doesn't fix the "implicit mapping is invisible at edit time" UX problem standalone. Between now and Q3 2026 (when C1 ships) authors will keep making the same binary-by-accident mistake we did unless the visibility fix lands separately.
+
+Filed today as **F14** in the moderated UX test doc (tradequ PR #541, `docs/ux/policy-authoring-2026-05.md`). Half-day standalone PR; doesn't preempt Bundle A.
+
+### Memory hook for future sessions
+
+The writeup's "what we'd recommend the platform do differently" section should:
+
+1. Point to **Bundle A as the strategic answer** (already planned; this corpus is empirical support).
+2. Recommend **F14's Tier-1 visibility fix** as the tactical interim measure (ships independently; prevents the next binary-by-accident).
+3. Treat the **counterfactual re-projection** as supplementary analysis the methodology section can show.
+
+This framing also affects how F004 should be promoted post-run: F004 is a methodology finding (apparatus-gap caught + fixed); the verdict-cardinality observation is a product-design empirical finding that maps to an already-planned bundle. They're different in kind and should be filed accordingly when the corpus run is fully analysed.
