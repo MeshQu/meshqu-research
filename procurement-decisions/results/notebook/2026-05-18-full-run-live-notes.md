@@ -230,3 +230,23 @@ The writeup's "what we'd recommend the platform do differently" section should:
 3. Treat the **counterfactual re-projection** as supplementary analysis the methodology section can show.
 
 This framing also affects how F004 should be promoted post-run: F004 is a methodology finding (apparatus-gap caught + fixed); the verdict-cardinality observation is a product-design empirical finding that maps to an already-planned bundle. They're different in kind and should be filed accordingly when the corpus run is fully analysed.
+
+---
+
+## Post-run corpus shipment — corpus.tar landed + verified
+
+Post-run packaging delivered. All 283 unique bundles fetched from staging (with rate-limit pacing — staging tenant tier kicked in after ~60 fetches; backed off + paced at 2s for the remaining 223; all 223 recovered) and packed into a single tar at `procurement-decisions/results/corpus.tar`.
+
+| | |
+|---|---|
+| Archive size | 5.3 MB uncompressed (5,297,664 bytes) |
+| Entries | 285 (1 README + bundles/ dir + 283 bundle files) |
+| Bundle structure (each) | `receipt.json` + `policy_snapshot.json` + `trusted_keys.json` + `transparency_proof.json` + `bundle_manifest.json` + top-level `manifest` |
+| Validation | 283/283 bundles validated structurally (all carry the expected `files.receipt.json` + `files.bundle_manifest.json` + `files.policy_snapshot.json` keys) |
+| **SHA-256** | **`1b6192df6eb5d3c38738b6abc5cea82c92d99d53ae890308569a4c240c232be0`** |
+
+`results/corpus.tar` includes a `README.md` covering: run metadata, three verification paths (verify.meshqu.com / `@meshqu/verifier` CLI / independent Rekor lookup), and pointers back to the planning + notebook + findings docs.
+
+Manual bundle verification at verify.meshqu.com produced "Bundle Verified with Caveats" on both worked-example decision_ids (`7b6ead10-…` for the ALLOW agreement case, `ca19e737-…` for the £57M triple-violation DENY case) — screenshots committed under `results/observability/screenshots/`.
+
+**Item 1 from yesterday's pending-Sam-owned list is now closed.** All four remaining items (F002 promotion, OCDS-dupe investigation, counterfactual PROC-001-S53 REVIEW-band re-projection, writeup itself) stay open as separate sessions.
