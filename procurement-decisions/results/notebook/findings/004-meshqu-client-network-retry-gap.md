@@ -46,3 +46,15 @@ Promotion to `Status: stable` is gated on:
 1. The retry patch shipping in a fresh session (mirroring `agent.py`'s pattern).
 2. The corpus re-run completing with skip rate well below the 5% threshold AND no `meshqu record failed: network` anomalies that exhausted retries.
 3. If the keep-alive theory holds, a sentence-level confirmation in the post-rerun notebook entry that retries absorbed N reset events with no permanent skips.
+
+## Update — 2026-05-18 corpus run: patch landed, retries didn't fire
+
+The retry patch shipped in PR #30 (`10f5475d`). The follow-up corpus run (`dry-run-7ddf7274-…`, 300 records attempted, 0 anomalies, 0 errors, 0 orphans, 33m30s wall clock) completed cleanly. **Critically: zero retries fired** — `meshqu_retry_count` distribution across all 300 trace rows: `0` ×300. Zero `agent_retry_count > 0` either.
+
+This is **not strictly hypothesis-confirmation**. The retry safety-belt never had to flex because the underlying Railway connection-stability pattern didn't recur this run. The patch is still load-bearing — every future run that catches a Railway keep-alive blink will exercise it — but today's run doesn't prove retries absorb resets.
+
+Promotion to `Status: stable` is now gated on a **future run** where:
+- `meshqu_retry_count >= 1` on at least one trace row, AND
+- `records_with_meshqu_error = 0` AND `records_with_orphaned_receipt = 0`
+
+That conjunction is the empirical confirmation event. Until it lands, F004 stays `draft` with this update appended. Methodologically precise: we honour the discipline of pre-registered claims even when the claim is about our own platform's resilience.
