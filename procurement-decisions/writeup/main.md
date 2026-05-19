@@ -124,7 +124,7 @@ The Phase 0 and Phase 0.5 substrate spikes preceded predictions-lock. They estab
 
 Receipts were generated against a dedicated MeshQu tenant on the staging environment, signed with an Ed25519 key whose public half is published alongside the corpus. Verification is environment-independent — the bundle includes the public key needed to verify offline.
 
-The corpus is doubly load-bearing. It serves as the empirical evidence for the findings reported in §5, and it serves as production-scale evidence that MeshQu's infrastructure — signing, anchoring, bundling, verification — works reliably on real external data. Every receipt in the corpus was produced by the same code path that runs in MeshQu's production environment, signed by an Ed25519 key whose public half is registered in `verify.meshqu.com`'s source-code trust registry, and anchored to Sigstore Rekor at the moment of decision. Operational behaviour during the run was monitored via Grafana dashboards — screenshots in Appendix B include the run-start state, the mid-run decision-to-anchor flow, and the run-end state. A reader who wants to verify that MeshQu actually works end-to-end can download the corpus and verify it offline; the Grafana captures provide secondary evidence of how the infrastructure behaved at corpus scale during production.
+The corpus serves two purposes: it is the empirical evidence for §5's findings, and it is production-scale evidence that MeshQu's infrastructure — signing, anchoring, bundling, verification — works reliably on real external data. Every receipt in the corpus was produced by the same code path that runs in MeshQu's production environment, signed by an Ed25519 key whose public half is registered in `verify.meshqu.com`'s source-code trust registry, and anchored to Sigstore Rekor at the moment of decision. Operational behaviour during the run was monitored via Grafana dashboards — screenshots in Appendix B include the run-start state, the mid-run decision-to-anchor flow, and the run-end state. A reader who wants to verify that MeshQu actually works end-to-end can download the corpus and verify it offline; the Grafana captures provide secondary evidence of how the infrastructure behaved at corpus scale during production.
 
 ---
 
@@ -132,7 +132,7 @@ The corpus is doubly load-bearing. It serves as the empirical evidence for the f
 
 ### 5a · Volume and verdict distribution
 
-The corpus is 300 OCDS release events from the UK Contracts Finder feed, fetched over a publication window that straddles the Procurement Act 2023 commencement date. Each event was passed through the substrate adapter, the agent, and the MeshQu policy evaluator in sequence. The run completed in 33 minutes 30 seconds wall-clock with zero anomalies, zero orphaned receipts, and zero records skipped. After deduplication by OCID, the 300 release events represent **283 unique procurement records** — the OCDS feed publishes multiple releases per procurement when buyers update or amend a notice, and the substrate adapter passed every release through. MeshQu's idempotency cache returned the same signed receipt on duplicate posts, so server state is uncorrupted, and the 283-vs-300 distinction is documented in the substrate findings rather than hidden.
+The corpus is 300 OCDS release events from the UK Contracts Finder feed, fetched over a publication window that straddles the Procurement Act 2023 commencement date. Each event was passed through the substrate adapter, the agent, and the MeshQu policy evaluator in sequence. The run completed in 33 minutes 30 seconds wall-clock with zero anomalies, zero orphaned receipts, and zero records skipped. After OCID deduplication (detailed in §4), the corpus contains **283 unique procurement records**.
 
 [VISUAL: headline counters table — 300 attempted / 283 unique / 0 errors / 33m30s / ~5.3 MB corpus / SHA-256 `1b6192df…`]
 
@@ -146,7 +146,7 @@ Substrate provenance across the corpus is informative on its own. Of 2,830 subst
 
 ### 5b · Agent-vs-policy disagreement
 
-The pre-registered prediction was that the agent would lean ALLOW relative to MeshQu's DENYs — over-permissive by perhaps 15 to 25 percent of cases. The corpus shows the opposite shape. The agent does not lean ALLOW. The agent does not commit to DENY at all. The absence of DENY verdicts is not explained by an absence of problematic records — MeshQu produced 139 DENY outcomes across the same corpus, including 27 records with three concurrent critical violations. The agent reaches for REVIEW on 97.5% of records, including records that MeshQu finds clean and including records where MeshQu names three concrete rule violations. The prediction captured the wrong failure mode — disagreement did occur heavily, but its shape was non-commitment, not over-permissiveness. What the corpus actually shows is more interesting than the prediction set up for.
+The pre-registered prediction was that the agent would lean ALLOW relative to MeshQu's DENYs — over-permissive by perhaps 15 to 25 percent of cases. The corpus shows the opposite shape. The agent does not lean ALLOW. The agent does not commit to DENY at all. The absence of DENY verdicts is not explained by an absence of problematic records — MeshQu produced 139 DENY outcomes across the same corpus, including 27 records with three concurrent critical violations. The agent reaches for REVIEW on 97.5% of records, including records that MeshQu finds clean and including records where MeshQu names three concrete rule violations. The prediction anticipated the wrong failure mode. The corpus reveals a structural divergence rather than a simple error rate. What the corpus actually shows is more interesting than the prediction set up for.
 
 #### Worked example: a £57M record where the agent named every issue but did not commit to a verdict
 
@@ -203,7 +203,7 @@ Three counterfactual policies, each layered onto the same 283-decision corpus:
 | PROC-001-S53 and PROC-002 with REVIEW bands | 137 | 2 | 144 | 9 |
 | Above plus PROC-005 mapped to "needs more context" | 64 | 75 | 144 | 82 / 283 (29%) |
 
-The interesting jump is the last row. Demoting PROC-005 from a critical-by-default DENY to a "needs more context" REVIEW — which is the rule's actual semantic, since the missing flag is a question about the record rather than a finding against it — produces 75 new agreements between the agent's REVIEW and MeshQu's hypothetical REVIEW. **Agreement increases roughly elevenfold under the counterfactual.** The agent's caution is not generic noise. It correlates strongly with records the policy would have produced REVIEW for if the rules had been authored as a verdict gradient rather than a binary cliff edge.
+The pivotal shift occurs in the final counterfactual. Demoting PROC-005 from a critical-by-default DENY to a "needs more context" REVIEW — which is the rule's actual semantic, since the missing flag is a question about the record rather than a finding against it — produces 75 new agreements between the agent's REVIEW and MeshQu's hypothetical REVIEW. **Agreement increases roughly elevenfold under the counterfactual.** The agent's caution is not generic noise. It correlates strongly with records the policy would have produced REVIEW for if the rules had been authored as a verdict gradient rather than a binary cliff edge.
 
 This is a finding about policy authoring, not about agent capability. The agent's REVIEW class encodes information that a binary policy projects away. The next section examines the reasoning text directly.
 
@@ -300,6 +300,8 @@ Three experiments form a coherent progression rather than disconnected follow-up
 
 Passive reviewer → context-aware reviewer → governed investigative agent. Each experiment compounds on the same methodology infrastructure: substrate adapters, executable policy, replayable evaluation, signed receipts, independent verification.
 
+Experiment 3 is the third piece in an open-ended research programme; further work will follow as the methodology develops.
+
 The pattern — evidence incompleteness as a first-class governance state — generalises beyond procurement to AML, KYC, underwriting, and AI oversight; the methodology there is one substrate-adapter and one policy-authoring pass away.
 
 The harness is built around a substrate-adapter abstraction. Each of these extensions is a substrate-adapter implementation plus a domain-specific policy authoring pass — not a rebuild.
@@ -314,10 +316,10 @@ The harness is built around a substrate-adapter abstraction. Each of these exten
 |---|---|---|---|
 | P1 | Agent over-permissive vs MeshQu DENYs (15–25%) | Agent REVIEW-by-default (97.5%); 0 agent DENYs; naive agreement 7/283 = 2.5% | **Inverted** — disagreement shape was non-commitment, not over-permissiveness (§5b) |
 | P2 | Top-2 violation drivers account for >60% of MeshQu denials | PROC-005-OPEN-TENDER (131) + PROC-002-AUTHORITY (74) = 205 of 259 total critical violations across 139 DENYs (79%). Every DENY is driven by PROC-005, PROC-002, or both. | Confirmed |
-| P3 | ≥5% of agent reasoning narratives cite specific regulatory clauses; some fraction wrong | No specific clause/section/directive citations observed; agent's `recommended_action` consistently generic | **Refuted** — agent does not reach for citations at this temperature/prompt |
+| P3 | ≥5% of agent reasoning narratives cite specific regulatory clauses; some fraction wrong | No specific clause/section/directive citations observed; agent's `recommended_action` consistently generic | No citation behaviour observed under this model/prompt/temperature; prediction's premise unmet, alternate conditions untested |
 | P4 | Verdict non-determinism in 5–20% range across re-runs at temperature 0 | Untested — corpus is one run; reproducibility-rerun is a separate experiment | Deferred |
 | P5 | 100% of bundled receipts verify offline at `verify.meshqu.com` | Confirmed on sample (`7b6ead10-…`, `ca19e737-…`); see §8 + Appendix C | Confirmed |
-| P6 | Disagreement higher for direct-award procurements vs competitive | Corpus contained too few direct-award records to evaluate at meaningful sample size | Under-tested |
+| P6 | Disagreement higher for direct-award procurements vs competitive | Corpus contained too few direct-award records to evaluate at meaningful sample size | Substrate-limited — too few direct-award records to evaluate at meaningful sample size; prediction remains open for future runs against a substrate that produces a denser direct-award distribution |
 
 ### Appendix B — Curated Grafana captures from the production run
 
