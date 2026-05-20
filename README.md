@@ -8,11 +8,12 @@ This repository carries applied research on AI-assisted decision-making in regul
 
 ```
 meshqu-research/
-├── procurement-decisions/   # First worked application: AI-assisted UK procurement compliance review
-└── methodology/             # Reusable components shared across pieces
-    ├── substrate-adapter/   # Source-agnostic ingestion abstraction
-    ├── evaluation-pipeline/ # Inspect AI integration + receipt production
-    └── policy-authoring/    # Playbook for going from named regulatory frameworks to ratified MeshQu policy snapshots
+├── procurement-decisions/   # First worked application: AI-assisted UK procurement compliance review (MRP-2026-02)
+│   └── planning/            # Current home for methodology documentation (substrate, evaluation pipeline, policy authoring)
+└── methodology/             # Reusable methodology layer (scaffolded — population follows the second worked application)
+    ├── substrate-adapter/   # Source-agnostic ingestion abstraction (placeholder)
+    ├── evaluation-pipeline/ # Inspect AI integration + receipt production (placeholder)
+    └── policy-authoring/    # Playbook for going from named regulatory frameworks to ratified MeshQu policy snapshots (placeholder)
 ```
 
 ## What this repo is
@@ -25,7 +26,7 @@ A public, MIT- or Apache-2.0-licensed research surface. Each piece is published 
 - A long-form writeup published at `meshqu.com/research/<slug>/`.
 - An open repository (this one) carrying the harness, sample-selection criteria, system prompts, and the receipt corpus.
 
-The methodology is intentionally public. The components under `methodology/` are reusable. Client engagements applying this methodology to private data live in separate, client-specific repositories that import the methodology as a dependency. The techniques are auditable; the engagements are confidential.
+The methodology is intentionally public. For MRP-2026-02 it is documented in [`procurement-decisions/planning/`](procurement-decisions/planning/) — substrate adapter, evaluation pipeline, and policy authoring layers each written up alongside the experiment trail. The top-level [`methodology/`](methodology/) directory is scaffolded for the abstracted-and-reusable form of that methodology, extracted from per-piece planning trails as additional pieces provide anchor points to triangulate from. Client engagements applying this methodology to private data live in separate, client-specific repositories that import the methodology as a dependency. The techniques are auditable; the engagements are confidential.
 
 ## What this repo is NOT
 
