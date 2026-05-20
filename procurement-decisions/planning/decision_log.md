@@ -5,6 +5,55 @@
 
 ---
 
+## 2026-05-20 — MRP-2026-02 publication-discipline split + post-render fixes + methodology scaffold removed
+
+**Decision**: established a two-repo publication discipline for the procurement-decisions writeup (now MRP-2026-02), applied small post-render fixes to the publication source, selected the final title, and removed the speculative top-level `methodology/` scaffold.
+
+**Source-of-truth split**:
+
+- **Publication source**: `iko-tools/clients/meshqu/papers/2026-05-18-procurement-decisions.md` plus the rendered PDF artefact at `iko-tools/clients/meshqu/artefacts/2026-05-18-procurement-decisions.pdf`.
+- **Pre-publication working draft** `procurement-decisions/writeup/main.md` in this repo is **archival from the point of publication handoff (2026-05-18)** and does not receive post-publication edits.
+- **Predictions lock** is independent: tag `v0.1-predictions-locked` at commit `bd7a795` (2026-05-15), pre-dates the writeup itself.
+
+The full rule lives at `clients/meshqu/papers/SOURCES.md` in iko-tools.
+
+**Consequence**: PR #41 (`fix(writeup): apply queued editing-pass edits`) was closed unmerged on 2026-05-20 with a pointer to SOURCES.md. The editorial edits it applied to `writeup/main.md` were independently landed in the publication source in iko-tools as part of the same editorial pass.
+
+**Post-render fixes landed in the publication source** (iko-tools, not in this repo):
+
+- **§4 forward-reference to Appendix B operational captures** (iko-tools `077309b`) — single-sentence addition pointing readers from the §4 product-proof claim at the Grafana captures.
+- **Doc-engine running-header bug on References section** (iko-tools `8d6d604`) — References no longer inherits §9's running-header; bundled with a TOC-overflow-on-long-titles fix.
+- **Title + subtitle swap** (iko-tools `ce0176a`) — title candidate #4 from the queued-edits file picked: *"When AI hedges and policy commits — 300 signed procurement decisions and the anatomy of agent–policy disagreement"*. Replaces the working title *"300 AI procurement decisions, signed and verifiable"*.
+- **Doc-engine TOC slot guaranteed-width fix** (iko-tools `c829a39`) — collateral from the title swap; the longer new title required width-budget adjustments.
+- **Doc-engine research_publication mode v1** (iko-tools `b94dcf7`) — figure container model, TOC anchors with target-counter resolution, predictions_lock_commit + content_commit provenance fields.
+- **Cover-page provenance label** — now reads `predictions-lock bd7a795` instead of the ambiguous `commit bd7a795`. The hash is unchanged; the label correctly identifies it as the predictions-lock commit rather than the content commit.
+
+**Companion housekeeping in this repo**:
+
+- `README.md` `methodology/` framing softened to acknowledge the three subfolders were `.gitkeep`-only placeholders (PR #42, merged 2026-05-20).
+- `README.md` procurement-decisions status line updated from `planning + pre-registration` to `published as MRP-2026-02 (2026-05-18)` (this PR).
+- `README.md` licence line updated from `TBD — MIT or Apache-2.0. To be added before initial commit` to point at the actual MIT `LICENSE` file (this PR).
+- **Speculative top-level `methodology/` scaffold removed entirely** (this PR). The folder existed only as three `.gitkeep`-anchored placeholders (`substrate-adapter/`, `evaluation-pipeline/`, `policy-authoring/`) never populated. Carrying it pinned the repo to a speculative folder shape decided before any worked application existed; the actual shape of a reusable methodology layer is better designed against extraction needs once a second worked application provides a second anchor point. `README.md` updated to future-tense framing: *"The abstracted-and-reusable form will be extracted to a top-level `methodology/` directory once a second worked application provides a second anchor point to triangulate the abstraction from."*
+- `procurement-decisions/README.md` "What gets published" list updated — item 3 "Methodology layer at .../methodology/" removed; the methodology trail is published as part of the open-repo item (item 2) under `procurement-decisions/planning/`.
+
+**Out of scope but flagged**: three planning artefacts still reference the old top-level `methodology/` path as planned future state: `procurement-decisions/planning/project_context.md`, `procurement-decisions/planning/experiment_design.md`, `procurement-decisions/planning/writeup_outline.md`. These are historical planning-time documents; their references describe the plan as it stood at planning time. Updating them retroactively conflicts with the planning-artefact convention. The `## 2026-05-15 — Repo structure separates procurement-decisions/ from methodology/` entry below stays as the original decision; this entry supersedes it.
+
+**Why this is a defensible repo change (not a retreat from the methodology goal)**: the reusable methodology layer remains an intended deliverable. What this entry records is that creating its folder structure speculatively — before any second worked application has informed the abstraction's shape — was premature. The abstraction is better designed against actual extraction needs. The README states this explicitly in future-tense; the folder will exist when there's something honest to put in it.
+
+**Scope discipline**: this entry records the publication-discipline decisions and their consequences for this repo. The actual writeup edits and the renderer-engine work live in iko-tools.
+
+**What's next**:
+
+1. ~~Iko-tools publication ladder lands (MRP-2026-01 + MRP-2026-02 + engine support + SOURCES.md).~~ done 2026-05-20.
+2. ~~PR #41 closed unmerged with pointer to SOURCES.md.~~ done 2026-05-20.
+3. ~~README softening + status/licence/methodology-removal updates.~~ done 2026-05-20 (PR #42 + this PR).
+4. Documentation chain verification (top-level paths, §8 reproduce instructions, verify.meshqu.com round-trip against the current corpus SHA) — separate session.
+5. Reader-review preparation (brief, candidates list, distribution mechanism) — separate session.
+6. Independent reader review.
+7. Publication operations (where the PDF lives publicly, launch surface, v1.1 trigger criteria) — separate session.
+
+---
+
 ## 2026-05-17 — Post-smoke policy clarification: gate PROC-004-COI behind `exists`
 
 **Decision**: PROC-004-COI is amended in the ratified policy (`experiment-procurement` tenant) to add a `when` clause requiring `conflict_of_interest_declaration` to be present before the rule evaluates. This brings the rule's behaviour into line with its authorial intent (already documented in `runner/contracts/decision_context.schema.json`) without changing what the rule tests when the field IS present. A new policy snapshot is produced; the original snapshot is preserved for audit completeness.

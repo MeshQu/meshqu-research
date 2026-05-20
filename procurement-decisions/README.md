@@ -40,13 +40,12 @@ The planning harness contains everything needed to understand and audit the expe
 In order of importance:
 
 1. **Blog post** at `meshqu.com/research/procurement-decisions/`.
-2. **Open repo** at `github.com/meshqu/meshqu-research/procurement-decisions/`.
-3. **Methodology layer** at `github.com/meshqu/meshqu-research/methodology/` — substrate adapter, evaluation pipeline (Inspect AI integration), policy authoring playbook.
-4. **Receipt corpus** as a downloadable bundle (tar) at `meshqu.com/research/procurement-decisions/corpus.tar`. Reader drops it into verify.meshqu.com.
-5. **Policy snapshot JSON** alongside the corpus.
-6. **Pre-registration commit hash + timestamp** linked from the writeup — points at the locked-predictions commit in this repo.
-7. **Raw agent outputs** so readers can audit the LLM's reasoning.
-8. **Grafana screenshots** in `results/observability/` documenting operational behaviour during the run.
+2. **Open repo** at `github.com/meshqu/meshqu-research/procurement-decisions/` — includes the methodology trail (substrate adapter, evaluation pipeline, policy authoring) under `planning/`.
+3. **Receipt corpus** as a downloadable bundle (tar) at `meshqu.com/research/procurement-decisions/corpus.tar`. Reader drops it into verify.meshqu.com.
+4. **Policy snapshot JSON** alongside the corpus.
+5. **Pre-registration commit hash + timestamp** linked from the writeup — points at the locked-predictions commit in this repo.
+6. **Raw agent outputs** so readers can audit the LLM's reasoning.
+7. **Grafana screenshots** in `results/observability/` documenting operational behaviour during the run.
 
 ## How to read this
 
