@@ -1,0 +1,50 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 1960,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1246,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"This is an above-threshold PCR 2015 award worth \u00a35,626,967.50, published 44 days after the award date proxy, which may raise publication-timing concerns. The record is also insufficient to verify debarment screening and conflict-of-interest disclosure, while the open procedure itself appears documented.\",\"recommended_action\":\"Check publication timing and governance evidence\"}",
+    "reasoning": "This is an above-threshold PCR 2015 award worth \u00a35,626,967.50, published 44 days after the award date proxy, which may raise publication-timing concerns. The record is also insufficient to verify debarment screening and conflict-of-interest disclosure, while the open procedure itself appears documented.",
+    "reasoning_sha256": "5d6137aed9fa4516dcd34fe3638918d473a13671d39dd972ef6919f27d691859",
+    "recommended_action": "Check publication timing and governance evidence",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"5d6137aed9fa4516dcd34fe3638918d473a13671d39dd972ef6919f27d691859\",\"agent_recommended_action\":\"Check publication timing and governance evidence\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":5626967.5,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L2\",\"governed_by_pa23\":\"false\",\"is_modification\":\"false\",\"procurement_method_open_flag\":\"true\",\"publication_delay_days\":44,\"supplier_id\":\"GB-CFS-269894\"}",
+  "decision_id": "5e664c4c-22f6-43e7-8f6c-01e07297583a",
+  "governance_context_level": "L2",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-54ed0ae6-683f-49ce-b863-aebbeed7d634",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "5e664c4c-22f6-43e7-8f6c-01e07297583a",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "8e7755457e4d30edd2bdeac0c7a650fc0034246c54577ee3041162ed8acde85b",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "0a_EZEsMdkoUus1E2P6G2qkJAxrs1MrJI0q7gVfjYdaoF8Dhc3H89PAbDvmQ9VEOp3_SCeZMPxRHwty4Lj6QCQ",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-21T18:21:47.113Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 5626967.5,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 5626967.5 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 23,
+  "timestamp": "2026-05-21T18:21:47+00:00"
+}
