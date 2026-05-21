@@ -29,7 +29,8 @@ Modules:
   already carries its own `## Rules in force` header).
 - `level_l3` — E2-004. Deterministic kNN precedent selector + Stage A
   template renderer. Reads from the frozen E1 archive only.
-- `level_l4` — E2-005. (Future.)
+- `level_l4` — E2-005. Full policy envelope + cache-preservation
+  placement via the `compose_full_message` hook on the L4 handler.
 - `level_l4_permuted` — E2-006. (Future.)
 """
 from __future__ import annotations
@@ -43,7 +44,19 @@ from .stage_a import (
     looks_like_todo_stub,
 )
 
+# E2-005 — L4 policy envelope.
+from .level_l4 import (
+    L4PolicyEnvelopeHandler,
+    StageAEnvelopeError,
+    build_l4_handler,
+    load_policy_snapshot,
+    render_l4_envelope,
+    render_policy_block,
+    sha256_rendered_envelope,
+)
+
 __all__ = [
+    # E2-003
     "L1ContextHandler",
     "L2ContextHandler",
     "StageAContentError",
@@ -51,4 +64,12 @@ __all__ = [
     "build_l1_addendum",
     "build_l2_addendum",
     "looks_like_todo_stub",
+    # E2-005
+    "L4PolicyEnvelopeHandler",
+    "StageAEnvelopeError",
+    "build_l4_handler",
+    "load_policy_snapshot",
+    "render_l4_envelope",
+    "render_policy_block",
+    "sha256_rendered_envelope",
 ]

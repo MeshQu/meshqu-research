@@ -59,6 +59,18 @@ class LevelHandler(Protocol):
     A handler returns the MARGINAL contribution this level adds on top
     of all lower levels. The orchestrator concatenates additively
     (L0 + L1 + ... + Lk) before calling the agent.
+
+    ## Optional composition override (E2-005)
+
+    A handler MAY additionally implement
+    `compose_full_message(record, ocid, prompts, handlers, base_message)`
+    to take over composition at its level. When present, the
+    `compose_user_message` helper delegates to it instead of running
+    the default additive concat. The L4 handler uses this hook to put
+    the policy block at the head of the user message for cache-prefix
+    preservation. The handler is responsible for producing a message
+    that still satisfies the containment invariant (every lower-level
+    addendum's content present somewhere in the result).
     """
 
     level: GovernanceContextLevel
@@ -243,7 +255,37 @@ def compose_user_message(
     L0..L3 from the main handlers plus the permuted L4 (E2-006 supplies
     that handler in its own registry; the orchestrator does not branch
     on L4_PERMUTED here).
+
+    ## Handler-driven composition override (E2-005)
+
+    A handler MAY expose a `compose_full_message(...)` callable to take
+    over composition at its own level. When present, this function
+    defers to it INSTEAD OF running the default additive concat. The
+    L4 handler uses this hook to place the ~4,500-token policy block
+    at the head of the message so OpenAI's prompt cache hits on the
+    largest stable contributor. The handler is responsible for
+    producing a message that still satisfies the design's containment
+    invariant: every lower-level addendum's content appears somewhere
+    in the composed message. See
+    `context_levels/level_l4.py:L4PolicyEnvelopeHandler` for the
+    canonical implementation.
+
+    Backward compatibility: every handler without a
+    `compose_full_message` method falls back to the default additive
+    concat — exactly the E2-001 behaviour.
     """
+    target_handler = handlers.get(level)
+    if target_handler is not None:
+        compose_full = getattr(target_handler, "compose_full_message", None)
+        if callable(compose_full):
+            return compose_full(
+                record=record,
+                ocid=ocid,
+                prompts=prompts,
+                handlers=handlers,
+                base_message=base_message,
+            )
+
     addenda: list[str] = []
     if level == "L4_PERMUTED":
         # Diagnostic composes L0..L4 from the registry the caller passed

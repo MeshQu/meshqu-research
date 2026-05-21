@@ -308,6 +308,58 @@ def _sha256_file(path: Path) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Cache telemetry (E2-005)
+# ---------------------------------------------------------------------------
+
+
+CACHE_TELEMETRY_FILENAME = "cache_telemetry.jsonl"
+"""Sidecar filename relative to <run_dir>. One JSONL line per (record,
+level) capturing cached_tokens + prompt_tokens. Consumed by
+`scripts/cache_summary.py`."""
+
+
+def _append_cache_telemetry(
+    *,
+    run_dir: Path,
+    run_id: str,
+    level: GovernanceContextLevel,
+    record_index: int,
+    ocid: str | None,
+    decision_id: str,
+    timestamp: str,
+    cached_tokens: int | None,
+    prompt_tokens: int | None,
+    is_stub: bool,
+) -> Path:
+    """Append one cache-telemetry row to
+    <run_dir>/cache_telemetry.jsonl. Best-effort: open in append mode,
+    write a single line, close. No fsync — the file is observational
+    telemetry, not part of the audit trail. A torn write at process
+    crash leaves a corrupt line; the summary script tolerates missing
+    rows.
+
+    Returns the path written to (for tests).
+    """
+    path = run_dir / CACHE_TELEMETRY_FILENAME
+    path.parent.mkdir(parents=True, exist_ok=True)
+    row = {
+        "run_id": run_id,
+        "level": level,
+        "record_index": record_index,
+        "ocid": ocid,
+        "decision_id": decision_id,
+        "timestamp": timestamp,
+        "cached_tokens": cached_tokens,
+        "prompt_tokens": prompt_tokens,
+        "is_stub": is_stub,
+    }
+    with path.open("a", encoding="utf-8") as fp:
+        fp.write(json.dumps(row, ensure_ascii=False, sort_keys=True))
+        fp.write("\n")
+    return path
+
+
+# ---------------------------------------------------------------------------
 # Bundle writer — the v1 bundle envelope (E2-local wrapper around v2 MeshQu receipts)
 # ---------------------------------------------------------------------------
 
@@ -464,7 +516,15 @@ class MultiPassConfig:
     can inject StubAgent / StubMeshQuClient. When None, the live OpenAI
     + MeshQu clients are constructed from `agent_api_key` +
     `meshqu_api_key` (NOT in scope for E2-001 — full live wiring lands
-    in E2-002..006)."""
+    in E2-002..006).
+
+    `cache_telemetry_enabled` (E2-005): when True, the orchestrator
+    appends one JSONL line per (record, level) to
+    `<run_dir>/cache_telemetry.jsonl` capturing the agent's
+    cached_tokens + prompt_tokens. The post-run summary script
+    `scripts/cache_summary.py` consumes that file. Defaults to True so
+    every E2 run picks up the telemetry; tests that don't care can flip
+    it off."""
 
     run_id: str
     run_phase: RunPhase
@@ -479,6 +539,8 @@ class MultiPassConfig:
     substrate_source: Mapping[str, Any] = field(default_factory=dict)
     # Pause between calls. Smoke / tests can set to 0.
     inter_request_pause_seconds: float = 0.0
+    # E2-005: cache telemetry sidecar at <run_dir>/cache_telemetry.jsonl.
+    cache_telemetry_enabled: bool = True
 
 
 def run_multi_pass(
@@ -674,6 +736,26 @@ def _process_pass(
         timestamp=timestamp,
         is_stub=is_stub,
     )
+
+    # E2-005: cache telemetry sidecar. One JSONL line per (record,
+    # level) capturing cached_tokens + prompt_tokens from the agent
+    # response. The post-run summary script computes per-level
+    # cache-hit fraction from this file. Loop semantics (level-batching
+    # order, sleep, idempotency) are unchanged — this is purely an
+    # additive write.
+    if config.cache_telemetry_enabled:
+        _append_cache_telemetry(
+            run_dir=config.run_dir,
+            run_id=config.run_id,
+            level=level,
+            record_index=record_index,
+            ocid=ocid,
+            decision_id=receipt.decision_id,
+            timestamp=timestamp,
+            cached_tokens=getattr(agent_response, "cached_tokens", None),
+            prompt_tokens=getattr(agent_response, "prompt_tokens", None),
+            is_stub=is_stub,
+        )
 
     return PassOutcome(
         record_index=record_index,
