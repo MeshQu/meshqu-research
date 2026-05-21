@@ -1,9 +1,11 @@
 # Agentic Procurement Experiment — Planning Harness
 
+> **Reading this directory.** Planning artefacts here are point-in-time records of what was planned, at the time it was planned. Present-tense claims about repo structure or publication state may have drifted since drafting; the canonical current state lives in the top-level [`README.md`](../../README.md) and the decision history in [`decision_log.md`](decision_log.md). The 2026-05-20 decision-log entry documents the publication-discipline split for MRP-2026-02 and supersedes the original repo-structure plan recorded across these planning artefacts.
+
 **Status:** `[PLANNING]` (no implementation work; design + pre-registration only)
 **Owner:** Sam
 **Created:** 2026-05-14
-**Public home (post-extraction):** `meshqu-research/procurement-decisions/planning/` on GitHub (public, MIT- or Apache-2.0-licensed, under the `meshqu` org). This planning harness is mirrored to the public repo before predictions lock per revision brief 7, so the pre-registration commit is publicly auditable from the moment it lands. From the extraction commit forward, work happens in the public repo; the monorepo copy is either deleted or replaced with a stub pointer.
+**Public home (post-extraction):** `meshqu-research/procurement-decisions/planning/` on GitHub (public, MIT-licensed, under the `meshqu` org). This planning harness is mirrored to the public repo before predictions lock per revision brief 7, so the pre-registration commit is publicly auditable from the moment it lands. From the extraction commit forward, work happens in the public repo; the monorepo copy is either deleted or replaced with a stub pointer.
 
 ## What this is
 
