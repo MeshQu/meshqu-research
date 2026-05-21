@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://meshqu.com/research/procurement-decisions/contracts/decision_context.schema.json",
+  "title": "Procurement-decisions DecisionContext + per-field provenance",
+  "description": "Canonical contract between the substrate adapter (producer) and the Inspect AI eval loop (consumer). The substrate adapter emits a DecisionContext PER RECORD shaped for MeshQu /v1/decisions/record, AND a parallel per-field provenance envelope captured in substrate_notes for the decision_traces.jsonl audit row. Two schemas in one file: `DecisionContext` (what MeshQu sees, flat fields, hash-bound) and `SubstrateProvenance` (what the writeup sees, per-field source/confidence, hash-excluded). The provenance envelope is deliberately separate from the DecisionContext so the policy rules continue to read primitive values (number/string) rather than envelope objects — and so the receipt's integrity hash binds the substantive fields without coupling to substrate-internal metadata.",
+  "type": "object",
+  "properties": {
+    "DecisionContext": { "$ref": "#/$defs/DecisionContext" },
+    "SubstrateProvenance": { "$ref": "#/$defs/SubstrateProvenance" }
+  },
+  "$defs": {
+    "DecisionContext": {
+      "type": "object",
+      "description": "Payload passed to MeshQu /v1/decisions/record. `context.fields` carries the flat policy-evaluable field set; `context.metadata` carries operational annotations that the receipt's integrity hash deliberately excludes (per the 2026-05-14 codebase-audit corrections in planning/decision_log.md — only `fields` is hashed, `metadata` is stripped before hashing).",
+      "required": ["decision_type", "fields"],
+      "additionalProperties": false,
+      "properties": {
+        "decision_type": {
+          "type": "string",
+          "const": "procurement_decision",
+          "description": "Locked to `procurement_decision` for the experiment. Selects which policies in the experiment-procurement tenant evaluate this record."
+        },
+        "fields": {
+          "type": "object",
+          "description": "Flat field set sent to MeshQu and bound into the receipt's integrity hash. Two producers contribute keys: (a) the **substrate adapter** emits the substantive policy-evaluable fields below (the ratified policy's 6 rules only read these); (b) the **eval loop** injects the `agent_*` audit-only fields after the agent call returns and before posting to MeshQu. Both groups live in the same map so they bind into one integrity hash. The policy never evaluates `agent_*` keys — they're hash-bound metadata only. Booleans MUST be the strings 'true'/'false' to match the policy's when-clause authoring (decision_log F13 cross-over finding); flipping to JSON booleans silently breaks rule firing.",
+          "additionalProperties": false,
+          "properties": {
+            "publication_delay_days": {
+              "type": "number",
+              "description": "PROC-001-S53. (awards[0].datePublished − awards[0].date) in days. Award date is the substrate proxy for contract signature date."
+            },
+            "governed_by_pa23": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "description": "PROC-001-S53 when. Proxy: awards[0].date > 2025-02-24."
+            },
+            "above_threshold": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "description": "PROC-001-S53, PROC-005 when. Proxy: tender.value.amount (or awards[0].value.amount fallback) > £139,000 (PA23 Schedule 1 sub-central services threshold)."
+            },
+            "contract_value": {
+              "type": "number",
+              "description": "PROC-002. awards[0].value.amount in GBP."
+            },
+            "supplier_id": {
+              "type": "string",
+              "description": "PROC-003. awards[0].suppliers[0].id (canonicalised: trimmed, original casing preserved)."
+            },
+            "conflict_of_interest_declaration": {
+              "description": "PROC-004 (COI declaration). NOT IN OCDS — omitted by the substrate. PROC-004 is gated by a `when` clause requiring this field to be present (`{ field: 'conflict_of_interest_declaration', exists: true }`), so absence skips the rule rather than triggering it (NA-reason: 'conflict of interest declaration is missing'). A future substrate variant that derives COI from a richer source will cause PROC-004 to evaluate. The `when`-clause gate was applied 2026-05-17 after the 3-record smoke surfaced that the prior wiring fired PROC-004 on absence — see planning/decision_log.md 'Post-smoke policy clarification' entry."
+            },
+            "procurement_method_open_flag": {
+              "type": "string",
+              "enum": ["true"],
+              "description": "PROC-005 (presence). Emitted as the string 'true' when tender.procurementMethod == 'open'. Omitted when procurement method is anything else — the presence rule fires when the flag is absent + the when clause matches."
+            },
+            "direct_award_justification_present": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "description": "PROC-005 when. Heuristic: derived from relatedProcesses tagged 'transparency' or 'directAward'. False-negatives possible where the notice exists but isn't linked."
+            },
+            "is_modification": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "description": "PROC-006 when. Derived from OCDS tag (contractAmendment / awardAmendment / modification)."
+            },
+            "modification_value_ratio": {
+              "type": "number",
+              "minimum": 0,
+              "description": "PROC-006. (amendments[0].value.amount / original contract value). Only emitted when both numerator and denominator are derivable. NULL allowed when not a modification — see no-silent-defaults rule."
+            },
+
+            "agent_model_id": {
+              "type": "string",
+              "description": "AUDIT-ONLY (not evaluated). Locked model id (e.g. 'gpt-5.4-2026-03-05'). Injected by the eval loop after the agent call returns. Mirrors agent.LOCKED_MODEL_ID."
+            },
+            "agent_model_version": {
+              "type": ["string", "null"],
+              "description": "AUDIT-ONLY (not evaluated). Reserved for the rare case where OpenAI's response surfaces a more specific version than the locked model id; null otherwise."
+            },
+            "agent_temperature": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2,
+              "description": "AUDIT-ONLY (not evaluated). Locked temperature (0.0 in this experiment). Bound into the receipt so a reproducibility check can prove the agent ran at the declared temperature."
+            },
+            "agent_prompt_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "description": "AUDIT-ONLY (not evaluated). SHA-256 of the system prompt at run start. Computed once per run; identical across all records in a run."
+            },
+            "agent_reasoning_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "description": "AUDIT-ONLY (not evaluated). SHA-256 of the agent's reasoning text for THIS record (normalised: trim + LF). Full reasoning lives in the agent_outputs sidecar; only the hash is bound into the receipt."
+            },
+            "agent_recommended_verdict": {
+              "type": "string",
+              "enum": ["ALLOW", "DENY", "REVIEW"],
+              "description": "AUDIT-ONLY (not evaluated). The agent's normalised verdict for the agreement projection. The MeshQu policy verdict is computed independently from substrate fields; this field captures what the agent thought."
+            },
+            "agent_recommended_action": {
+              "type": ["string", "null"],
+              "description": "AUDIT-ONLY (not evaluated). The agent's free-text recommended action (e.g. 'approve', 'escalate to counsel'). Null when the agent didn't produce one."
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Operational annotations stripped from the receipt's integrity hash. Carries OCDS provenance + adapter version for the writeup's reproducibility statement.",
+          "additionalProperties": true,
+          "properties": {
+            "ocid": {
+              "type": "string",
+              "description": "OCDS Open Contracting ID for the source record. Strictly informational for the receipt; the writeup uses it to cross-reference back to Contracts Finder."
+            },
+            "experiment_substrate": {
+              "type": "string",
+              "const": "uk_contracts_finder_ocds"
+            },
+            "adapter_version": {
+              "type": "string",
+              "description": "substrate.py's ADAPTER_VERSION at production time. Bumped on substantive derivation changes."
+            }
+          }
+        }
+      }
+    },
+    "SubstrateProvenance": {
+      "type": "object",
+      "description": "Per-field source + confidence metadata. Produced alongside the DecisionContext by the substrate adapter; logged into decision_traces.jsonl's substrate_notes for every record so the writeup can statistically analyse 'disagreement rate on direct fields vs disagreement rate on proxy-derived fields'. NOT sent to MeshQu — substrate-internal.",
+      "required": ["fields"],
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "type": "object",
+          "description": "One envelope per field that COULD be emitted (including absent ones). Keys match DecisionContext.fields keys.",
+          "additionalProperties": { "$ref": "#/$defs/FieldProvenance" }
+        }
+      }
+    },
+    "FieldProvenance": {
+      "type": "object",
+      "description": "Per-field provenance envelope. Same key set across every record (absent fields explicitly carry status='absent' so coverage statistics are computable).",
+      "required": ["status", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "description": "The emitted value as it appears in DecisionContext.fields. Omitted for status='absent'. Type matches the field's DecisionContext schema."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["direct_ocds", "derived", "proxy", "absent"],
+          "description": "Provenance class. direct_ocds = field copied verbatim from OCDS path. derived = computed from one or more OCDS fields with no methodological proxy (e.g. date arithmetic). proxy = computed using a documented methodological proxy (e.g. award date as signature date). absent = field not derivable from OCDS for this record (always honest — never a silent default)."
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low"],
+          "description": "Substrate confidence in the derivation, NOT model/agent confidence. high = direct OCDS path or trivial arithmetic. medium = proxy with documented limitations. low = heuristic with known false-negative or false-positive modes (e.g. derived_direct_award_justification_present)."
+        },
+        "detail": {
+          "type": "string",
+          "description": "Human-readable explanation of the derivation step or absence reason. Quoted in the writeup's substrate-honesty subsection for the most interesting derivations."
+        }
+      }
+    }
+  }
+}

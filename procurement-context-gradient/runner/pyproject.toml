@@ -1,0 +1,15 @@
+[project]
+name = "meshqu-runner-e2"
+version = "0.2.0"
+description = "Procurement-context-gradient (E2) experiment harness — multi-pass orchestration over 5 context levels"
+requires-python = ">=3.11"
+dependencies = [
+  "requests==2.32.3",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
