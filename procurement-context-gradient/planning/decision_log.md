@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-05-21 — E2-003 L1 + L2 payload generators: prompt-position decision + Stage A SHA verification
+
+**Decisions captured for the build-package paper trail.**
+
+**1. Prompt-position decision — L1 and L2 content go in the USER message, not the system message.**
+
+The package prompt asked us to pick one and document. The decision is user-message placement, anchored at the top of the per-record user message above the canonical-JSON record payload. Three reasons:
+
+- **System-prompt SHA invariance.** The agent's `agent_prompt_sha256` is bound into every receipt via `eval_loop.inject_agent_fields`. That SHA is what makes "same agent, different context" a meaningful frame across L0..L4 — if we slid L1 prose into the system message, the system-prompt hash would drift between levels and every cross-level integrity comparison would lose its anchor.
+- **Composition reuse.** E2-001 already implemented `compose_user_message` for additive concatenation of per-level addenda. Putting L1/L2 in the system message would require a parallel composition path for no upside.
+- **Visual coherence.** The Stage A files are single-paragraph (L1) and short structured-list (L2). User-message placement makes them visually adjacent to the record-under-review without inflating the system contract.
+
+The L1 handler wraps its prose under a `## Governance context` H2 (matching `context_ladder_design.md` §L1). The L2 handler emits its file content **verbatim** — the L2 Stage A file already opens with `## Rules in force` as authored. No wrapper header at L2, so the authored bytes flow through unmodified (avoids the double-header that the E2-001 stub produced).
+
+**Rendered example (L2 level, demo record)** is in the PR body. Composed L2 length on the demo: 1,308 chars (vs L1 798, L0 69).
+
+**2. Stage A SHA verification.** The L1 and L2 file SHAs match the locked manifest values:
+- L1 `19b9863905593756b583bdc4b39998f143ba14c63fa1cebe90295d6e76f90acf`
+- L2 `d24847ed1eef3c4d87b725195d0313449398e2a467c7de4bf0cd6a9e93c11174`
+
+Both match the literals pinned in `test_multi_pass.py::test_prompt_shas_match_locked_values` AND in `test_l1_l2_generators.py::TestPromptShaBindingThroughRunManifest` — two test sites making any drift visible.
+
+The new test `TestPromptShaBindingThroughRunManifest::test_manifest_records_l1_and_l2_shas` drives a full stub multi-pass run and asserts the manifest's `prompt_template_sha256.L1` and `.L2` match the runtime hashes. This is the end-to-end SHA round-trip: file bytes → SHA-256 → manifest field → expected literal.
+
+**3. Additivity invariant test.** `test_l2_user_message_strictly_contains_l1_user_message` is the load-bearing invariant from the package prompt. The composed L2 user message must contain the composed L1 user message as a verbatim substring (modulo the per-record base suffix). If this fails, the ladder semantics in the experiment design break.
+
+**4. Empty Stage A content vs TODO-stub content.** The package prompt's stop condition was "Stage A content is the placeholder stub (`TODO: Stage A content`) → STOP." This had to coexist with E2-001's `test_empty_prompts_handled_gracefully` which expects truly-empty files to behave as a no-op. Resolution:
+
+- **Truly empty** (`""` / whitespace-only) — no-op. Preserves E2-001's contract.
+- **TODO stub** (matches `TODO[: ]…` line patterns or known sentinel literals) — fail loudly at first handler use with `StageAContentError`.
+
+The detection in `context_levels/stage_a.py::looks_like_todo_stub` is intentionally conservative: a real paragraph mentioning "TODO" parenthetically is NOT flagged (test: `test_authored_prose_with_parenthetical_todo_passes`). The guard catches the actual scaffolding patterns Sam uses, not arbitrary prose.
+
+**5. Registry-replacement pattern preserved.** Per the package contract, the LevelHandler Protocol and `multi_pass.py` orchestrator core are untouched. The L1 and L2 entries in `default_main_handlers()` swap from the E2-001 stubs (`L1Handler`, `L2Handler` — still defined in `level_handlers.py` for traceability) to the live implementations (`L1ContextHandler`, `L2ContextHandler` from `meshqu_runner.context_levels`). Local-import inside the function avoids a top-level import cycle with `context_levels.level_l1` (which imports `GovernanceContextLevel` from `level_handlers`).
+
+---
+
 ## 2026-05-21 — E2-002 L0 baseline + substrate cache reader: where the cache reads from, verdict-comparison result, deviations
 
 **Decisions captured for the build-package paper trail.**
