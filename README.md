@@ -14,7 +14,7 @@ meshqu-research/
 
 ## What this repo is
 
-A public, MIT- or Apache-2.0-licensed research surface. Each piece is published with:
+A public, MIT-licensed research surface. Each piece is published with:
 
 - A pre-registered set of predictions, committed before the experiment runs, with the commit hash linked from the writeup.
 - A documented methodology covering substrate, agent, evaluation pipeline, and limitations.
