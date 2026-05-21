@@ -5,6 +5,45 @@
 
 ---
 
+## 2026-05-21 — Behavioural taxonomy added (pre-data, analytical scaffolding for interpreting the corpus)
+
+**Decision**: authored `planning/behavioural_taxonomy.md` — an eight-dimension framework for interpreting E2 (and E3) findings as governance-cognition research rather than compliance-benchmarking. Dimensions: (1) ambiguity handling, (2) escalation behaviour, (3) policy obedience, (4) policy resistance, (5) evidence sensitivity, (6) precedent sensitivity, (7) uncertainty acknowledgement, (8) governance-context susceptibility.
+
+**Why now (pre-data discipline)**: the E2-007 smoke pilot (PR #55) made the experiment's behavioural character undeniable — the Permuted-Policy agent did not flag the operator inversion, producing the first empirical agreement-sycophancy signal. Without named dimensions that finding is an isolated observation; with them it's a measurement on Dimension 4 (policy resistance) that other findings cross-reference. Authoring the framework BEFORE the dry-run + full-run corpus exists is the same pre-registration logic as the predictions-lock — locks the analytical lens before the data could retrofit it.
+
+**Alternative considered**: defer to writeup time and let the corpus shape the taxonomy organically. Rejected — taxonomies authored post-data tend to retrofit dimensions to match observed patterns, weakening academic credibility. The pre-data discipline costs nothing (corpus content is unchanged) and protects the writeup from looking opportunistic.
+
+**What this is NOT**:
+
+- Not a methodology change. Predictions, ladder shape, runner code, model, substrate — all v0.2-locked and unchanged.
+- Not a prediction. Dimensions are measurement axes; directional predictions remain in `predictions.md`.
+- Not a final framework. v1 dimensions + lexicons (uncertainty markers, contradiction-naming markers, rule-code citation regex, precedent-language markers) are committed now for pre-data reproducibility. v2 refinements during writeup-prep require a decision_log entry naming the data that motivated the change.
+
+**What this enables**:
+
+- Phase 3 writeup §5b and §6 gain a named vocabulary instead of ad-hoc observation labels
+- The four-way matrix (`predictions.md`'s P3+P4+P5 cluster) becomes Table B in the taxonomy doc — sycophancy / mature judgment / skeptical analyst / intrinsic over-caution as four explicit cells
+- E1's evidence-incompleteness-as-governance-state finding (F006) maps cleanly to Dimension 1 + Dimension 7 cross-cut
+- E3 (governed investigative agent, named in MRP-2026-02 §9) inherits the same dimensions via different operational definitions (tool-use mechanisms replace context-ladder mechanisms)
+
+**The v1 commit boundary**: this PR is v1. Each dimension is operationalisable from corpus features alone — no human coding required at v1. Refinements (human-coded reasoning quality, expert-annotated case characteristics) layer in for the writeup as time permits, and any such addition is decision-logged.
+
+**Smoke-run evidence already populating the framework**:
+
+- Dimension 4 (policy resistance): smoke pilot did NOT flag the Permuted-Policy contradiction — **sycophancy signal observed in the wild**, awaiting confirmation at full-run diagnostic scale
+- Dimensions 1, 2, 5, 7: baseline patterns reproduced from E1 within OpenAI's temp=0 noise
+- Dimensions 3, 6, 8: await scale (dry-run + full-run)
+
+**Reason picked**: the dimensions and their operational definitions are simultaneously domain-relevant (each maps to a concrete corpus feature), academically defensible (they parallel established AI-safety vocabulary on sycophancy / uncertainty / case-law reasoning), and forward-compatible (E3's tool-use mechanisms attach to the same dimensions through different measurement paths). Committing them now means the writeup's structure is decided pre-data and Phase 3 starts with table skeletons rather than a blank page.
+
+**Out of scope for this PR** (intentional):
+
+- Populating the empty result tables (Tables A, B, C in the taxonomy doc) — that's Phase 3 work against the full-run corpus
+- Cross-experiment inheritance for E3 — sketched but not committed; the actual E3 taxonomy lives in E3's planning folder when that experiment begins planning
+- Refining lexicons beyond v1 — deferred to writeup-prep when human-coded reasoning quality can inform the choice
+
+---
+
 ## 2026-05-21 — E2-007 Stage C smoke run — live driver, Option B fixture, all 7 gates PASS (after handler-install bug)
 
 **1. Live driver approach: standalone `scripts/smoke_live.py`** (not `multi_pass._main() --live`). The driver wires real `Agent` + `MeshQuClient` against `.env.live` credentials (gitignored, perms 600, four vars: `MESHQU_API_URL`, `MESHQU_EXPERIMENT_PROCUREMENT_TENANT_ID`, `MESHQU_EXPERIMENT_PROCUREMENT_API_KEY`, `OPENAI_API_KEY`), then invokes `run_multi_pass(...)` for the 15-receipt main grid plus a one-record diagnostic pass for the Permuted-Policy pilot. The pilot intentionally bypasses `is_in_permuted_subset(ocid)` so it runs on the worked-example OCID — required for §3g integrity-hash distinctness. **Alternative considered**: extending `multi_pass._main` with a `--live` flag. Rejected because the diagnostic invocation is structurally separate and couldn't ride that flag cleanly without muddying the runner's contract. A dedicated driver also makes the budget envelope auditable from one file.
