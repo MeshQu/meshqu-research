@@ -25,6 +25,8 @@ yarn-debug.log*
 .env
 .env.local
 .env.*.local
+.env.live
+.env.*.live
 
 # Build outputs
 dist/
