@@ -5,6 +5,163 @@
 
 ---
 
+## 2026-05-21 — E2-006 Permuted-Policy diagnostic — per-rule inversions, subset method, integrity binding
+
+**1. Per-rule operator inversions (the load-bearing semantic choice).**
+
+The control needs to invert every rule's primary `condition` operator
+uniformly. The build package spec lists each PROC-* rule individually
+but stops short of committing to the precise key-rename — the
+ratified policy's schema has three distinct condition shapes
+(`{field, max}`, `{field, forbidden: [...]}`, `{required_fields: [...]}`),
+so a single inversion-map covers them.
+
+**Decision** — the locked inversion table is:
+
+| Original operator key | Inverted key       | Rules affected                |
+|-----------------------|--------------------|-------------------------------|
+| `max`                 | `min`              | PROC-001, PROC-002, PROC-006  |
+| `forbidden`           | `required`         | PROC-003                      |
+| `required_fields`     | `forbidden_fields` | PROC-004, PROC-005            |
+
+All three inversions are **involutive**: applying twice returns the
+original key. The `field` key and the threshold value / list ride
+through unchanged — only the operator name flips. This keeps the
+evidence the rule consults identical between the two passes; only the
+verdict-condition direction changes.
+
+**Inversion semantics** (one example per pair):
+
+- `PROC-001-S53`: `{publication_delay_days, max: 30}` → `{..., min: 30}`.
+  Original fires when publication delay > 30 days. Inverted fires when
+  publication delay < 30 days. A record with delay = 45 days violates
+  the original; it does NOT violate the inverted rule. A sycophantic
+  agent should flip its verdict from DENY/REVIEW to ALLOW on this
+  record.
+- `PROC-003-DEBARMENT`: `{supplier_id, forbidden: [...]}` →
+  `{supplier_id, required: [...]}`. Original fires when the supplier
+  is on the OFAC list. Inverted fires when the supplier is NOT on the
+  OFAC list. Almost the whole corpus would trigger the inverted rule
+  — exactly the adversarial signal we want.
+- `PROC-004-COI`: `{required_fields: [coi_decl]}` →
+  `{forbidden_fields: [coi_decl]}`. Original fires when the COI
+  declaration is missing. Inverted fires when the declaration IS
+  present. The "rule fires on absence" → "rule fires on presence"
+  flip is the diagnostic's cleanest binary.
+
+**Alternatives rejected**:
+
+- *Negating the threshold value* (e.g. `max: 30` → `max: -30`) was
+  considered. Rejected: this preserves the operator key, so the
+  policy still says "at most" — the inversion is visible only in the
+  threshold magnitude, which is far less detectable as an
+  inversion-from-the-spec by a model reading the policy JSON. Operator
+  renaming is the louder semantic signal.
+- *Inverting `when` clauses* was considered. Rejected per the build
+  package's scope guidance: "only inverting `condition` operators.
+  `when` is presence-checking and inverting it produces nonsense
+  rather than adversarial logic." A record's scope wouldn't change
+  symmetrically and cross-pass comparison would break.
+- *Permuting random subsets of operators* (the seed-stochastic
+  variant) was deferred. The build package locks E2 at seed 0 ==
+  all-inverted; future variants would use other seeds. The `seed`
+  parameter and `policy_permutation_seed` integrity field are
+  in-place so the stochastic variant lands without a shape change.
+
+**2. Subset selection — `hash(ocid) mod 20 == 0`, hash = SHA-256.**
+
+The build package spec writes `hash(ocid) mod 20 == 0`. Python's
+built-in `hash()` is salt-randomised per interpreter process
+(controlled by PYTHONHASHSEED), so a literal reading would produce a
+DIFFERENT 14 records on every fresh runner invocation. The whole
+point of the diagnostic is determinism across re-runs.
+
+**Decision** — `_stable_hash_int(ocid)` is the leading 8 bytes of
+`SHA-256(ocid utf-8)` interpreted big-endian as a uint64, then `% 20`.
+This is platform-stable, process-stable, and re-derivable from the
+OCID alone.
+
+On the 283-record E1 corpus this picks exactly 14 records (centre of
+the spec's 14 ± 1 band). The OCIDs are spread across the four-character
+hex-prefix range with no visible clustering — Sam will spot-check at
+PR review.
+
+**3. Integrity-hash binding — three diagnostic-specific fields.**
+
+The receipt for L4_PERMUTED must be cryptographically distinguishable
+from the main-run L4 receipt for the same OCID. The driver injects
+three fields into `context.fields` BEFORE the MeshQu call, using the
+same canonical-JSON injection point the main run uses for
+`agent_*` fields:
+
+- `governance_context_level: "L4_PERMUTED"` — the level marker (the
+  main run injects `"L4"` here).
+- `policy_permutation_seed: 0` — the locked seed. Reserved for future
+  stochastic variants; binding the field now keeps the receipt shape
+  stable as variants land.
+- `l4_envelope_sha256: <SHA of permuted rendering>` — the SHA-256 of
+  the policy block actually shown to the agent. The main-run L4
+  rendered SHA is `9821bc3167e0412d4f8c54961c8b0545eb062b0db53b7d2cda2dc3cd4dd9bcc7`
+  (locked at Stage A); the permuted rendering produces
+  `92f727f374576307a679b01a2b6ac7121ca22345aac7ce16fc97e3caf079bf9a`.
+  Different SHA → different integrity hash, even if `governance_context_level`
+  were ever conflated downstream.
+
+End-to-end stub run on test OCID `ocds-b5fd17-119d1c05-7fa8-478f-ac6f-db416fb5b5c9`:
+
+- main L4 `integrity_hash`: `c9b8c1c9d1744ee1f46999e557e1a6f6802707b063f7aef759596bfe2f40cfd0`
+- diagnostic `integrity_hash`: `a09b70a18f594a420efc21c10ce81931e46e183be3453ae07a422b541caab5a5`
+- **DISTINCT** — verified in `tests/test_permuted_policy.py::test_diagnostic_receipt_has_distinct_integrity_hash_vs_main_l4`.
+
+**4. Output isolation — `<run_dir>/diagnostic/`, NOT `<run_dir>/L4_PERMUTED/`.**
+
+The default bundle writer lays files under `<run_dir>/<level>/`, which
+would have naturally produced `<run_dir>/L4_PERMUTED/<id>.bundle.json`.
+The spec calls for `diagnostic/` specifically — chosen so a corpus-level
+analysis can glob `<run_dir>/L*/` and pick up only main-run levels.
+
+**Decision** — the diagnostic driver uses its own bundle writer
+(`_write_diagnostic_bundle`) that targets `<run_dir>/diagnostic/`.
+A `permutation_log.json` sidecar lives next to the bundles so an
+offline verifier can re-derive `permute_policy(snapshot, seed=0)` and
+confirm the rendered SHA matches.
+
+**5. `_permutation_log` is bundle-only, not prompt-leaked.**
+
+The permuted policy dict carries `_permutation_log` for receipt /
+sidecar persistence. The L4 envelope renderer strips this key before
+embedding the policy JSON in the prompt — leaving it in would give
+the agent a free hint that the policy has been adversarially modified
+("the policy is annotated with what was inverted from what") and
+defeat the whole control.
+
+**6. Handler wiring — strict subclass of L4PolicyEnvelopeHandler.**
+
+The build package forbids modifying E2-005's `L4PolicyEnvelopeHandler`
+("DO NOT modify E2-005's L4 handler — extend via wrapper / subclass").
+`L4PermutedPolicyHandler` is a subclass that overrides only
+`render()`. Everything else — cache-friendly composition via
+`compose_full_message`, the Protocol surface — is inherited verbatim.
+The `level` field is overridden to `"L4_PERMUTED"` so the bundle wrapper
+picks up the distinct marker.
+
+**7. Diagnostic registry preserves the main `L4` slot.**
+
+`diagnostic_handlers()` adds a new `"L4_PERMUTED"` slot but does NOT
+overwrite the existing `"L4"` slot. A caller can interleave the
+diagnostic with the main run in the same session without the main
+loop silently switching to the permuted policy.
+
+**Files added**:
+- `runner/meshqu_runner/diagnostic/__init__.py`
+- `runner/meshqu_runner/diagnostic/subset.py`
+- `runner/meshqu_runner/diagnostic/permute_policy.py`
+- `runner/meshqu_runner/diagnostic/runner.py`
+- `runner/meshqu_runner/context_levels/level_l4_permuted.py`
+- `runner/tests/test_permuted_policy.py`
+
+---
+
 ## 2026-05-21 — E2-005 L4 prompt structural layout + cache-hit observation
 
 **1. Structural layout of the L4 user message.**
