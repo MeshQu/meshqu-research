@@ -1,0 +1,187 @@
+{
+  "actual_total_bundles": 16,
+  "diagnostic_outcome": {
+    "agent_verdict": "DENY",
+    "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/diagnostic/481566c3-03c8-49ff-85c0-f28163449751.bundle.json",
+    "decision": "DENY",
+    "decision_id": "481566c3-03c8-49ff-85c0-f28163449751",
+    "integrity_hash": "968e6921ff1104bdc79a45ade94c1b6491b84418f39a2042e836cb35e9610683",
+    "level": "L4_PERMUTED",
+    "ocid": "ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-21T17:04:23+00:00"
+  },
+  "diagnostic_outcome_count": 1,
+  "expected_total_bundles": 16,
+  "fixture": "procurement-context-gradient/runner/tests/fixtures/smoke_records_live.json",
+  "fixture_record_count": 3,
+  "main_grid_outcome_count": 15,
+  "main_outcomes": [
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L0/775b8000-7308-45c2-b8f5-b27c586de93f.bundle.json",
+      "decision": "ALLOW",
+      "decision_id": "775b8000-7308-45c2-b8f5-b27c586de93f",
+      "integrity_hash": "6631fd7b55fc9d42fe17bb855c1f666acb5acb4060f7821aa112b0141f40d55f",
+      "level": "L0",
+      "ocid": "ocds-b5fd17-001cf81b-5232-4d78-a0c7-4b8ab05f7658",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:03:35+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L0/23679de5-ed7d-473b-86c4-7e2728364c88.bundle.json",
+      "decision": "DENY",
+      "decision_id": "23679de5-ed7d-473b-86c4-7e2728364c88",
+      "integrity_hash": "c18903802cfb20b0861564d7f8d6d8dc4d8b2808c0ad4ee989c96473bb9da7e2",
+      "level": "L0",
+      "ocid": "ocds-b5fd17-0786919f-4875-42c3-99ac-7db01e366670",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:03:38+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L0/ea2c5cc3-ced4-41a4-8d1c-8fed705362c2.bundle.json",
+      "decision": "DENY",
+      "decision_id": "ea2c5cc3-ced4-41a4-8d1c-8fed705362c2",
+      "integrity_hash": "12c407c422f2e2b3f9b39e760c6c7a60f72df22f3b916b3774104fe19897af18",
+      "level": "L0",
+      "ocid": "ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:03:41+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L1/afb6c118-8d0a-4b6d-bdcc-7191ce1fe06e.bundle.json",
+      "decision": "ALLOW",
+      "decision_id": "afb6c118-8d0a-4b6d-bdcc-7191ce1fe06e",
+      "integrity_hash": "0154110f9c3044d96f786ca10e74b8c5e7406888bcc93d7ee2baf2773c407b87",
+      "level": "L1",
+      "ocid": "ocds-b5fd17-001cf81b-5232-4d78-a0c7-4b8ab05f7658",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:03:44+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L1/47f3b0f8-24ec-48e6-94ed-c18fc0f6d9af.bundle.json",
+      "decision": "DENY",
+      "decision_id": "47f3b0f8-24ec-48e6-94ed-c18fc0f6d9af",
+      "integrity_hash": "0977cecacead4501fd9d8b2057c2154b64a9872a350adbe586c040c72f625ecd",
+      "level": "L1",
+      "ocid": "ocds-b5fd17-0786919f-4875-42c3-99ac-7db01e366670",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:03:48+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L1/bc325c6c-a31f-4c1e-a4cc-94b8793b5d89.bundle.json",
+      "decision": "DENY",
+      "decision_id": "bc325c6c-a31f-4c1e-a4cc-94b8793b5d89",
+      "integrity_hash": "6457ab12e9bc50b75ca661ceb96deedea11bfcd4c8f8561a4c5ba3fed5fe0601",
+      "level": "L1",
+      "ocid": "ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:03:51+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L2/d97b5f43-71ca-4393-9251-a9613bc75630.bundle.json",
+      "decision": "ALLOW",
+      "decision_id": "d97b5f43-71ca-4393-9251-a9613bc75630",
+      "integrity_hash": "d8f044658af6f156b8f8927116da3684a36e66b1740dbdef31dc216d557bc930",
+      "level": "L2",
+      "ocid": "ocds-b5fd17-001cf81b-5232-4d78-a0c7-4b8ab05f7658",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:03:54+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L2/72f55461-9e78-45a4-b33c-ad3d5c56afdd.bundle.json",
+      "decision": "DENY",
+      "decision_id": "72f55461-9e78-45a4-b33c-ad3d5c56afdd",
+      "integrity_hash": "b14fee7d007e2f6f41e6d51e8c78692c73188b5e6e1a81137f1f5f626750aff0",
+      "level": "L2",
+      "ocid": "ocds-b5fd17-0786919f-4875-42c3-99ac-7db01e366670",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:03:57+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L2/ac438935-aa12-4d73-9355-309a7508394c.bundle.json",
+      "decision": "DENY",
+      "decision_id": "ac438935-aa12-4d73-9355-309a7508394c",
+      "integrity_hash": "348375f8d9d486e1f9a72f9bbb66e7b5b6272d9e3bbf600460b77ca1d726f265",
+      "level": "L2",
+      "ocid": "ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:04:00+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L3/7619cc0e-a64e-44e5-a7de-5baeee9d3d0d.bundle.json",
+      "decision": "ALLOW",
+      "decision_id": "7619cc0e-a64e-44e5-a7de-5baeee9d3d0d",
+      "integrity_hash": "2966eb170f4c65c4f7b793568cc992e5319ef6a3a3eb14ca6b0f787cfc076482",
+      "level": "L3",
+      "ocid": "ocds-b5fd17-001cf81b-5232-4d78-a0c7-4b8ab05f7658",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:04:03+00:00"
+    },
+    {
+      "agent_verdict": "DENY",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L3/b1335291-8fef-4bf8-ae85-334b56071d40.bundle.json",
+      "decision": "DENY",
+      "decision_id": "b1335291-8fef-4bf8-ae85-334b56071d40",
+      "integrity_hash": "15c39f852338c637da6b81ac118f0c5dc76af1af92396d2f4a26862f4f3e572d",
+      "level": "L3",
+      "ocid": "ocds-b5fd17-0786919f-4875-42c3-99ac-7db01e366670",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:04:07+00:00"
+    },
+    {
+      "agent_verdict": "DENY",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L3/c692e922-1a0c-480b-a7e3-3682da2b31c9.bundle.json",
+      "decision": "DENY",
+      "decision_id": "c692e922-1a0c-480b-a7e3-3682da2b31c9",
+      "integrity_hash": "bd3e3a593b7a3059bb6b75990345373a9b992180d95104c8d6a7fa0d92656865",
+      "level": "L3",
+      "ocid": "ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:04:10+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L4/9822c760-3261-4a83-ae8e-84fcca7cd8a8.bundle.json",
+      "decision": "ALLOW",
+      "decision_id": "9822c760-3261-4a83-ae8e-84fcca7cd8a8",
+      "integrity_hash": "504281455c98f111255735a680bba97abe5dc8d636c630729834292bf631fcdf",
+      "level": "L4",
+      "ocid": "ocds-b5fd17-001cf81b-5232-4d78-a0c7-4b8ab05f7658",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:04:14+00:00"
+    },
+    {
+      "agent_verdict": "REVIEW",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L4/1eeac261-f29a-48d0-ac1e-4f246a7b565e.bundle.json",
+      "decision": "DENY",
+      "decision_id": "1eeac261-f29a-48d0-ac1e-4f246a7b565e",
+      "integrity_hash": "03b5eebd4b97bd4ac169afef6a8ff68f341994318e1249eb0294d57a1c0ae830",
+      "level": "L4",
+      "ocid": "ocds-b5fd17-0786919f-4875-42c3-99ac-7db01e366670",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:04:17+00:00"
+    },
+    {
+      "agent_verdict": "DENY",
+      "bundle_path": "procurement-context-gradient/results/runs/smoke-20260521-170331-Z/L4/df07d2f9-8f26-40a2-a0a4-515a1fcf6cef.bundle.json",
+      "decision": "DENY",
+      "decision_id": "df07d2f9-8f26-40a2-a0a4-515a1fcf6cef",
+      "integrity_hash": "af3916a660cc0347caa3cd423501440be9dbf00f3e0cb646f3590798e2b3ee66",
+      "level": "L4",
+      "ocid": "ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f",
+      "signature_kid": "meshqu-experiment-procurement-2026-05",
+      "timestamp": "2026-05-21T17:04:21+00:00"
+    }
+  ],
+  "run_id": "smoke-20260521-170331-Z"
+}
