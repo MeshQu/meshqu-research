@@ -61,7 +61,17 @@ L2 text plus 3–5 Decision Receipts from MeshQu-evaluated comparable records. F
 
 Selection logic: similarity by procurement value band, procurement method flag, and governance regime (PA23 vs PCR 2015). Reproducibility-critical — the same precedent set must be selected for the same target record across re-runs. Implementation: deterministic nearest-neighbour over a small feature vector, with the selection function committed to the runner code.
 
-Constraint: the precedent records are drawn from E1's same 283-record corpus, NOT from a separate pool. This means each record's L3 precedents are *not the record itself* — exclude self by OCID. It also means precedents change per target record (each record has a different nearest-neighbour set).
+**Source isolation — load-bearing methodological constraint.** Precedents are drawn **exclusively from the frozen Experiment 1 archive** at [`../../procurement-decisions/results/runs/dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d/`](../../procurement-decisions/results/runs/dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d/) — the static, post-publication MRP-2026-02 corpus. The runner code MUST NOT touch any live MeshQu API path to fetch precedents, MUST NOT use any E2-in-flight evaluation outputs, and MUST NOT include the target record itself in its own precedent set (exclude by OCID).
+
+This rules out three failure modes:
+
+1. **Runtime state drift** — a live MeshQu lookup would change over time as policy snapshots evolve; we need precedents that are deterministically reproducible from the published E1 corpus.
+2. **Circular dependency** — an E2 pass cannot reference E2's own in-flight outputs as precedent (would create a runtime feedback loop where late-in-run records see different precedents from early-in-run records).
+3. **Future contamination** — precedents must be visibly historical relative to the experiment, not "what MeshQu would have said about this record if asked today." The frozen archive enforces this property.
+
+The selection function reads from `procurement-decisions/results/runs/.../decision_traces.jsonl` (the frozen JSONL output), picks 3–5 nearest-neighbour records by the feature vector, and reads the matching bundle files for the receipt summary block. All deterministic, all from disk, no network calls.
+
+It also means precedents change per target record (each record has a different nearest-neighbour set, which is the point — the agent sees the cases most relevant to the record it's reviewing).
 
 Question being answered: does showing the agent how a comparable record was evaluated unlock commitment? This is the closest analogue to "case law" reasoning the experiment can construct without explicit policy text.
 
@@ -87,15 +97,17 @@ The alternative — non-additive ladders where each level *replaces* the context
 
 Approximate per-record token consumption (input only; output is held constant across levels):
 
-| Level | Cumulative tokens per call |
-|---|---|
-| L0 | ~800 (base prompt + record + provenance) |
-| L1 | ~950 |
-| L2 | ~1,050 |
-| L3 | ~2,300 |
-| L4 | ~5,500 |
+| Level | Cumulative tokens per call | Cached prefix size | Per-call billed-input (level-batched, cache-hit) |
+|---|---|---|---|
+| L0 | ~800 (base prompt + record + provenance) | n/a — record changes per call; only the system prompt prefix is cacheable | ~800 |
+| L1 | ~950 | L1 prose addition (~150 tok) is constant across calls within the L1 batch | ~800 + first-call-only L1 prefix |
+| L2 | ~1,050 | L1 + L2 named-rules (~250 tok cumulative) constant across the L2 batch | ~800 + first-call-only L1+L2 prefix |
+| L3 | ~2,300 | L1 + L2 constant; L3 precedents vary per target record (not cacheable) | ~2,300 (no L3 cache benefit) |
+| L4 | ~5,500 | **L1 + L2 + the ~4,500-token policy JSON is constant across all 283 L4 calls** | ~1,500 (cache-hit on the policy text; only the record + L3 precedent vary) |
 
-Across 283 records: roughly 3.0M input tokens for the full grid. At `gpt-5.4-2026-03-05` rates this is well within budget but the smoke run will confirm before committing.
+**Why the level-batching execution order pays off.** Across 283 records the full grid contains roughly 3.0M nominal input tokens. Under level-batching (see `experiment_design.md` §"Multi-pass runner"), the policy text at L4 is sent to the cache once and read from cache 282 times. The realised input-token cost should be substantially below the nominal — empirical expectation 50–80% savings on L4's input billing, smaller proportional savings on L1/L2, no benefit on L0/L3.
+
+Pre-flight estimate via the smoke run (3 records × 5 levels) before committing to the full run. At `gpt-5.4-2026-03-05` rates the full grid is well within budget either way; the level-batching choice is about whether the full run costs $X or $X/2.
 
 ## What gets locked at `v0.2-predictions-locked`
 
