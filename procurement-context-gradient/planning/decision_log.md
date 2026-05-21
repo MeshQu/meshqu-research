@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-05-21 — E2-004 L3 precedent selector: k=4, feature vector locked, deterministic by OCID tie-break
+
+**Decisions captured for the build-package paper trail.**
+
+**1. k = 4 precedents per target record.** Stage A authoring (§3 of `stage_a_content_authoring.md`) sized the L3 budget at "3–5 precedents per target record × ~10 fields each → ~1,500 tokens cumulative." The build package (`e2-004-l3-precedent-selector.md`) reflected this with `k: int = 4` as the function signature default. Locked at 4 — the midpoint that hits the L3 token-budget target without crowding the prompt's per-precedent informativeness. The selector signature accepts `k` parametrically so a future ablation could rerun with k=3 / k=5, but the locked production value is 4 and the L3 live handler defaults to `DEFAULT_PRECEDENT_COUNT = 4`.
+
+**2. Feature vector locked at the Stage A trio.** The kNN distance function is Hamming over exactly three categorical features, matching the Stage A spec verbatim:
+
+1. **contract_value_band** — 4 bands (`<100k` / `100k-500k` / `500k-10M` / `>10M`)
+2. **procurement_method_open_flag** — `"true"` / `"false"` / `None` (where `None` covers the OCDS-"absent" status that 264 of 283 archive records carry; the archive empirically holds 19 "true" values and zero explicit "false" values)
+3. **regime** — `"PA23"` / `"PCR_2015"`, derived from `governed_by_pa23 == "true"` (i.e. award date ≥ 24 Feb 2025)
+
+**Alternatives considered, rejected:**
+
+- *Numeric features (publication delay, contract value distance)*. Would require careful normalisation and a non-Hamming distance — opens up scaling questions (£500k vs £500m on a linear scale dwarfs every other dimension) and a writeup defence burden we did not want to take on now. Hamming-over-categoricals is the simplest defensible distance.
+- *Adding `meshqu_verdict` or `violations_list` to the vector*. Would bias the kNN toward "precedents that already agreed with the agent on outcome" — exactly the wrong selection criterion for an experiment that's TRYING to detect agreement sycophancy. Rejected on methodology grounds.
+
+The locked vector is recorded both here AND inline in `precedent_selector.py`'s module docstring (the runtime-truth check). Any change must be a new decision_log entry before the code edits, per the planning/decision-log discipline.
+
+**3. Determinism by OCID-ascending tie-break.** The build package's hard requirement: same inputs → same outputs across re-runs. With only 3 binary-ish features, many archive records share the same distance to any given target (the worked-example record, see below, has all 4 picks at distance 0). The selector sorts by `(distance asc, ocid asc)` and returns the top-k — OCID lexicographic order is what closes the determinism loophole. Tested explicitly: `select_precedents` returns byte-identical OCID lists across 10 re-runs for all 3 smoke records.
+
+**4. Frozen-archive isolation reaffirmed.** The selector reads exclusively from `procurement-decisions/results/runs/dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d/` (decision_traces.jsonl + agent_outputs/*.json). The archive has 300 trace lines but 283 unique decision_ids; the loader de-duplicates by decision_id (first occurrence wins) and keys the result by OCID. Loader is read-only by construction — no writes anywhere, no HTTP transport touched (the test suite installs a `socket.socket` guard that blocks any network call across the L3 test module).
+
+**5. Worked-example pick assessment (`ca19e737-…`, the £57M case).** The PR body quotes the per-precedent diagnostic in full; the short version: all 4 picks land at distance 0 (matching target on band=`>10M`, regime=`PA23`, method_flag=`None`), all 4 carry violations from the same family (PROC-001-S53, PROC-002-AUTHORITY, PROC-005-OPEN-TENDER), all 4 received DENY verdicts from MeshQu. Picks read as well-targeted comparables, not noise. The OCID-asc tie-break is what selected exactly these four from a larger distance-0 pool — the writeup's reproducibility section will quote the ordering.
+
+**6. Known feature-vector skew (NOT a stop condition, but worth surfacing).** The `procurement_method_open_flag` axis is highly skewed in the archive — 264 records have it absent, 19 have it "true", 0 have explicit "false". This means the axis behaves nearly binary in practice, and for the 264-record "absent" cluster the kNN effectively collapses to a 2-feature selector. The OCID tie-break carries the rest of the determinism load. Not a defect — this is what the substrate gives us — but it explains why the worked-example picks all sit at distance 0 (they all share the dominant absent-method-flag profile).
+
+---
+
 ## 2026-05-21 — E2-003 L1 + L2 payload generators: prompt-position decision + Stage A SHA verification
 
 **Decisions captured for the build-package paper trail.**
