@@ -1,6 +1,8 @@
 ## Precedent {n}: comparable record
 
+- **OCID**: {ocid}
 - **Contract value**: {contract_value_formatted}
+- **Award date**: {award_date}
 - **Governance regime**: {regime_proxy}
 - **Procurement-method-open flag**: {procurement_method_open_flag}
 - **Publication delay**: {publication_delay_days} days

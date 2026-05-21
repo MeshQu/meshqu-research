@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-05-21 — Stage A content refinements + emergent reframing of the experiment's conceptual centre
+
+**Decision (mechanical)**: applied four refinements to the Stage A prompt content files at `runner/prompts/`:
+
+- **L1**: "Your verdict should reflect whether the record *satisfies this policy area*" → "*appears compliant within this policy area*." Softens commitment, better matches uncertainty semantics.
+- **L2**: unchanged.
+- **L3**: added `OCID` and `award_date` back into the per-precedent template (now 9 fields instead of 7). Not because the model needs them semantically, but because temporal anchoring and precedent traceability matter for reasoning models that treat the precedent block as a governance case record. The template stays lean enough to keep L3's cumulative payload in the ~1,500-token band.
+- **L4**: anti-sycophancy nudge tightened from "*If a rule's condition cannot be evaluated because evidence is missing, name that uncertainty in your reasoning*" to "*If a rule cannot be confidently evaluated because evidence is missing or ambiguous, explicitly name that uncertainty in your reasoning.*" Adds "confidently" (matches the evidence-sensitive-caution finding from E1), "or ambiguous" (covers the ambiguity-segmented analysis already in `experiment_design.md`), and "explicitly" (encourages articulation without sounding defensive).
+
+These are **pre-receipt-generation refinements** to prompt content that has never produced a receipt. They are NOT post-lock modifications to the v0.2-locked planning documents (`predictions.md`, `context_ladder_design.md`, `experiment_design.md`, `writeup_outline.md`, `policy/policy-snapshot-cbf12348.json`). Prompt content gets its SHA-256 bound into receipts only when the runner starts generating; until then, content is in active authoring.
+
+**Strategic observation worth recording (not a decision yet)**: the four-level ladder, once seen end-to-end, is structurally probing something larger than "does more context help the agent commit?" Each layer introduces a distinct kind of governance scaffolding:
+
+| Layer | Governance artefact type |
+|---|---|
+| L1 | governance awareness (domain framing) |
+| L2 | symbolic policy awareness (rule identifiers without semantics) |
+| L3 | precedent + receipt memory (institutional / case-record reasoning) |
+| L4 | executable-policy visibility (full rule semantics) |
+
+The reframing this surfaces: E2 is no longer *"give the AI more context and see if it commits more"*. It is *"measure which kinds of governance artefacts meaningfully alter AI reasoning and escalation behaviour."* That is a materially different — and stronger — research question. The cleanest way to surface it is in the writeup at draft time (§1's question framing and §9's "what's next"); the locked planning artefacts don't need editing now, because the ladder shape and predictions cleanly support either framing.
+
+**L3 is the most novel layer.** L1/L2/L4 are expected probes (domain framing / symbolic identifiers / raw policy text). L3 is genuinely unusual because it tests whether **Decision Receipts function as governance memory primitives for agents** — a conceptual shift from "receipts as passive audit objects" to "receipts as active reasoning infrastructure." If E2 finds meaningful L3 effect (e.g. ALLOW→DENY or REVIEW→DENY shifts that concentrate at L3, not L4), that is a load-bearing finding for MeshQu's product narrative. The writeup §6 should lean into this if the data supports it.
+
+**Future variant flagged (NOT in E2's scope)**: an **L3.5 receipt-only reasoning** condition — same L3 precedent block, but with L1 / L2 / L4 stripped. The agent sees only historical Decision Receipts, prior reasoning, and violation codes; no policy text, no rule names, no domain framing. Tests whether governance can emerge through precedent memory alone (case-law-like behaviour). Captured here as a candidate for E2-followup or for E3's scope discussion when the time comes; explicitly out-of-scope for E2 to keep the predictions-lock clean.
+
+**Reason picked (for the four refinements)**: each is a small wording adjustment that improves the prompt's match to the experiment design without changing the experiment design. The L3 field additions (OCID + award_date) align the precedent block with what makes it feel like a governance case record — the methodology language already in `context_ladder_design.md` and `predictions.md` describes L3 as "case-law analogue," so the precedent block format should embody that.
+
+**Out of scope for this entry**: the broader conceptual reframing ("which governance artefacts meaningfully alter AI reasoning"). This is recorded as an observation, not a design change. The writeup will surface it at draft time; the planning artefacts remain valid descriptions of what is being run.
+
+---
+
 ## 2026-05-21 — Pre-lock methodology upgrades: level-batching, L3 frozen-archive isolation, sycophancy framing, adversarial fail-safe
 
 **Decision**: applied four methodology upgrades to the Phase 0 planning documents before tagging `v0.2-predictions-locked`. These tighten the operational efficiency of the run, harden the inferential bar on the headline finding, and align the framing with the established AI-safety literature.

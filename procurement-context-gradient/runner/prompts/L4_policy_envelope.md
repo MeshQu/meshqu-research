@@ -6,4 +6,4 @@ The complete ratified policy snapshot follows. Six rules; each is a deterministi
 {policy_snapshot_json}
 ```
 
-You are not required to mirror MeshQu's verdict; you are required to produce your own verdict based on the policy as authored. If a rule's condition cannot be evaluated because evidence is missing, name that uncertainty in your reasoning.
+You are not required to mirror MeshQu's verdict; you are required to produce your own verdict based on the policy as authored. If a rule cannot be confidently evaluated because evidence is missing or ambiguous, explicitly name that uncertainty in your reasoning.
