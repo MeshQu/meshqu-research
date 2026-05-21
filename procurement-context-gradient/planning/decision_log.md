@@ -5,6 +5,72 @@
 
 ---
 
+## 2026-05-21 — E2-001 multi-pass runner: fork source, new local-bundle envelope, level-marker hash-binding
+
+**Decisions captured for the build-package paper trail.**
+
+**1. Fork source.** Forked `procurement-decisions/runner/meshqu_runner/` at SHA `10f5475d9efa8c4682ac73b6956e3aeb46854e70` into `procurement-context-gradient/runner/meshqu_runner/`. E1's runner stays untouched — it is the published artefact for MRP-2026-02. The fork is the new baseline for all E2 work; subsequent build packages (E2-002..006) modify only the E2 copy. Provenance is preserved here, in the README at `procurement-context-gradient/runner/README.md`, and in the run-manifest's `runner_git_commit` field.
+
+**Alternative considered**: importing the E1 runner as a path-relative Python dependency. Rejected — would require touching E1's `pyproject.toml` (renaming the package, opening it for path-based imports), creating cross-experiment coupling exactly where we want isolation. The duplication a fork creates is the price for E1's archival cleanliness; the eventual `methodology/` extraction (Phase 4 post-publish) is where the shared infrastructure consolidates.
+
+**2. New E2-local bundle envelope (v1) — NOT a MeshQu receipt-schema bump.**
+
+The package prompt directed the runner to "increment the receipt schema version to v3 (E1 used v2)." That framing turned out to be inaccurate once the actual surfaces were inspected:
+
+- The MeshQu product receipts are at `receipt_schema_version: 2` today. That is owned by `@meshqu/core` upstream; bumping it would require a coordinated upstream change (the stop condition the package prompt explicitly flagged).
+- E1 never persisted local bundle files. It consumed the MeshQu-issued v2 receipts on demand via `/v1/decisions/<id>/bundle` and never wrote them to disk. There was no "v2 of an E1-local file" to bump from.
+
+So E2 isn't bumping anything — it's introducing v1 of a brand-new wrapper file format that nests the (unchanged) MeshQu receipt inside it. The wrapper lives at `results/runs/<run_id>/<level>/<decision_id>.bundle.json` and carries:
+
+- `bundle_envelope_version: 1` (E2's own versioning, distinct from MeshQu's receipt schema)
+- `governance_context_level` (the new audit-only field)
+- `context_fields_canonical_json` (the exact bytes MeshQu hashed)
+- `receipt` (the MeshQu-issued ReceiptSummary, schema-unchanged)
+- `agent`, `is_stub`, `record_index`, `ocid`, `timestamp`
+
+The run manifest carries `bundle_envelope_version: 1` to mirror the per-bundle field.
+
+**Why this framing matters for downstream agents.** E2-002..006 agents reading this entry need to know that the MeshQu product schema is unchanged and that the `governance_context_level` field rides in via the existing canonical-JSON envelope. If they read "v2 → v3 bump" they may believe an upstream change happened and build on that false premise.
+
+**3. Where `governance_context_level` binds into the integrity hash.** Bound into the MeshQu-issued integrity hash via the existing `context.fields` injection point — the same audit-only-but-hash-bound pattern E1 uses for the seven `agent_*` keys. The multi-pass orchestrator injects `governance_context_level` (alongside the `agent_*` fields) BEFORE posting to `/v1/decisions/record`; the API canonicalises the fields map and binds it into the integrity hash. **No `@meshqu/core` change required.** The policy never references this key, so it rides as audit-only metadata — invisible to evaluation, cryptographically attested.
+
+The contract schema at `runner/contracts/decision_context.schema.json` is updated to document the new key under `fields`, with an explicit enum (`L0`, `L1`, `L2`, `L3`, `L4`, `L4_PERMUTED`).
+
+**Why this binding point**: the stop condition in the package prompt flagged the alternative — modifying `@meshqu/core`'s canonical-JSON envelope — as something to surface to Sam rather than implement. The injection-via-fields pattern is structurally identical to what E1 already does for `agent_*` (these fields are not policy-evaluable but ARE in the canonical fields map MeshQu hashes), so the E2 extension is a strict superset of E1's pattern. No upstream surprise; no coordination needed with `@meshqu/core`.
+
+**Local-bundle integrity test**: the bundle file persists the exact canonical-JSON bytes the integrity hash was computed over, so a future verifier (or a tighter test) can recompute SHA-256 and confirm hash → bytes → field-set match. The test `test_governance_context_level_is_hash_bound` verifies in stub mode that:
+- the level marker is present in the canonicalised fields
+- recomputed SHA matches `receipt.integrity_hash`
+- stripping the marker changes the hash (proving it is materially bound, not bypassed)
+
+**4. Level-batching execution order.** Implemented in `multi_pass.py::run_multi_pass`. Outer loop walks levels in `MAIN_LEVELS = (L0, L1, L2, L3, L4)`; inner loop walks records in OCID-ascending order. Records missing an OCID sort to the end (deterministic). The test `test_level_batching_observed` enforces the invariant.
+
+**5. Per-level handler plug-in point.** `level_handlers.py` defines a `LevelHandler` Protocol; `default_main_handlers()` returns the five stubs (L0..L4) the orchestrator uses by default. E2-002..005 each replace one entry in this registry. E2-006's Permuted-Policy diagnostic registers a sixth entry (`L4_PERMUTED`) in its own registry passed to `run_multi_pass(handlers=...)` — keeping the main grid uncontaminated.
+
+**6. Empty-prompt contract preserved despite Stage A being already merged.** The package prompt was written assuming Stage A hadn't landed yet ("create empty stub files… the Sam-only Stage A authoring step replaces these"). Stage A merged in PR #48; the real prompts are now in place. The runner code still honours the empty-file contract — empty L1..L4 markdowns produce empty addenda, the orchestration loop still emits 15 bundles, and the SHA-binding contract still holds with the empty content cryptographically attested. The test `test_empty_prompts_handled_gracefully` enforces this so a future contributor who empties a prompt file does not break the orchestration loop, only the locked-content invariant (which would surface at predictions-lock verification, not runtime).
+
+**Out of scope for E2-001 (handed to subsequent packages)**:
+- Live OpenAI wiring beyond the stub agent (the live `Agent` is imported and the orchestrator uses its `model_id` / `temperature` / `system_prompt_sha256` properties, but the live OpenAI call is only exercised by E1's inherited tests, not by the multi_pass smoke).
+- L0 substrate-cache reader (E2-002).
+- Level-specific prompt-addendum semantics (E2-003 for L1+L2, E2-004 for L3, E2-005 for L4).
+- Permuted-Policy diagnostic (E2-006).
+- Atomicity / receipt-orphan reconciliation in the multi-pass loop (inherits from E1's eval_loop; the multi-pass orchestrator does not yet wrap each pass in the same `receipt_orphaned` recovery contract — to be added when E2-002 wires the live path).
+
+**Files added** (under `procurement-context-gradient/runner/`):
+- `meshqu_runner/multi_pass.py` — orchestrator + StubAgent + StubMeshQuClient + bundle writer + manifest writer
+- `meshqu_runner/level_handlers.py` — Protocol + L0..L4 stub handlers + `compose_user_message` (additivity)
+- `meshqu_runner/prompt_loader.py` — Stage A SHA-256 loader with empty-file tolerance
+- `tests/test_multi_pass.py` — 11 tests covering the done criteria
+- `tests/fixtures/smoke_records.json` — the 3-record smoke fixture
+
+**Files modified**:
+- `contracts/decision_context.schema.json` — added `governance_context_level` to `fields`; retitled
+- `pyproject.toml` / `__init__.py` / `README.md` — package metadata + fork provenance
+
+**Done criteria status**: 15 bundles produced on the 3-record × 5-level smoke; all 11 multi-pass tests pass; all 209 inherited tests still pass (no behavioural change to E1 code); CLI `python -m meshqu_runner.multi_pass --records … --stub` works end-to-end.
+
+---
+
 ## 2026-05-21 — Stage A content refinements + emergent reframing of the experiment's conceptual centre
 
 **Decision (mechanical)**: applied four refinements to the Stage A prompt content files at `runner/prompts/`:

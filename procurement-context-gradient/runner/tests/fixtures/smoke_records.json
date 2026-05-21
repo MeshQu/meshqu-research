@@ -1,0 +1,60 @@
+[
+  {
+    "ocid": "ocds-b5fd17-001-smoke-aboveband-pa23",
+    "decision_type": "procurement_decision",
+    "fields": {
+      "publication_delay_days": 14,
+      "governed_by_pa23": "true",
+      "above_threshold": "true",
+      "contract_value": 875000,
+      "supplier_id": "supplier-S001",
+      "procurement_method_open_flag": "true",
+      "is_modification": "false"
+    },
+    "metadata": {
+      "ocid": "ocds-b5fd17-001-smoke-aboveband-pa23",
+      "experiment_substrate": "uk_contracts_finder_ocds",
+      "adapter_version": "stub-0.0"
+    },
+    "substrate_notes": {}
+  },
+  {
+    "ocid": "ocds-b5fd17-002-smoke-pcr2015-modification",
+    "decision_type": "procurement_decision",
+    "fields": {
+      "publication_delay_days": 41,
+      "governed_by_pa23": "false",
+      "above_threshold": "true",
+      "contract_value": 2400000,
+      "supplier_id": "supplier-S047",
+      "direct_award_justification_present": "true",
+      "is_modification": "true",
+      "modification_value_ratio": 0.38
+    },
+    "metadata": {
+      "ocid": "ocds-b5fd17-002-smoke-pcr2015-modification",
+      "experiment_substrate": "uk_contracts_finder_ocds",
+      "adapter_version": "stub-0.0"
+    },
+    "substrate_notes": {}
+  },
+  {
+    "ocid": "ocds-b5fd17-003-smoke-missing-method",
+    "decision_type": "procurement_decision",
+    "fields": {
+      "publication_delay_days": 7,
+      "governed_by_pa23": "true",
+      "above_threshold": "true",
+      "contract_value": 460000,
+      "supplier_id": "supplier-S012",
+      "direct_award_justification_present": "false",
+      "is_modification": "false"
+    },
+    "metadata": {
+      "ocid": "ocds-b5fd17-003-smoke-missing-method",
+      "experiment_substrate": "uk_contracts_finder_ocds",
+      "adapter_version": "stub-0.0"
+    },
+    "substrate_notes": {}
+  }
+]
