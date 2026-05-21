@@ -68,7 +68,7 @@ runner/
 │   └── decision_context.schema.json       Inherited; extended with governance_context_level field
 └── tests/
     ├── fixtures/smoke_records.json        3-record smoke fixture (E2-001 done criteria)
-    ├── test_multi_pass.py                 Verifies 15 v3 receipts on 3-record × 5-level smoke
+    ├── test_multi_pass.py                 Verifies 15 v1 bundles on 3-record × 5-level smoke
     ├── test_level_handlers.py
     ├── test_prompt_loader.py
     └── (E1 inherited tests — kept; will be triaged as E2-002..006 land)
@@ -112,8 +112,8 @@ This lets tests (and the `--stub` CLI flag) drive the orchestration
 end-to-end without OpenAI or MeshQu credentials. The fake clients
 synthesise deterministic ReceiptSummaries with hashes computed locally
 from canonical-JSON of the fields map — the produced bundles are
-structurally identical to live-mode bundles (same v3 schema, same
-governance_context_level binding) but the integrity hash is local-only.
+structurally identical to live-mode bundles (same v1 bundle envelope,
+same governance_context_level binding) but the integrity hash is local-only.
 Stub bundles will NOT verify at `verify.meshqu.com` and carry
 `is_stub: true` in the bundle envelope so they cannot be confused with
 real receipts.
@@ -124,7 +124,7 @@ real receipts.
 pytest -q
 ```
 
-The E2-001 acceptance test is `test_multi_pass.py::test_smoke_produces_15_v3_receipts`.
+The E2-001 acceptance test is `test_multi_pass.py::test_smoke_produces_15_bundles`.
 
 ## Environment variables (live mode)
 

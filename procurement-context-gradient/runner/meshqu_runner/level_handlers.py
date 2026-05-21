@@ -12,8 +12,9 @@ level-specific behaviour:
   - L4  (E2-005)             — full policy envelope + cache-friendly prefix
   - L4_PERMUTED (E2-006)     — adversarial-permutation diagnostic
 
-E2-001's done criteria only requires stubs that produce a valid v3
-receipt with the correct `governance_context_level` marker. The stub
+E2-001's done criteria only requires stubs that produce a valid v1
+bundle envelope (wrapping a v2 MeshQu receipt) with the correct
+`governance_context_level` marker. The stub
 implementations here read the loaded Stage A prompt content verbatim
 and prepend it as a section header — enough to verify additivity and
 the SHA-binding contract without committing to the level-specific

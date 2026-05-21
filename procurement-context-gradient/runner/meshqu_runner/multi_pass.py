@@ -308,7 +308,7 @@ def _sha256_file(path: Path) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Bundle writer — the v3 envelope
+# Bundle writer — the v1 bundle envelope (E2-local wrapper around v2 MeshQu receipts)
 # ---------------------------------------------------------------------------
 
 
@@ -325,7 +325,7 @@ def write_bundle(
     timestamp: str,
     is_stub: bool,
 ) -> Path:
-    """Persist the v3 bundle file for one (record, level) pair.
+    """Persist the v1 bundle file for one (record, level) pair.
 
     Layout:
         <run_dir>/<level>/<decision_id>.bundle.json
