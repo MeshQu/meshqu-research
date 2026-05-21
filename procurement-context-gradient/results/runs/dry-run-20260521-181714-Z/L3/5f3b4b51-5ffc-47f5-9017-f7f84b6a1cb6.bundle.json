@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 1730,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2049,
+    "raw_response": "{\"verdict\":\"allow\",\"reasoning\":\"The \u00a3190,000 PA23 award is above threshold but the record shows an open procedure, no modification, and publication 1 day after the 2026-04-27 award date. No material compliance or prudence concern is apparent from the facts provided.\",\"recommended_action\":null}",
+    "reasoning": "The \u00a3190,000 PA23 award is above threshold but the record shows an open procedure, no modification, and publication 1 day after the 2026-04-27 award date. No material compliance or prudence concern is apparent from the facts provided.",
+    "reasoning_sha256": "2daf40692b40d0b4ec1bfdb4d2ff83d80b8707182efd6db0110024a5d85891b5",
+    "recommended_action": null,
+    "retry_count": 0,
+    "verdict": "ALLOW"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"2daf40692b40d0b4ec1bfdb4d2ff83d80b8707182efd6db0110024a5d85891b5\",\"agent_recommended_action\":null,\"agent_recommended_verdict\":\"ALLOW\",\"agent_temperature\":0.0,\"contract_value\":190000.0,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L3\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"procurement_method_open_flag\":\"true\",\"publication_delay_days\":1,\"supplier_id\":\"GB-CFS-218341\"}",
+  "decision_id": "5f3b4b51-5ffc-47f5-9017-f7f84b6a1cb6",
+  "governance_context_level": "L3",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-ac66d536-9ef5-4d5b-af90-1f9abb565822",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "5f3b4b51-5ffc-47f5-9017-f7f84b6a1cb6",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "b61780518b4dc9a8eb523f2c4fe6f4b61546d5e5a6d9940bc4b812e0de5ac6fa",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "-IbhdLh3IdbDPFCmNeRsnophq6zUiYMZCpCM3UaybB9ZLypwivb_rybilXZ52Aq39a1zAPb3U9uyC4X1nXEDBQ",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-21T18:24:04.786Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 28,
+  "timestamp": "2026-05-21T18:24:05+00:00"
+}

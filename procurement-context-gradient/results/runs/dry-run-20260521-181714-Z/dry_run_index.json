@@ -1,0 +1,11 @@
+{
+  "actual_total_bundles": 151,
+  "diagnostic_outcome_count": 1,
+  "expected_main_total": 150,
+  "fixture": "procurement-context-gradient/runner/tests/fixtures/dry_run_records.json",
+  "fixture_record_count": 30,
+  "is_stub": false,
+  "main_grid_outcome_count": 150,
+  "run_id": "dry-run-20260521-181714-Z",
+  "wall_clock_seconds_main": 511.1
+}
