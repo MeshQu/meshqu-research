@@ -27,7 +27,8 @@ Modules:
   `## Governance context`.
 - `level_l2` — E2-003. Named-rules block, emitted verbatim (file
   already carries its own `## Rules in force` header).
-- `level_l3` — E2-004. (Future.)
+- `level_l3` — E2-004. Deterministic kNN precedent selector + Stage A
+  template renderer. Reads from the frozen E1 archive only.
 - `level_l4` — E2-005. (Future.)
 - `level_l4_permuted` — E2-006. (Future.)
 """
