@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://meshqu.com/research/procurement-decisions/contracts/decision_context.schema.json",
-  "title": "Procurement-decisions DecisionContext + per-field provenance",
-  "description": "Canonical contract between the substrate adapter (producer) and the Inspect AI eval loop (consumer). The substrate adapter emits a DecisionContext PER RECORD shaped for MeshQu /v1/decisions/record, AND a parallel per-field provenance envelope captured in substrate_notes for the decision_traces.jsonl audit row. Two schemas in one file: `DecisionContext` (what MeshQu sees, flat fields, hash-bound) and `SubstrateProvenance` (what the writeup sees, per-field source/confidence, hash-excluded). The provenance envelope is deliberately separate from the DecisionContext so the policy rules continue to read primitive values (number/string) rather than envelope objects — and so the receipt's integrity hash binds the substantive fields without coupling to substrate-internal metadata.",
+  "$id": "https://meshqu.com/research/procurement-context-gradient/contracts/decision_context.schema.json",
+  "title": "Procurement-context-gradient (E2) DecisionContext + per-field provenance",
+  "description": "Forked from procurement-decisions/runner/contracts/decision_context.schema.json at SHA 10f5475d9efa8c4682ac73b6956e3aeb46854e70. E2 extends the canonical fields with a single new audit-only-but-hash-bound key: `governance_context_level`. The eval-loop / multi-pass orchestrator injects this field (alongside the existing `agent_*` audit fields) before posting to MeshQu, so the level marker rides into the integrity hash via the API's existing canonical-json envelope — no @meshqu/core change required. Policy rules continue to read only the substantive substrate-derived fields; `governance_context_level` is invisible to evaluation but cryptographically attested in every receipt.",
   "type": "object",
   "properties": {
     "DecisionContext": { "$ref": "#/$defs/DecisionContext" },
@@ -103,6 +103,12 @@
             "agent_recommended_action": {
               "type": ["string", "null"],
               "description": "AUDIT-ONLY (not evaluated). The agent's free-text recommended action (e.g. 'approve', 'escalate to counsel'). Null when the agent didn't produce one."
+            },
+
+            "governance_context_level": {
+              "type": "string",
+              "enum": ["L0", "L1", "L2", "L3", "L4", "L4_PERMUTED"],
+              "description": "E2 EXTENSION (v3). AUDIT-ONLY (not evaluated). The context-ladder level under which this record was evaluated. Injected by the multi-pass orchestrator BEFORE posting to MeshQu so the level marker is bound into the receipt's integrity hash via the existing canonical-JSON envelope. L0..L4 are the main grid (see planning/context_ladder_design.md); L4_PERMUTED is the adversarial diagnostic control (see planning/experiment_design.md §'Diagnostic Controls'). The policy never references this key — it rides along with the `agent_*` fields as audit-only-but-hash-bound metadata. Receipts from this experiment are cryptographically distinguishable from E1's by this field's presence alone (E1's policy_snapshot_id maps to the same snapshot, but no receipt under that policy can carry this field unless emitted by the E2 runner)."
             }
           }
         },
