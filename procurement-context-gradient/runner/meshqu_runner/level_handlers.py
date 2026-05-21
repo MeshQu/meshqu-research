@@ -205,11 +205,23 @@ def default_main_handlers() -> dict[GovernanceContextLevel, LevelHandler]:
     """The five handlers for the main run (L0..L4).
 
     L4_PERMUTED is deliberately absent — it's the diagnostic, registered
-    separately by E2-006 to avoid mixing into the main grid."""
+    separately by E2-006 to avoid mixing into the main grid.
+
+    E2-003 swaps the L1 and L2 stubs for the live implementations in
+    `meshqu_runner.context_levels` (registry-replacement pattern per
+    the build package contract — the Protocol + orchestrator core are
+    untouched). L0, L3, L4 are still the stubs in this module; E2-002,
+    E2-004, E2-005 will replace them via the same pattern."""
+    # Local import keeps level_handlers importable without a top-level
+    # cycle: `context_levels.level_l1` imports
+    # `GovernanceContextLevel` from this module.
+    from .context_levels.level_l1 import L1ContextHandler
+    from .context_levels.level_l2 import L2ContextHandler
+
     return {
         "L0": L0Handler(),
-        "L1": L1Handler(),
-        "L2": L2Handler(),
+        "L1": L1ContextHandler(),
+        "L2": L2ContextHandler(),
         "L3": L3Handler(),
         "L4": L4Handler(),
     }
