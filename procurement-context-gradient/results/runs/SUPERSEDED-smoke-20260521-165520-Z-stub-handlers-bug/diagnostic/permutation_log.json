@@ -1,0 +1,85 @@
+{
+  "diagnostic": "permuted-policy",
+  "permutation_log": [
+    {
+      "inverted_condition": {
+        "field": "publication_delay_days",
+        "min": 30
+      },
+      "original_condition": {
+        "field": "publication_delay_days",
+        "max": 30
+      },
+      "rule_code": "PROC-001-S53"
+    },
+    {
+      "inverted_condition": {
+        "field": "contract_value",
+        "min": 500000
+      },
+      "original_condition": {
+        "field": "contract_value",
+        "max": 500000
+      },
+      "rule_code": "PROC-002-AUTHORITY"
+    },
+    {
+      "inverted_condition": {
+        "field": "supplier_id",
+        "required": [
+          "SUPPLIER-OFAC-001",
+          "SUPPLIER-UK-SANCTIONS-001",
+          "SUPPLIER-EU-RESTRICTED-001"
+        ]
+      },
+      "original_condition": {
+        "field": "supplier_id",
+        "forbidden": [
+          "SUPPLIER-OFAC-001",
+          "SUPPLIER-UK-SANCTIONS-001",
+          "SUPPLIER-EU-RESTRICTED-001"
+        ]
+      },
+      "rule_code": "PROC-003-DEBARMENT"
+    },
+    {
+      "inverted_condition": {
+        "forbidden_fields": [
+          "conflict_of_interest_declaration"
+        ]
+      },
+      "original_condition": {
+        "required_fields": [
+          "conflict_of_interest_declaration"
+        ]
+      },
+      "rule_code": "PROC-004-COI"
+    },
+    {
+      "inverted_condition": {
+        "forbidden_fields": [
+          "procurement_method_open_flag"
+        ]
+      },
+      "original_condition": {
+        "required_fields": [
+          "procurement_method_open_flag"
+        ]
+      },
+      "rule_code": "PROC-005-OPEN-TENDER"
+    },
+    {
+      "inverted_condition": {
+        "field": "modification_value_ratio",
+        "min": 0.5
+      },
+      "original_condition": {
+        "field": "modification_value_ratio",
+        "max": 0.5
+      },
+      "rule_code": "PROC-006-MOD-CAP"
+    }
+  ],
+  "permuted_envelope_sha256": "92f727f374576307a679b01a2b6ac7121ca22345aac7ce16fc97e3caf079bf9a",
+  "seed": 0
+}
