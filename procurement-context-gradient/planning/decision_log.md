@@ -5,36 +5,6 @@
 
 ---
 
-## 2026-05-21 — Phase 1 operational scaffolding kept private (publication-discipline alignment with E1)
-
-**Decision**: The Phase 1 build packages (`build_packages/e2-001..009.md`) and the Stage A authoring guide (`stage_a_content_authoring.md`) are kept in the private notes location at `~/Projects/meshqu-research-notes/procurement-context-gradient/planning/`, not in this public repo. The high-level `phase_1_build_plan.md` stays public.
-
-**Alternative considered**: keep all Phase 1 planning material on the public branch. Rejected — would have broken with the publication-discipline precedent E1 established (queued-edits.md was moved to private notes on 2026-05-19 for the same reason; pre-render writeup edits flow through iko-tools rather than this repo per the 2026-05-20 split entry below).
-
-**The boundary**:
-
-- **Public**: methodology, design, predictions, decision log, findings, runner code, the locked prompt content files (`runner/prompts/L1..L4.md`) — anything citable in the writeup or required for cryptographic reproducibility.
-- **Private**: agent-dispatchable build packages, internal authoring deliberation guides, dispatch sequencing notes — operational scaffolding analogous to `.harness/` material in the monorepo. Not citable, not reproducibility-load-bearing.
-
-**Specific files moved to private notes**:
-
-- `procurement-context-gradient/planning/stage_a_content_authoring.md` — Sam-only authoring guide for the four locked prompt content files; carries "things to consider" deliberation that's editorial, not methodological.
-- `procurement-context-gradient/planning/build_packages/` (10 files: `_INDEX.md` + `e2-001..009.md`) — agent-dispatchable build prompts with stop conditions, branch naming conventions, off-limits-surface references that pull in tradequ-internal conventions. Not appropriate for the public research record.
-
-**What stays public for Phase 1**:
-
-- `phase_1_build_plan.md` — high-level methodology of the build phase + dependency graph. Useful future writeup §2 material.
-- Once Stage A authoring lands: the four files at `runner/prompts/L1..L4.md` — these are the actual prompt content the experiment runs on, and their SHA-256 is bound into every receipt's integrity payload. Public for reproducibility.
-- Once Stage B builds land: the runner code at `runner/meshqu_runner/`. Public; cited from writeup §8.
-- Any F-series findings authored during build/smoke/dry-run.
-- This decision log.
-
-**Reason picked**: matches E1 precedent. The public research record carries claims; operational engineering scaffolding lives where it doesn't undercut the published artefact or leak cross-repo internal conventions into a public research repo.
-
-**Note on PR #47**: the initial commit on `plan/procurement-context-gradient-phase1-buildplan` included the operational files on the public branch. The corrective commit on the same branch removes them and adds this entry. Pre-merge correction; no public-history exposure on `main`.
-
----
-
 ## 2026-05-21 — Pre-lock methodology upgrades: level-batching, L3 frozen-archive isolation, sycophancy framing, adversarial fail-safe
 
 **Decision**: applied four methodology upgrades to the Phase 0 planning documents before tagging `v0.2-predictions-locked`. These tighten the operational efficiency of the run, harden the inferential bar on the headline finding, and align the framing with the established AI-safety literature.

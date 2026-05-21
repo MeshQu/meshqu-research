@@ -166,32 +166,6 @@ These are explicitly scoped out so Phase 1's exit gate (E2-009) is unambiguous: 
 
 ## Build packages reference
 
-The 9 agent-dispatchable build packages and the Stage A authoring guide are **operational engineering scaffolding** and live in the private notes location, not in this public repo:
+The 9 build packages are in [`build_packages/`](build_packages/). Each is a self-contained agent prompt suitable for background dispatch. [`build_packages/_INDEX.md`](build_packages/_INDEX.md) summarises them.
 
-```
-~/Projects/meshqu-research-notes/procurement-context-gradient/planning/
-├── stage_a_content_authoring.md         ← Sam-only authoring guide
-└── build_packages/
-    ├── _INDEX.md
-    ├── e2-001-multi-pass-runner.md
-    ├── e2-002-l0-baseline-substrate-cache.md
-    ├── e2-003-l1-l2-payload-generators.md
-    ├── e2-004-l3-precedent-selector.md
-    ├── e2-005-l4-policy-payload.md
-    ├── e2-006-permuted-policy-diagnostic.md
-    ├── e2-007-smoke-run.md
-    ├── e2-008-dry-run.md
-    └── e2-009-full-run-readiness.md
-```
-
-This split aligns with the precedent set on 2026-05-19 when editorial scaffolding (`queued-edits.md`) was moved to the same private notes location during E1's publication-discipline split. **The boundary is: citable methodology + falsifiable claims live public; operational scaffolding (dispatch prompts, internal decision rules, authoring deliberation) lives private.**
-
-See `decision_log.md` entry "2026-05-21 — Phase 1 operational scaffolding kept private" for the full rationale.
-
-What stays public from Phase 1:
-
-- This document (`phase_1_build_plan.md`) — high-level methodology of the build phase, useful future writeup §2 material.
-- The four locked prompt content files (`runner/prompts/L1..L4.md`) that Stage A produces — their SHA-256 is bound into every receipt's integrity payload; they must be public for reproducibility.
-- The runner code itself (`runner/meshqu_runner/`) — directly cited from §8 of the writeup.
-- F-series findings authored during build/smoke/dry-run, if any.
-- This harness's `decision_log.md` entries recording any methodology decisions made during the build phase.
+Stage A authoring guidance is in [`stage_a_content_authoring.md`](stage_a_content_authoring.md).
