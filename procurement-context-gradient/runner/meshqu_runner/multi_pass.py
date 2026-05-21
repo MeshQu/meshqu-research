@@ -23,23 +23,29 @@ Not record-cycled. Two reasons:
 2. **Comparability.** Within a level, every record sees the same
    prompt scaffolding — no temporal-locality variance.
 
-## Receipt schema v3
+## Local bundle envelope (NOT a MeshQu receipt-schema bump)
 
-This orchestrator persists each (record, level) result as a bundle file
-at `results/runs/<run_id>/<level>/<decision_id>.bundle.json`. The bundle
-carries `schema_version: 3` and a `governance_context_level` field
-(L0..L4 — or L4_PERMUTED when the diagnostic registry is in use).
+This orchestrator persists each (record, level) result as a local
+bundle file at `results/runs/<run_id>/<level>/<decision_id>.bundle.json`.
+The bundle is a runner-local artefact — a wrapper around the
+MeshQu-issued receipt — and carries `bundle_envelope_version: 1`
+(its own versioning, distinct from the MeshQu product's receipt
+schema). The MeshQu receipt inside the wrapper retains whatever
+`receipt_schema_version` the API returned (currently 2 in the product).
+
+The wrapper adds:
+
+- `governance_context_level` (L0..L4, or L4_PERMUTED for the diagnostic)
+- `context_fields_canonical_json` — the exact bytes MeshQu hashed
+- `is_stub` — true when StubMeshQuClient was used
+- `record_index`, `ocid`, `timestamp` — operational indexing fields
 
 The level marker is bound into MeshQu's integrity hash via the
 `context.fields` injection point — the same pattern E1 uses for
 `agent_*` fields. The MeshQu API canonicalises the fields map and
 hashes it; the policy never references `governance_context_level`, so
 this is audit-only-but-hash-bound. **No upstream @meshqu/core change is
-required.**
-
-The local bundle additionally carries the canonical-JSON bytes of the
-fields map alongside the receipt, so a future verifier can recompute
-the integrity hash independently.
+required, and the MeshQu receipt schema itself is unchanged.**
 
 ## Run manifest extensions
 
@@ -50,7 +56,7 @@ Records (in addition to E1's manifest fields):
 - `prompt_template_sha256: { L1: ..., L2: ..., L3: ..., L4: ... }`
 - `policy_snapshot_sha256: <sha of policy/policy-snapshot-cbf12348.json>`
 - `runner_git_commit: <inherited from build_manifest>`
-- `receipt_schema_version: 3`
+- `bundle_envelope_version: 1`
 
 ## Stub mode
 
@@ -99,14 +105,22 @@ from .run_manifest import RunPhase, resolve_git_commit
 # Constants
 # ---------------------------------------------------------------------------
 
-RECEIPT_SCHEMA_VERSION = 3
-"""Local bundle-file schema version. v2 is what E1 emitted (implicit —
-E1 did not persist local bundles, but the MeshQu-issued receipts it
-fetched carried the v2 envelope). v3 is the E2 extension that adds the
-`governance_context_level` field bound into the integrity payload.
+BUNDLE_ENVELOPE_VERSION = 1
+"""Version of the E2-local bundle wrapper at
+`results/runs/<run_id>/<level>/<decision_id>.bundle.json`. This is a
+NEW envelope introduced by E2 — it wraps a MeshQu-issued receipt with
+additional fields the multi-pass orchestrator needs for the cross-level
+analysis (level marker, canonical-JSON bytes, run metadata).
 
-Receipts from this experiment are cryptographically distinguishable from
-E1's by the bundle-envelope schema_version alone."""
+This is NOT a MeshQu-product receipt-schema bump. The MeshQu receipt
+schema itself is unchanged (the product is currently at v2; that
+remains the version of the receipt nested inside this wrapper). The
+governance_context_level field rides into the MeshQu integrity hash
+via the existing canonical-JSON envelope — no upstream change needed.
+
+E1 never wrote local bundle files at all; it fetched
+`/v1/decisions/<id>/bundle` on demand. So there's no prior version of
+THIS file format to bump from. v1 == this is the first."""
 
 GOVERNANCE_CONTEXT_LEVEL_FIELD = "governance_context_level"
 """The key under `context.fields` that carries the level marker. The
@@ -319,18 +333,20 @@ def write_bundle(
     The bundle carries everything a future verifier needs to recompute
     the integrity hash:
 
-    - `schema_version: 3`
+    - `bundle_envelope_version: 1` (THIS wrapper's version, NOT the
+      MeshQu receipt-schema version — the wrapped receipt carries its
+      own schema marker via the API)
     - `governance_context_level`
     - `context_fields_canonical_json` (the bytes MeshQu hashed)
     - `receipt` (the MeshQu-issued ReceiptSummary)
     - `agent` (the AgentResponse; reasoning hash mirrors receipt binding)
 
     Plus operational fields (`is_stub`, `record_index`, `ocid`,
-    `timestamp`, `run_id_fragment`) for indexing.
+    `timestamp`) for indexing.
     """
     bundle_path = run_dir / level / f"{decision_id}.bundle.json"
     payload: dict[str, Any] = {
-        "schema_version": RECEIPT_SCHEMA_VERSION,
+        "bundle_envelope_version": BUNDLE_ENVELOPE_VERSION,
         "governance_context_level": level,
         "is_stub": is_stub,
         "record_index": record_index,
@@ -421,7 +437,7 @@ def write_e2_manifest(
         "record_target_count": record_target_count,
         "is_stub": is_stub,
         # E2 extensions
-        "receipt_schema_version": RECEIPT_SCHEMA_VERSION,
+        "bundle_envelope_version": BUNDLE_ENVELOPE_VERSION,
         "levels": list(levels),
         "level_batched": True,
         "prompt_template_sha256": dict(prompt_shas),

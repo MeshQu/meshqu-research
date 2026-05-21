@@ -22,12 +22,17 @@ E2 diverges from E1 in three structural places:
 
 1. **Multi-pass orchestration** (`meshqu_runner/multi_pass.py`) wraps E1's
    per-record eval loop with a level-batched outer loop over L0..L4.
-2. **Receipt schema v3** — the bundle file persisted at
-   `results/runs/<run_id>/<level>/<decision_id>.bundle.json` carries a
-   new top-level `schema_version: 3` and a `governance_context_level`
-   field bound into MeshQu's integrity hash via the `context.fields`
-   injection point (the same audit-only-but-hash-bound pattern E1 uses
-   for `agent_*` fields). **No upstream `@meshqu/core` change required.**
+2. **New E2-local bundle envelope (v1)** — the file persisted at
+   `results/runs/<run_id>/<level>/<decision_id>.bundle.json` carries
+   `bundle_envelope_version: 1` and wraps the MeshQu-issued receipt
+   alongside a new `governance_context_level` field. This is NOT a
+   MeshQu receipt-schema bump — the MeshQu product schema is unchanged
+   (currently v2). The level marker rides into MeshQu's integrity hash
+   via the `context.fields` injection point (the same
+   audit-only-but-hash-bound pattern E1 uses for `agent_*` fields).
+   **No upstream `@meshqu/core` change required.** E1 never persisted
+   local bundle files at all, so v1 == this is the first version of
+   the wrapper format.
 3. **Per-level handlers** (`meshqu_runner/level_handlers.py`) plug into
    the multi-pass loop so E2-003..005 fill in level-specific prompt
    addenda without touching the orchestration layer.

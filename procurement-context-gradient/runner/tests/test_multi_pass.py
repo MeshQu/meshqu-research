@@ -2,17 +2,18 @@
 
 Covers the done criteria from `planning/build_packages/e2-001-multi-pass-runner.md`:
 
-- 15 receipts produced (3 records × 5 levels), each in the right level
+- 15 bundles produced (3 records × 5 levels), each in the right level
   subdirectory under `<run_dir>/<level>/`.
-- Each bundle carries `schema_version: 3`.
+- Each bundle carries `bundle_envelope_version: 1` (the E2-local
+  wrapper's version, NOT a bump of the MeshQu receipt-schema).
 - Each bundle carries `governance_context_level` matching its
   subdirectory.
-- The integrity hash includes `governance_context_level` (verified by
-  recomputing canonical-JSON SHA-256 over the persisted fields map and
-  checking it matches `receipt.integrity_hash`).
-- Level-batching observed: all L0 receipts have earlier timestamps than
-  all L1 receipts, etc.
-- Manifest captures: receipt_schema_version=3, levels list,
+- The MeshQu integrity hash includes `governance_context_level`
+  (verified by recomputing canonical-JSON SHA-256 over the persisted
+  fields map and checking it matches `receipt.integrity_hash`).
+- Level-batching observed: all L0 bundles have earlier timestamps than
+  all L1 bundles, etc.
+- Manifest captures: bundle_envelope_version=1, levels list,
   level_batched=true, prompt_template_sha256 per level, policy snapshot
   SHA, runner_git_commit.
 """
@@ -64,7 +65,7 @@ def stub_run(tmp_path: Path):
     return config, summary, records
 
 
-def test_smoke_produces_15_v3_receipts(stub_run):
+def test_smoke_produces_15_bundles(stub_run):
     """Foundation acceptance test for E2-001."""
     config, summary, records = stub_run
     assert len(summary.outcomes) == 15, "3 records × 5 levels = 15 expected bundles"
@@ -84,14 +85,14 @@ def test_smoke_produces_15_v3_receipts(stub_run):
         assert outcome.bundle_path.exists()
 
 
-def test_bundles_carry_schema_v3_and_level_marker(stub_run):
-    """Every bundle has schema_version=3 and governance_context_level set
-    to the subdir's level."""
+def test_bundles_carry_envelope_v1_and_level_marker(stub_run):
+    """Every bundle has bundle_envelope_version=1 and
+    governance_context_level set to the subdir's level."""
     _, summary, _ = stub_run
     for outcome in summary.outcomes:
         with outcome.bundle_path.open("r", encoding="utf-8") as fp:
             bundle = json.load(fp)
-        assert bundle["schema_version"] == 3
+        assert bundle["bundle_envelope_version"] == 1
         assert bundle["governance_context_level"] == outcome.level
         assert bundle["is_stub"] is True
 
@@ -174,7 +175,7 @@ def test_manifest_records_e2_extensions(stub_run):
     with manifest_path.open("r", encoding="utf-8") as fp:
         manifest = json.load(fp)
 
-    assert manifest["receipt_schema_version"] == 3
+    assert manifest["bundle_envelope_version"] == 1
     assert manifest["levels"] == list(MAIN_LEVELS)
     assert manifest["level_batched"] is True
     assert manifest["is_stub"] is True

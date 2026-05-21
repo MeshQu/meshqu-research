@@ -5,7 +5,7 @@
 
 ---
 
-## 2026-05-21 — E2-001 multi-pass runner: fork source, receipt-schema bump, level-marker hash-binding
+## 2026-05-21 — E2-001 multi-pass runner: fork source, new local-bundle envelope, level-marker hash-binding
 
 **Decisions captured for the build-package paper trail.**
 
@@ -13,9 +13,24 @@
 
 **Alternative considered**: importing the E1 runner as a path-relative Python dependency. Rejected — would require touching E1's `pyproject.toml` (renaming the package, opening it for path-based imports), creating cross-experiment coupling exactly where we want isolation. The duplication a fork creates is the price for E1's archival cleanliness; the eventual `methodology/` extraction (Phase 4 post-publish) is where the shared infrastructure consolidates.
 
-**2. Receipt schema v2 → v3 bump.** The locally-persisted bundle file at `results/runs/<run_id>/<level>/<decision_id>.bundle.json` carries `schema_version: 3`. v2 is implicit in E1 (E1 never persisted local bundles; the MeshQu-issued receipts it fetched on demand carried the v2 envelope shape). v3's load-bearing addition is one field: `governance_context_level`.
+**2. New E2-local bundle envelope (v1) — NOT a MeshQu receipt-schema bump.**
 
-The run manifest also carries `receipt_schema_version: 3` so a downstream consumer can identify the schema without reading any individual bundle.
+The package prompt directed the runner to "increment the receipt schema version to v3 (E1 used v2)." That framing turned out to be inaccurate once the actual surfaces were inspected:
+
+- The MeshQu product receipts are at `receipt_schema_version: 2` today. That is owned by `@meshqu/core` upstream; bumping it would require a coordinated upstream change (the stop condition the package prompt explicitly flagged).
+- E1 never persisted local bundle files. It consumed the MeshQu-issued v2 receipts on demand via `/v1/decisions/<id>/bundle` and never wrote them to disk. There was no "v2 of an E1-local file" to bump from.
+
+So E2 isn't bumping anything — it's introducing v1 of a brand-new wrapper file format that nests the (unchanged) MeshQu receipt inside it. The wrapper lives at `results/runs/<run_id>/<level>/<decision_id>.bundle.json` and carries:
+
+- `bundle_envelope_version: 1` (E2's own versioning, distinct from MeshQu's receipt schema)
+- `governance_context_level` (the new audit-only field)
+- `context_fields_canonical_json` (the exact bytes MeshQu hashed)
+- `receipt` (the MeshQu-issued ReceiptSummary, schema-unchanged)
+- `agent`, `is_stub`, `record_index`, `ocid`, `timestamp`
+
+The run manifest carries `bundle_envelope_version: 1` to mirror the per-bundle field.
+
+**Why this framing matters for downstream agents.** E2-002..006 agents reading this entry need to know that the MeshQu product schema is unchanged and that the `governance_context_level` field rides in via the existing canonical-JSON envelope. If they read "v2 → v3 bump" they may believe an upstream change happened and build on that false premise.
 
 **3. Where `governance_context_level` binds into the integrity hash.** Bound into the MeshQu-issued integrity hash via the existing `context.fields` injection point — the same audit-only-but-hash-bound pattern E1 uses for the seven `agent_*` keys. The multi-pass orchestrator injects `governance_context_level` (alongside the `agent_*` fields) BEFORE posting to `/v1/decisions/record`; the API canonicalises the fields map and binds it into the integrity hash. **No `@meshqu/core` change required.** The policy never references this key, so it rides as audit-only metadata — invisible to evaluation, cryptographically attested.
 
