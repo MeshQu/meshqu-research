@@ -5,6 +5,48 @@
 
 ---
 
+## 2026-05-21 — E2-002 L0 baseline + substrate cache reader: where the cache reads from, verdict-comparison result, deviations
+
+**Decisions captured for the build-package paper trail.**
+
+**1. Substrate cache reads from E1's adapter output, not raw OCDS.**
+
+E1 did not persist raw OCDS bytes to disk; the frozen archive at `procurement-decisions/results/runs/dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d/` carries only the *adapter output* — the canonical-JSON `user_message` the agent saw, per record, in `agent_outputs/<decision_id>.json`. The cache reader (`meshqu_runner/substrate_cache.py`) parses each `user_message` back into its structured parts (`decision_type`, `fields`, `substrate_notes`) and cross-references `decision_traces.jsonl` for the `ocid → decision_id` mapping and the E1 audit metadata (verdicts, violations, integrity hash).
+
+Why this works for L0 reproducibility: feeding the parsed envelope back into `eval_loop.build_user_message` reproduces the canonical-JSON bytes E1 sent, byte-for-byte. The `_serialise_substrate_notes` path passes dict-shaped provenance entries through unchanged (line `out[name] = dict(fp)` in `eval_loop.py`) — and the outer `json.dumps(..., sort_keys=True, ensure_ascii=False, separators=(",", ":"))` is the same canonicalisation. Verified end-to-end on **all 283 records** by `test_l0_prompt_matches_e1_for_all_records` — zero divergences.
+
+This is a stronger reproducibility guarantee than the package required (it asked for byte-for-byte match on the worked-example OCID and accepted whitespace normalisation; we match all 283 with no normalisation needed). The cost is correlative: we cannot reproduce E1's results from the raw OCDS feed because that feed wasn't archived — an `archive-once-from-feed` decision E1 made and E2 is locked into.
+
+**2. L0-vs-E1 verdict-comparison result (3-record table).**
+
+The live L0-vs-E1 reproducibility check requires OpenAI + MeshQu credentials and runs as part of E2-007's smoke. This package wired the comparator (`scripts/compare_l0_to_e1.py`) and validated it end-to-end against a stub run. The default 3-record selection (deterministic, picks the worked-example, the first clean ALLOW, the first single-rule DENY) resolved to:
+
+| OCID                                                  | decision_id   | E1 MeshQu | E1 agent | violations |
+|-------------------------------------------------------|---------------|-----------|----------|------------|
+| `ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f`    | `ca19e737-…`  | DENY      | REVIEW   | PROC-001-S53, PROC-002-AUTHORITY, PROC-005-OPEN-TENDER (£57M worked example) |
+| `ocds-b5fd17-001cf81b-5232-4d78-a0c7-4b8ab05f7658`    | `7adc6b52-…`  | ALLOW     | REVIEW   | (none — clean ALLOW)                                                          |
+| `ocds-b5fd17-0786919f-4875-42c3-99ac-7db01e366670`    | `90c8d504-…`  | DENY      | REVIEW   | PROC-005-OPEN-TENDER (single-rule DENY)                                       |
+
+Stub-run output of the comparator (verdicts always REVIEW from the stub agent; MeshQu side from `StubMeshQuClient`) is shown in the PR body. The live invocation is gated on E2-007 — the comparator is the artefact this package ships; the live verdict table is E2-007's deliverable.
+
+**3. Worked-example OCID note.**
+
+The package prompt referred to the worked example as "OCID `ocds-b5fd17-…ca19e737-…`". That's a typo conflating OCID-format with `decision_id` — `ca19e737-…` is the decision_id, not part of the OCID. The actual OCID is `ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f` (verified against `decision_traces.jsonl` line 37). Tests reference both identifiers explicitly so future readers don't repeat the conflation.
+
+**4. Live L0 handler returns empty addendum.**
+
+The L0 live handler (`meshqu_runner/context_levels/level_l0.py:L0LiveHandler`) inherits the same empty-addendum contract as the E2-001 stub. L0 is the baseline by definition; the reproducibility guarantee comes from the cache reader feeding the same per-record context, not from any prompt transformation at L0. The handler swap is the registry-replacement pattern: `install_live_l0(default_main_handlers())` returns the same registry mutated in place, leaving the L1..L4 stubs from E2-001 untouched (E2-003/004/005 swap them via the same pattern).
+
+**5. Network-attempt guard.**
+
+The cache reader is pure disk by contract. Tests assert that `requests.get`, `requests.post`, and `requests.Session.get` are NEVER invoked during `load_cached_records` (the live fetch path would route through these). The `requests` module isn't imported at substrate_cache.py load time at all — failing loudly is the design, not silently degrading to live mode.
+
+**6. Out-of-scope work intentionally not touched.**
+
+`level_handlers.py`'s `default_main_handlers()` was deliberately NOT modified. E2-001's contract is the public Protocol + stub registry; the registry-replacement pattern (`install_live_l0`) is the supported extension point. This keeps the L0 stub available to tests that want it (e.g. E2-001's existing `test_multi_pass.py` suite) and means E2-003/004/005 can install their live handlers without depending on E2-002's wiring.
+
+---
+
 ## 2026-05-21 — E2-001 multi-pass runner: fork source, new local-bundle envelope, level-marker hash-binding
 
 **Decisions captured for the build-package paper trail.**
