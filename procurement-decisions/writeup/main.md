@@ -12,9 +12,13 @@ voice_reference: planning/writeup_outline.md §"Locked voice reference (the open
 
 # 300 AI procurement decisions, signed and verifiable
 
-> **Working draft, assembled 2026-05-18.** §§1-9 drafted; appendices A-D scaffolded.
-> Inline `[VISUAL: …]` markers are placeholders for the editing pass.
-> Voice anchors to protect during editing: *"two systems with different verdict spaces"*, *"two systems with different responses to incompleteness"*, *"Reconstruction is not proof. Replay is."*, *"The corpus is not assertion. It is verifiable evidence."*
+> **Archival pre-publication working draft.** The published artefact is
+> **MRP-2026-02 — When AI hedges and policy commits** (2026-05-18). This
+> file documents the writing process up to publication handoff and is
+> preserved as a historical record; it does not receive post-publication
+> edits. The inline `[VISUAL: …]` markers below are placeholders that
+> were resolved during the editorial pass for the published version. For
+> publication-discipline lineage, see [`../planning/decision_log.md`](../planning/decision_log.md).
 
 ---
 
