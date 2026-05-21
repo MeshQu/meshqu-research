@@ -227,6 +227,16 @@ class AgentResponse:
     # the run-end summary so the writeup can report "k retries fired,
     # 0 records lost" rather than just "no errors observed".
     retry_count: int = 0
+    # E2-005: cached-tokens telemetry from OpenAI's `usage` block.
+    # `cached_tokens > 0` means the model served part of the prompt
+    # from its prompt cache (input billing discounted). At L4 with the
+    # cache-preservation placement, the second and subsequent L4 calls
+    # in a batch are expected to report cached_tokens > 0; the smoke
+    # test in `test_cache_preservation_smoke.py` is what verifies that
+    # empirically. None means "not observed" — distinct from
+    # "observed but zero" — and is the value the stub agent emits.
+    cached_tokens: int | None = None
+    prompt_tokens: int | None = None
 
 
 @dataclass
@@ -326,7 +336,9 @@ class Agent:
         """
 
         request_started = time.monotonic()
-        raw, output_mode, retry_count = self._call_with_format(user_message)
+        raw, output_mode, retry_count, cached_tokens, prompt_tokens = (
+            self._call_with_format(user_message)
+        )
         latency_ms = int((time.monotonic() - request_started) * 1000)
 
         # Parse
@@ -344,6 +356,8 @@ class Agent:
                 parse_status="invalid_json",
                 parse_detail=str(err),
                 retry_count=retry_count,
+                cached_tokens=cached_tokens,
+                prompt_tokens=prompt_tokens,
             )
 
         if not isinstance(parsed, dict):
@@ -358,6 +372,8 @@ class Agent:
                 parse_status="wrong_shape",
                 parse_detail=f"Top-level JSON value was {type(parsed).__name__}, expected object",
                 retry_count=retry_count,
+                cached_tokens=cached_tokens,
+                prompt_tokens=prompt_tokens,
             )
 
         verdict = normalise_verdict(parsed.get("verdict"))
@@ -373,6 +389,8 @@ class Agent:
                 parse_status="invalid_verdict",
                 parse_detail=f"verdict={parsed.get('verdict')!r} not in {{allow, review, deny}}",
                 retry_count=retry_count,
+                cached_tokens=cached_tokens,
+                prompt_tokens=prompt_tokens,
             )
 
         reasoning_text = str(parsed.get("reasoning") or "")
@@ -393,6 +411,8 @@ class Agent:
             output_mode=output_mode,
             parse_status="ok",
             retry_count=retry_count,
+            cached_tokens=cached_tokens,
+            prompt_tokens=prompt_tokens,
         )
 
     # ------------------------------------------------------------------
@@ -401,17 +421,20 @@ class Agent:
 
     def _call_with_format(
         self, user_message: str
-    ) -> tuple[str, Literal["json_object", "plain_text"], int]:
+    ) -> tuple[str, Literal["json_object", "plain_text"], int, int | None, int | None]:
         """Try JSON-object mode first, fall back to plain-text on
         format-not-supported. Anything else (auth, unknown) propagates
         as AgentCallError. Transient errors (rate_limit, timeout,
         server, network) are retried with bounded backoff by
         `_call_with_retry`.
 
-        Returns (raw_content, output_mode, total_retry_count). The
-        retry count aggregates retries across BOTH the json_object
-        attempt and the plain_text fallback so the writeup can report
-        "k retries fired across the full call sequence"."""
+        Returns (raw_content, output_mode, total_retry_count,
+        cached_tokens, prompt_tokens). The retry count aggregates
+        retries across BOTH the json_object attempt and the plain_text
+        fallback so the writeup can report "k retries fired across the
+        full call sequence". cached_tokens / prompt_tokens are
+        extracted from the SUCCESSFUL response's `usage` block
+        (E2-005); they're None if the response carries no usage info."""
 
         # Common kwargs for both modes
         common: dict[str, Any] = dict(
@@ -430,7 +453,14 @@ class Agent:
             resp, json_retries = self._call_with_retry(
                 {**common, "response_format": {"type": "json_object"}},
             )
-            return resp.choices[0].message.content or "", "json_object", json_retries
+            cached, prompt = _extract_usage_tokens(resp)
+            return (
+                resp.choices[0].message.content or "",
+                "json_object",
+                json_retries,
+                cached,
+                prompt,
+            )
         except AgentCallError as err:
             if err.kind != "unsupported_param":
                 raise
@@ -442,10 +472,13 @@ class Agent:
 
         # Fallback: plain-text JSON prompting
         resp, text_retries = self._call_with_retry(common)
+        cached, prompt = _extract_usage_tokens(resp)
         return (
             resp.choices[0].message.content or "",
             "plain_text",
             carry_over_retries + text_retries,
+            cached,
+            prompt,
         )
 
     def _call_with_retry(
@@ -557,3 +590,48 @@ def _extract_retry_after_seconds(err: Exception) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _extract_usage_tokens(resp: Any) -> tuple[int | None, int | None]:
+    """Extract (cached_tokens, prompt_tokens) from an OpenAI chat
+    completion response. (E2-005 cache-preservation telemetry.)
+
+    OpenAI's `ChatCompletion.usage` exposes `prompt_tokens` and, when
+    prompt caching is active, `prompt_tokens_details.cached_tokens`.
+    The SDK's actual object shape differs slightly between versions
+    (pydantic model vs dict on raw HTTP responses), so we probe for
+    both attribute access and dict-style access. Returns (None, None)
+    when usage is absent — happens with mocked tests + older API
+    surfaces.
+
+    The cached_tokens field, when present, is the COUNT of input
+    tokens that hit the cache (NOT a fraction or a hit/miss flag).
+    Downstream telemetry interprets it as: cached_tokens > 0 = cache
+    hit for at least part of the prompt prefix."""
+    usage = getattr(resp, "usage", None)
+    if usage is None and isinstance(resp, dict):
+        usage = resp.get("usage")
+    if usage is None:
+        return None, None
+
+    def _get(obj: Any, key: str) -> Any:
+        if hasattr(obj, key):
+            return getattr(obj, key)
+        if isinstance(obj, dict):
+            return obj.get(key)
+        return None
+
+    prompt_tokens = _get(usage, "prompt_tokens")
+    details = _get(usage, "prompt_tokens_details")
+    cached_tokens = _get(details, "cached_tokens") if details is not None else None
+
+    # Coerce to int when possible; tolerate None / non-numeric.
+    def _as_int(value: Any) -> int | None:
+        if value is None:
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    return _as_int(cached_tokens), _as_int(prompt_tokens)

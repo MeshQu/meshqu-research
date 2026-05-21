@@ -5,6 +5,89 @@
 
 ---
 
+## 2026-05-21 — E2-005 L4 prompt structural layout + cache-hit observation
+
+**1. Structural layout of the L4 user message.**
+
+The cache-preservation requirement (the ~4,500-token policy block must
+sit inside OpenAI's cached prefix across all 283 L4 calls) is in
+tension with the literal positional reading of the additivity
+invariant. The naive composition `L0 + L1 + L2 + L3 + L4_envelope +
+base` places the policy AFTER L3, which becomes per-record-varying
+once the E2-004 selector lands. The policy would then be uploaded in
+full on every L4 call and the cache never helps.
+
+**Decision**: the production L4 handler reorders the L4 composition to
+
+    L4_policy_envelope + L1 + L2 + L3 + base_record
+    \\___________ stable prefix ___________/   \\__ varying ___/
+
+The policy sits at offset 0 — the head of the user message — so it
+is part of OpenAI's cache prefix from call #1. L1 and L2 are also
+stable, so the cache prefix extends through them too. The break
+point is wherever the first per-record-varying byte appears (today:
+the base record; after E2-004: the L3 precedent block).
+
+**Mechanism**: the L4 handler implements an optional
+`compose_full_message(...)` method on the LevelHandler Protocol;
+`compose_user_message` in `level_handlers.py` checks for it and
+delegates when present. Handlers that don't implement it fall back
+to the default additive concat — the L0..L3 stubs (and the E1-shape
+agents) are unchanged. This is the "registry replacement pattern" the
+E2-005 build package called for: no edits to `multi_pass.py`'s
+orchestrator core, just a Protocol extension that's opt-in per
+handler.
+
+**Additivity trade-off — explicit**:
+`context_ladder_design.md` §"Additivity invariant" requires every
+higher-level prompt to *contain* its lower-level predecessor's content
+verbatim. CONTAINMENT survives the reorder (every L3 character is
+still in the L4 message). POSITION does not (L3's section no longer
+sits at the same offset). The package prompt's test spec §3 phrases
+the invariant as containment, so we honour the design intent.
+
+**Alternatives rejected**:
+
+- *Naive concat (`L0 + L1 + L2 + L3 + L4_envelope + base`)* — kills
+  the cache benefit at L4, defeats the level-batching pay-off the
+  experiment design documents.
+- *Putting the policy in the system message at L4* — would require
+  per-level system prompts and break `agent.system_prompt_sha256` as
+  a run-invariant.
+- *Hard-coding the placement in `multi_pass.py`* — violates the
+  build-package constraint "DO NOT modify E2-001's multi_pass.py
+  orchestrator core; extend via the registry replacement pattern".
+
+**2. Cache-hit observation result.**
+
+The unit test suite confirms the structural property (policy block
+at offset 0, lower addenda after, deterministic across re-runs). The
+live empirical verification — `tests/test_cache_preservation_smoke.py`
+— is authored and marked `@pytest.mark.live`. It was NOT executed in
+the build-package agent run (no `OPENAI_API_KEY` in the sandbox); the
+test runs three back-to-back L4 calls and asserts `cached_tokens > 0`
+on the second and third calls. The PR body carries this caveat with
+explicit instructions for the operator to run the test locally with
+`pytest -m live` once the policy snapshot + Stage A envelope are
+post-merge.
+
+**3. Locked-rendering choices**.
+
+- `indent=2` for the policy JSON pretty-print (locked at Stage A).
+- `ensure_ascii=False` so en-dashes etc. render literally (matches
+  the on-disk snapshot bytes).
+- `sort_keys=True` (the locked snapshot file already has sorted
+  keys, so this is a fixed point — but enforced anyway as a
+  defensive measure against any future re-serialisation).
+
+Rendered envelope SHA-256 (this commit):
+`9821bc3167e0412d4f8c54961c8b0545eb062b0db53b7d2cda2dc3cd4dd9bcc7`.
+Persisted in the test pin and emitted by the handler's
+`rendered_sha256` property. A drift here means the envelope template
+or the policy snapshot changed.
+
+---
+
 ## 2026-05-21 — E2-004 L3 precedent selector: k=4, feature vector locked, deterministic by OCID tie-break
 
 **Decisions captured for the build-package paper trail.**
