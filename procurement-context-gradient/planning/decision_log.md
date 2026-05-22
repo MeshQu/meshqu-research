@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-05-22 — E2-009 Phase 1 readiness audit — verdict: GO for Phase 2 (conditional on Sam's acknowledgement of 2 judgment-calls)
+
+**Readiness verdict**: GO. All 11 primary checklist items + all 4 additional gates verify against on-main artefacts (smoke PR #55, dry-run PR #57, runner code at HEAD `3427ca9`). Report committed at `planning/phase_1_readiness_report.md`.
+
+**Per-item ✓/✗ summary**:
+
+Primary checklist (11): 10 ✓, 1 ⚠️-partial (dashboards-configured: dashboard JSON + capture infra exist, but driver doesn't wire `RunController` so dry-run produced 0 runtime PNGs — see Sam-decision #2 below). The partial is a wiring gap, not an infrastructure gap, and doesn't block the runner from making correct decisions.
+
+Additional gates (4): 4 ✓ — all E2-001..008 PRs merged on main, Phase 1 build plan already on main, Stage A prompts populated (not stub) with per-level sha256 stable across smoke + dry-run, decision_log carries entries for every post-lock methodology adjustment (most notably the dry-run intersection-method noted in E2-008 §1).
+
+**Two items Sam personally needs to acknowledge before pressing go on Phase 2 (full §"Decisions for Sam" in the report)**:
+
+1. **1/30 L0-vs-E1 MeshQu mismatch on `ocds-b5fd17-6bb11187-…`** is a real substantive finding, not a runner bug. Reading the policy snapshot, the dry-run's ALLOW is more correct than E1's DENY (PROC-001-S53's `when` requires `above_threshold="true"`; record has `above_threshold="false"`). Most plausible explanation: E1's evaluator had a since-fixed substrate-binding bug (consistent with SOC2 PR1 EI-001 timing). At full corpus scale, proportional rate would produce ~47 expected MeshQu-verdict-shifts from the E1 baseline; this needs to be acknowledged before launch and the writeup must frame the L0-vs-E1 comparison as "current MeshQu vs frozen E1 archive" rather than "L0-as-replica-of-E1". Sam to confirm framing.
+
+2. **Auto-capture wiring gap**: `RunController` + `ScreenshotCapturer` exist (OBS-205, Stream C) and 12 unit tests pass — but `dry_run_live.py` invokes `run_multi_pass()` directly, never instantiating the controller. Result: 0 Grafana PNGs from smoke or dry-run. The screenshots README explicitly contracts automation as "primary mode" for runs of this duration. Sam decides: either (a) wire `RunController` into the Phase 2 driver before launch (recommended; small adapter — but OUT OF SCOPE for E2-009 doc-only package, would land as E2-010 or Phase-2-prep), OR (b) accept manual captures, which the README itself flags as unreliable.
+
+**No blockers found.** No cryptographic-integrity regressions (smoke 16/16 + dry-run 151/151 PASS), no 429s observed at 0.5s pacing, refined full-run cost projection USD $8.79 (0.91× the smoke envelope), `governance_context_level` present + hash-bound in every spot-checked bundle across all 6 levels (L0..L4 + L4_PERMUTED).
+
+**Reason picked (single-page report rather than per-item PRs)**: the package explicitly scopes the deliverable to one document. The two judgment-calls are surfaced in the report so Sam can decide both before signing off; remediation belongs in separate packages, not E2-009.
+
+**Files added**:
+- `planning/phase_1_readiness_report.md` — single-page green-light decision doc with full checklist + evidence + Sam-decision items + sign-off block.
+
+**What this does NOT do**:
+- Does not fix the auto-capture wiring (out of scope; surface-not-fix per package §"Decision rules").
+- Does not investigate the L0-vs-E1 mismatch beyond reading the policy snapshot (writeup work or a separate investigation package).
+- Does not launch Phase 2 (Sam's sign-off in the PR is the green light).
+
+---
+
 ## 2026-05-21 — E2-008 Stage C dry-run — 30 records × 5 levels + 1-record Permuted-Policy diagnostic, all gates PASS
 
 **1. Stratification approach: 5/5/5/5 band quotas + 10-record OCID-asc walk → 30, plus force-includes.** Picker at `runner/scripts/select_dry_run_records.py` buckets the 283-record corpus by (contract_value_band × method_flag_present_or_absent × regime), takes exactly 5 records from each of the 4 contract_value_bands (preferring method_flag=present cells first within a band; that flag is rare — only ~19/283 records carry it — so picking it first guarantees the rarer slice is represented), then walks the corpus OCID-ascending to fill to 30. After the 30 are picked, the picker force-includes (a) the 3 E2-007 smoke OCIDs (for §4a cross-run reproducibility) and (b) one OCID from the 14-record Permuted-Policy subset (so §3f/§4c produce signal at dry-run scale) by displacing the tail of the OCID-asc remainder — never displacing a band-quota pick. **Why force-include the diagnostic OCID rather than accept the natural intersection?** The natural (30 stratified ∩ 14 subset) intersection was 0 records under my band quotas. The package §3 nominally allows 0–2 records; without at least 1, the §3f/§4c checks are vacuous. Forcing the FIRST-OCID-asc diagnostic record (`ocds-b5fd17-119d1c05-…`) costs one remainder slot and gives the diagnostic checks signal.
