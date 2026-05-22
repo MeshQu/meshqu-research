@@ -5,6 +5,57 @@
 
 ---
 
+## 2026-05-22 — Phase 2 driver — RunController wiring around run_multi_pass (closes E2-009 judgment-call #2)
+
+**Decision**: Ship a new driver `runner/scripts/phase_2_live.py` that wraps the existing `run_multi_pass(...)` + `run_permuted_diagnostic(...)` orchestration in `RunController.run_start()` / `run_end()` lifecycle calls so OBS-205 Grafana captures + OBS-206 dashboard-mirror SHA check land alongside the bundles. Closes E2-009 Sam-decision #2 (auto-capture wiring gap; Sam picked option (a)).
+
+**Controller wiring approach — minimal adapter via `sleep_fn`**: `RunController` was originally designed to wrap a record loop the caller drives directly (`for record_index, record: controller.after_record(record_index)`). But `run_multi_pass` already owns the loop, and modifying the merged multi_pass.py core is off-limits per the build-plan invariants. The smallest-possible adapter uses `multi_pass.sleep_fn` as the in-loop hook — `run_multi_pass` calls `sleep_fn(pause)` exactly once between every (record, level) pair, giving us (n_records × n_levels − 1) call sites per run. The driver's `_make_checkpoint_sleep_fn` counts those calls and invokes `controller.after_record(record_equivalent − 1)` once per `n_levels`-th call. The controller's internal cadence gate (`CHECKPOINT_CADENCE[run_phase]`) then decides whether each `after_record` call actually fires a capture. Net effect: the screenshots README cadence ("every 2 records (dry-run) / every 10 records (full-run)") is honoured without the driver hard-coding it, and zero changes to multi_pass.py.
+
+**Alternatives considered**:
+1. **Modify `multi_pass.py` to accept an `after_record` callback** — cleanest separation of concerns BUT explicitly off-limits per the task brief and the build-plan invariants (the merged multi_pass.py + LevelHandler Protocol is locked). Rejected.
+2. **Synthetic post-hoc invocation — call `after_record(i)` once per outcome AFTER `run_multi_pass` returns** — works but compresses all captures into a tight time window AFTER the run completes. Misses the "operational evidence" framing — Sam wants captures that ARE the moments-during-the-run, not retrospective snapshots. Rejected.
+3. **Per-level micro-batched calls — invoke `run_multi_pass` once per level with a sliced record list** — preserves per-record cadence but breaks the level-batched outer-loop invariant (substrate adapter expects a single manifest write per run, not 5). Rejected.
+4. **`sleep_fn` adapter (chosen)** — uses an existing extension point that multi_pass.py already exposes for tests. Imprecise on per-record-index granularity within a level (we fire after the first N pairs land regardless of which (record, level) they came from), but for the cadence the controller uses — every 2 or every 10 records — it gives a faithful "every K records' worth of work has been done" signal across the run's time axis. That's what the screenshots README wants — coverage across the time axis, not strict per-record alignment.
+
+**Deviations from `dry_run_live.py`'s shape**:
+- **New `--run-phase` flag** (`dry-run` / `full-run` / `reproducibility-rerun`) — controls the controller's checkpoint cadence. Default is `full-run` (the canonical Phase 2 mode). The smoke + dry-run drivers don't have this flag because they don't instantiate the controller at all.
+- **Audit + screenshots routed under the run dir** via `RunnerConfig.audit_dir_override` and `screenshots_dir_override`. Without these the controller writes to the shared `procurement-decisions/results/observability/screenshots/` directory; per-run isolation matches what `dry_run_eval_loop.py` does for E1 and makes writeup curation a `cp -r <run_dir>/` step instead of a global archaeology dig.
+- **Stub mode also stubs Grafana**: `_install_stub_grafana` monkey-patches `dashboard_mirror.fetch_live_dashboard` (returns committed dashboard verbatim → no drift) AND `screenshots.requests` (returns a minimal valid PNG → captures succeed). Without these, stub mode would call the controller's `run_start()` which would try to hit real Grafana. Tested end-to-end in `tests/test_phase_2_driver.py`.
+- **`--output-dir` flag** — convenience alias that treats the supplied path as the direct parent of `run_dir` (vs `--results-dir` which nests under `runs/`). Matches the task brief's `--output-dir /tmp/phase2-stub-test/` invocation pattern.
+- **Same `_build_live_handlers` helper** as `smoke_live.py` / `dry_run_live.py` — copy-pasted, not extracted to a shared module, because (a) the helper is short and self-documenting and (b) extracting it would touch the smoke / dry-run drivers which are explicitly off-limits ("Do NOT modify the smoke + dry-run drivers — write a new Phase 2 driver"). Acceptable duplication for now; if a 4th driver lands the helper should move to `meshqu_runner/driver_helpers.py` or similar.
+
+**Stub-mode E2E test**: Subprocess invocation against `tests/fixtures/smoke_records_live.json` produces 15 main bundles (3 records × 5 levels) + 0 diagnostic bundles (smoke fixture has zero intersection with `is_in_permuted_subset` — verified empirically) + 3 captures (run-start + 1 dry-run-cadence checkpoint at record 2 + run-end). All 4 new tests in `tests/test_phase_2_driver.py` pass; existing 318 tests pass unchanged (total: 322 ✓).
+
+**Phase 2 invocation syntax for Sam** (live mode):
+```bash
+set -a && source procurement-context-gradient/runner/.env.live && set +a
+python procurement-context-gradient/runner/scripts/phase_2_live.py \
+    --fixture procurement-context-gradient/runner/tests/fixtures/<full-corpus-fixture>.json \
+    --run-phase full-run
+```
+
+**Operator setup beyond `.env.live`**: `.env.live` needs Grafana env vars added so the renderer can authenticate. None of these are baked into the driver — sourced at runtime only:
+  - `MESHQU_RUNNER_GRAFANA_URL` (e.g. `https://grafana.staging.…`)
+  - `MESHQU_RUNNER_GRAFANA_USER` (default: `admin`)
+  - `MESHQU_RUNNER_GRAFANA_PASSWORD` (the renderer-allowed password — gating credential)
+  - `MESHQU_RUNNER_DASHBOARD_UID` (default: `experiment-tenant-observability`)
+  - `MESHQU_RUNNER_TENANT` (default: `experiment-procurement`)
+
+Without these the driver warns and continues; each capture call will fail and log a `screenshot_capture_failed` anomaly, but main-grid bundles still land. The mirror SHA check (`mirror_and_verify`) DOES hard-fail at `run_start` without Grafana — that's the only hard dependency.
+
+**Files added**:
+- `runner/scripts/phase_2_live.py` — the driver itself (~600 LoC; the bulk is docstrings + flag handling, the controller-wiring core is ~50 LoC).
+- `runner/tests/test_phase_2_driver.py` — 4 tests covering: full subprocess smoke (15 bundles + 0 diag + ≥2 captures + checkpoint row), no-live-network-calls regression guard, sleep_fn adapter fires `after_record` at correct cadence, sleep_fn swallows capture failures so main run continues.
+
+**What this does NOT do**:
+- Does not modify `multi_pass.py` core, the `LevelHandler` Protocol, or any merged handler module.
+- Does not modify `smoke_live.py` or `dry_run_live.py` — those drivers are E2-009 audit anchors and stay frozen.
+- Does not extract `_build_live_handlers` to a shared module (would touch the locked drivers).
+- Does not exercise the live Grafana path — covered by the live invocation itself when Sam fires Phase 2.
+- Does not fire the diagnostic capture cadence — diagnostic uses its own `inter_request_pause_seconds` path; controller wraps the main grid only. If Phase 2 wants diagnostic-pass checkpoints too, that's a future package (low priority — diagnostic is 14 calls vs main's 1,415).
+
+---
+
 ## 2026-05-22 — Behavioural taxonomy v1.1 — framing-restraint amendment ("sycophancy" → "authority-conditioned alignment")
 
 **Decision**: Amend `planning/behavioural_taxonomy.md` (v1 merged in PR #56 on 2026-05-21) to walk back the v1 reliance on "agreement sycophancy" as both Dimension 4's primary framing and the cross-dimensional failure-cell label. Provisionally relabel the failure cell **"authority-conditioned alignment"** — Sam's preferred restrained term for the broader structural property that *includes* sycophancy as a candidate reading but is not yet narrowed to it. Sycophancy remains in-document as the AI-safety-literature pinpoint claim. Refinement to the sharper term will land as a future decision_log entry if Phase 2 + E3 evidence licenses it.
