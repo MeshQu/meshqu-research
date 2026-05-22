@@ -1,0 +1,49 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 1923,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 3704,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"The record is above threshold (\u00a3300,000) and shows no procurement_method_open_flag while direct_award_justification_present is false, which triggers concern under PROC-005. COI evidence is unavailable on this substrate and the direct-award field is explicitly low-confidence, so the audit trail is incomplete.\",\"recommended_action\":\"Obtain route-to-market and COI records\"}",
+    "reasoning": "The record is above threshold (\u00a3300,000) and shows no procurement_method_open_flag while direct_award_justification_present is false, which triggers concern under PROC-005. COI evidence is unavailable on this substrate and the direct-award field is explicitly low-confidence, so the audit trail is incomplete.",
+    "reasoning_sha256": "236be37740ad6fea8c131e85a15fd30e6c996bd4666f86dfc69274d6bdb0e7ff",
+    "recommended_action": "Obtain route-to-market and COI records",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"236be37740ad6fea8c131e85a15fd30e6c996bd4666f86dfc69274d6bdb0e7ff\",\"agent_recommended_action\":\"Obtain route-to-market and COI records\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":300000.0,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L4\",\"governed_by_pa23\":\"false\",\"is_modification\":\"false\",\"publication_delay_days\":0,\"supplier_id\":\"GB-CFS-271115\"}",
+  "decision_id": "b8a7b40a-4042-43a0-982f-34f4a2791f76",
+  "governance_context_level": "L4",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-16686c9b-ce2c-48c1-b0d5-e00cd67d36a3",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "b8a7b40a-4042-43a0-982f-34f4a2791f76",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "a86ee266e4520519aa3c040f2d06460cba41ad91791880ab751487ab86ff38f4",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "TsMmrl5z-RpeT-udhMoyXu3vtNgB23MWWA2Nb1wvxEyzADAv_e92dcDb2KsG19Rp3VV-l4lrv0beXGuNZ8z6DQ",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-22T11:22:05.389Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 28,
+  "timestamp": "2026-05-22T11:22:06+00:00"
+}

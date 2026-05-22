@@ -1,0 +1,71 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 2379,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 3752,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"The record breaches PROC-001-S53 because a PA23 above-threshold award dated 2026-03-09 was published 50 days later, exceeding the 30-day limit. It also fails PROC-002-AUTHORITY (\u00a3535,586.38 exceeds the \u00a3500,000 cap) and PROC-005-OPEN-TENDER, with no open-tender flag and no direct-award justification present.\",\"recommended_action\":\"Block approval and obtain compliant publication and governance evidence\"}",
+    "reasoning": "The record breaches PROC-001-S53 because a PA23 above-threshold award dated 2026-03-09 was published 50 days later, exceeding the 30-day limit. It also fails PROC-002-AUTHORITY (\u00a3535,586.38 exceeds the \u00a3500,000 cap) and PROC-005-OPEN-TENDER, with no open-tender flag and no direct-award justification present.",
+    "reasoning_sha256": "5b35131630af5d2de850b4fc2f6f815a865ffbe540167490dbbb20e6fe782f14",
+    "recommended_action": "Block approval and obtain compliant publication and governance evidence",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"5b35131630af5d2de850b4fc2f6f815a865ffbe540167490dbbb20e6fe782f14\",\"agent_recommended_action\":\"Block approval and obtain compliant publication and governance evidence\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":0.0,\"contract_value\":535586.38,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L4\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"publication_delay_days\":50,\"supplier_id\":\"GB-CFS-309263\"}",
+  "decision_id": "b71055c0-ec36-4926-aa72-e51a00cbfb23",
+  "governance_context_level": "L4",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-01f081ee-01c3-4c86-b410-f96b3ebe515a",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "b71055c0-ec36-4926-aa72-e51a00cbfb23",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "174af96c3b1c8aa0656b2a1c840ac411a9650961378397d391042645a5f1561f",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "j_aZcoqDVkG9b7DouxRAfp-uhdNfoXf6Lwf1I8d96RBY74BqQzqXgzXPGX3_lZOa1Agav3OeNaxEXOcaxMDzCA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-22T11:20:19.210Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 50,
+        "expected_value": "<= 30",
+        "field": "publication_delay_days",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'publication_delay_days' value 50 exceeds maximum 30",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-001-S53",
+        "severity": "critical"
+      },
+      {
+        "actual_value": 535586.38,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 535586.38 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 2,
+  "timestamp": "2026-05-22T11:20:19+00:00"
+}

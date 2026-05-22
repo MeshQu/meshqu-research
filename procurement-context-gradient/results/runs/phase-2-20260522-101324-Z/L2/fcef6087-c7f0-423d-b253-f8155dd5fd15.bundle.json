@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 1823,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1250,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"The award is under PA23 and was published 57 days after the award date proxy, which may breach publication timing depending on the applicable deadline. The procurement method is not open ('selective') and no direct-award justification is present, but the record also lacks COI and debarment evidence.\",\"recommended_action\":\"Check notice timing and award-route justification\"}",
+    "reasoning": "The award is under PA23 and was published 57 days after the award date proxy, which may breach publication timing depending on the applicable deadline. The procurement method is not open ('selective') and no direct-award justification is present, but the record also lacks COI and debarment evidence.",
+    "reasoning_sha256": "a0fe3d5f2d417c132d44dff9585b59ac0df0869feac294a1775a77a587faf21a",
+    "recommended_action": "Check notice timing and award-route justification",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"a0fe3d5f2d417c132d44dff9585b59ac0df0869feac294a1775a77a587faf21a\",\"agent_recommended_action\":\"Check notice timing and award-route justification\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":29374.8,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L2\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"publication_delay_days\":57,\"supplier_id\":\"GB-CFS-245990\"}",
+  "decision_id": "fcef6087-c7f0-423d-b253-f8155dd5fd15",
+  "governance_context_level": "L2",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-cf1a592f-cf43-4a0b-be31-a8ce99bd81a1",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "fcef6087-c7f0-423d-b253-f8155dd5fd15",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "d4b0247dfd9fd1e909ebe1cb28030eac886aaca75cd5e35c87fd9633659ffb48",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "HP9eHW7fetRc8frUBI32Vlsp0Svy7xQskNJVgE7a2vGel27R7SFO0MWJXKo7zPb6WvPyQoGXKGI-MKnzVNfADA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-22T10:59:54.704Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 229,
+  "timestamp": "2026-05-22T10:59:55+00:00"
+}

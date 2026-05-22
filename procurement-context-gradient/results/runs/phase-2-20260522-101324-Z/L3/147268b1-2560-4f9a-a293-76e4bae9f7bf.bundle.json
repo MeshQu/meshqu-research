@@ -1,0 +1,71 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 2218,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2154,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"This is an above-threshold PA23 award worth \u00a32,009,954 using a selective procedure, with no direct-award justification present in the record. Publication was also 33 days after the 2026-03-27 award date, indicating likely timing and procurement-method non-compliance on the available evidence.\",\"recommended_action\":\"Obtain justification and publication compliance evidence\"}",
+    "reasoning": "This is an above-threshold PA23 award worth \u00a32,009,954 using a selective procedure, with no direct-award justification present in the record. Publication was also 33 days after the 2026-03-27 award date, indicating likely timing and procurement-method non-compliance on the available evidence.",
+    "reasoning_sha256": "e6c93963f50bcca927075c4f0879355ecdba5577c958befc250160163aa245d4",
+    "recommended_action": "Obtain justification and publication compliance evidence",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"e6c93963f50bcca927075c4f0879355ecdba5577c958befc250160163aa245d4\",\"agent_recommended_action\":\"Obtain justification and publication compliance evidence\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":0.0,\"contract_value\":2009954.0,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L3\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"publication_delay_days\":33,\"supplier_id\":\"GB-COH-144585\"}",
+  "decision_id": "147268b1-2560-4f9a-a293-76e4bae9f7bf",
+  "governance_context_level": "L3",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-8cac0fcb-4df1-46c1-8a06-9556a2646fbe",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "147268b1-2560-4f9a-a293-76e4bae9f7bf",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "a457c2fd1ef6b9b74484bfdaa4353d0efff9c731343d1c5c539bd32d3ef62666",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "OX0DdevrnSL8JWemuxbgNTVQIK5kM3gY15nWt3n92ElREu1e0JMfrBDvhtz7MFN0rw9atXQSBP82pfhzzWd0BA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-22T11:13:06.200Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 33,
+        "expected_value": "<= 30",
+        "field": "publication_delay_days",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'publication_delay_days' value 33 exceeds maximum 30",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-001-S53",
+        "severity": "critical"
+      },
+      {
+        "actual_value": 2009954,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 2009954 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 158,
+  "timestamp": "2026-05-22T11:13:06+00:00"
+}

@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 1988,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1134,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"The record is internally inconsistent: it is marked governed by the Procurement Act 2023, yet the award date is 2029-02-23 while publication is 2026-04-28, giving an impossible -1032 day delay. It also shows a selective method with no documented direct-award justification and no visible conflict-of-interest evidence in this substrate.\",\"recommended_action\":\"Validate dates and obtain procurement audit trail\"}",
+    "reasoning": "The record is internally inconsistent: it is marked governed by the Procurement Act 2023, yet the award date is 2029-02-23 while publication is 2026-04-28, giving an impossible -1032 day delay. It also shows a selective method with no documented direct-award justification and no visible conflict-of-interest evidence in this substrate.",
+    "reasoning_sha256": "d1c2c8c827b843a47d347879865db8aa31ee949ea2de71b8f9d24ac24fdeb1b7",
+    "recommended_action": "Validate dates and obtain procurement audit trail",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"d1c2c8c827b843a47d347879865db8aa31ee949ea2de71b8f9d24ac24fdeb1b7\",\"agent_recommended_action\":\"Validate dates and obtain procurement audit trail\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":118185.0,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L1\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"publication_delay_days\":-1032,\"supplier_id\":\"GB-CFS-7496\"}",
+  "decision_id": "cd7fd530-d6fe-468c-b50c-edaa59afa171",
+  "governance_context_level": "L1",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-7c51b0a7-321e-4d44-92f8-5244379dfbd7",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "cd7fd530-d6fe-468c-b50c-edaa59afa171",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "32eea125d6cdb38b46a071c4a7145ff22f99d0f49c481666f70349ce5cd9a4d2",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "AXOKP6uL7W4rkRquBf5A4shyGOneT78t3DmoDKz1pABlJGmQy9WVigCNnEglz2zgHpLWxjYnWgMp7vQbhEIkBA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-22T10:38:08.250Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 140,
+  "timestamp": "2026-05-22T10:38:08+00:00"
+}

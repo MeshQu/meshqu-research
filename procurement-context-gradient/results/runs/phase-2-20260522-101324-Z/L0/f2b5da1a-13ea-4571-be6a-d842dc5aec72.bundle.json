@@ -1,0 +1,60 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 2356,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1006,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"This is an above-threshold \u00a3423,027,000 award under PA23 with tender.procurementMethod recorded as 'direct', but no direct-award justification is present in the record and the substrate notes warn this may be a false negative. Given the very high value and sparse audit trail, human review is warranted.\",\"recommended_action\":\"Obtain and verify direct-award justification\"}",
+    "reasoning": "This is an above-threshold \u00a3423,027,000 award under PA23 with tender.procurementMethod recorded as 'direct', but no direct-award justification is present in the record and the substrate notes warn this may be a false negative. Given the very high value and sparse audit trail, human review is warranted.",
+    "reasoning_sha256": "0952df19fa7fd3b90b9efb3cc6ba0c61434aa6b4dc18bcb906955d87030724c1",
+    "recommended_action": "Obtain and verify direct-award justification",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"0952df19fa7fd3b90b9efb3cc6ba0c61434aa6b4dc18bcb906955d87030724c1\",\"agent_recommended_action\":\"Obtain and verify direct-award justification\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":423027000.0,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L0\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"publication_delay_days\":30,\"supplier_id\":\"GB-COH-00407270\"}",
+  "decision_id": "f2b5da1a-13ea-4571-be6a-d842dc5aec72",
+  "governance_context_level": "L0",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-961af0e6-5ba2-482f-b504-047c850b754b",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "f2b5da1a-13ea-4571-be6a-d842dc5aec72",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "5bc8e927ef58822f936295ad49b4bdf8b4f0880491df8889ce13ede8dfaf5e5f",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "JvlVTriKK91Yddo6WN-uEVNqPe7fUiMecR-syRAjiAUMiyuVCq5d-kS2RRf1sbZdAQW7r143UBygPFEpuelhBg",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-22T10:23:22.007Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 423027000,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 423027000 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 168,
+  "timestamp": "2026-05-22T10:23:22+00:00"
+}

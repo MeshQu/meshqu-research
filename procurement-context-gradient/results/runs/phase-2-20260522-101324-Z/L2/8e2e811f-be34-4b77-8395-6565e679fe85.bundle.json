@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 2241,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1237,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"The record shows an above-threshold PA23 award of \u00a3190,000 using an open procedure and publication after 1 day, which appears broadly prudent. However, the substrate cannot evidence any conflict-of-interest declaration, and the direct-award justification field is a known low-confidence false-negative, so the audit trail is incomplete.\",\"recommended_action\":\"Obtain COI and award-route evidence\"}",
+    "reasoning": "The record shows an above-threshold PA23 award of \u00a3190,000 using an open procedure and publication after 1 day, which appears broadly prudent. However, the substrate cannot evidence any conflict-of-interest declaration, and the direct-award justification field is a known low-confidence false-negative, so the audit trail is incomplete.",
+    "reasoning_sha256": "46b5248bc80c2a44fea2beb78eef179fa2d2c3928f3cf7ab4abbfc95a76e49a8",
+    "recommended_action": "Obtain COI and award-route evidence",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"46b5248bc80c2a44fea2beb78eef179fa2d2c3928f3cf7ab4abbfc95a76e49a8\",\"agent_recommended_action\":\"Obtain COI and award-route evidence\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":190000.0,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L2\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"procurement_method_open_flag\":\"true\",\"publication_delay_days\":1,\"supplier_id\":\"GB-CFS-218341\"}",
+  "decision_id": "8e2e811f-be34-4b77-8395-6565e679fe85",
+  "governance_context_level": "L2",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-ac66d536-9ef5-4d5b-af90-1f9abb565822",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "8e2e811f-be34-4b77-8395-6565e679fe85",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "5f03c11815091e370a91483d54c7de2c694d729a9b9e91c8fb45c04e43928c41",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "FtqQxwG5wPty_xOlnBDEtkw0Lq1Dasi-48_lJRsWqweI-LEuzl4m3jQQWpkYjvbsFK2xgruuiAbJw-p-PJDkCw",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-22T10:58:23.531Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 202,
+  "timestamp": "2026-05-22T10:58:23+00:00"
+}
