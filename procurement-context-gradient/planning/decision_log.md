@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-05-22 — Behavioural taxonomy v1.1 — framing-restraint amendment ("sycophancy" → "authority-conditioned alignment")
+
+**Decision**: Amend `planning/behavioural_taxonomy.md` (v1 merged in PR #56 on 2026-05-21) to walk back the v1 reliance on "agreement sycophancy" as both Dimension 4's primary framing and the cross-dimensional failure-cell label. Provisionally relabel the failure cell **"authority-conditioned alignment"** — Sam's preferred restrained term for the broader structural property that *includes* sycophancy as a candidate reading but is not yet narrowed to it. Sycophancy remains in-document as the AI-safety-literature pinpoint claim. Refinement to the sharper term will land as a future decision_log entry if Phase 2 + E3 evidence licenses it.
+
+**Why now, pre-Phase-2**: the v1 wording committed the writeup to a literature-pinpoint claim the evidence cannot yet support. Current evidence is one pilot record at smoke scale (E2-007 PR #55) plus one intersection record at dry-run scale (E2-008 PR #57) — real signal, but not scale evidence. Naming the failure mode "sycophancy" at this stage gives reviewers who disagree with the framing a single rhetorical move to dismiss the whole finding, and locks the writeup into a framing that may be overrun if Phase 2 + E3 narrow the pattern to something *other* than sycophancy (policy-anchoring without agreement, context-distillation drift, etc.). The disciplined posture pre-scale is restrained terminology that can be sharpened later, not loose terminology that has to be walked back later.
+
+**Two terms, one preferred-by-restraint, both in play**:
+- **Authority-conditioned alignment** — the experiment's restrained label. A structural property: the agent's verdict and reasoning align with whatever policy authority is in front of it, including when that authority is incoherent. Measurable in this experiment's corpus via the Permuted-Policy diagnostic + the cross-dimensional cell at high obedience × low resistance.
+- **Agreement sycophancy** — the inherited AI-safety-literature term. The pinpoint claim that authority-conditioned alignment may turn out to be a case of. Retained in-document with explicit qualification at every use ("what the AI-safety literature would call sycophancy", "the AI-safety pinpoint claim", etc.) so the writeup can sharpen later without rewriting and without losing the citation surface to the existing literature.
+
+**The two terms are not synonyms.** Authority-conditioned alignment is the broader structural framing — observable behaviour on this corpus. Sycophancy is the narrower literature claim about a model property. Calling the cell "authority-conditioned alignment" lets the writeup name what it measures without overcommitting to what the measurement reveals about the model.
+
+**Alternatives considered**:
+- *Keep v1 wording.* Rejected — pre-Phase-2 evidence is insufficient to defend "sycophancy" as the failure-cell label against a hostile reviewer; the framing weight outruns the data.
+- *Rewrite the taxonomy from scratch around restrained terminology.* Rejected — operational definitions, corpus features, lexicons, anchoring predictions, and empty result tables are right; only cell labels and framing weight needed adjustment. A targeted amendment preserves the v1 pre-data pre-registration discipline.
+- *Drop sycophancy from the document entirely.* Rejected — the term is established in the AI-safety literature and the writeup needs the citation surface. Keeping it as the explicit pinpoint claim that authority-conditioned alignment may turn out to be a case of preserves the bridge to the literature without inheriting its commitments.
+- *Use a different restrained term (e.g. "policy compliance under incoherence", "uncritical rule-following").* Rejected — "authority-conditioned alignment" surfaces the active mechanism (the *authority* of the policy in front of the agent, not the policy's coherence) and the active failure (alignment with that authority regardless of coherence). The other candidates either lose the mechanism ("compliance") or moralise it ("uncritical").
+
+**Refinement trigger**: post-Phase-2 (full 1,415-record corpus + 14-record Permuted-Policy diagnostic) and post-E3 (investigative-agent variant). If the pattern persists across models / prompts / domains / agents, a v1.2 decision_log entry will document the narrowing to "sycophancy" (or to another term if E3 evidence steers elsewhere). The taxonomy stays at v1.1 until that evidence is in.
+
+**Reason picked (single PR rather than amending in the writeup pass)**: amending in the writeup pass is too late — the taxonomy is the artefact that anchors the writeup's structure (Tables A/B/C, §5b per-record-trajectory cells, §6 reasoning-as-data passage). If the taxonomy reaches the writeup pass with "sycophancy" baked into Table B's failure cell, the writeup either inherits the overcommitment or has to walk it back inline. Walking it back now keeps the writeup pass focused on data interpretation, not terminology debt.
+
+**Files changed**:
+- `planning/behavioural_taxonomy.md` — §1 reframe, §1.5 new "Framing restraint" section, Dimension 4 explanatory note + restraint clause, §3 first cross-dim cell renamed, Table B renamed + cell relabel, smoke-evidence row + headline sentence softened, "What this document is NOT" bullet added, v1.1 amendment boundary section added at the bottom, front-matter status updated.
+
+**What this does NOT do**:
+- Does not touch any v0.2-locked artefact (predictions, ladder design, experiment design, writeup outline, policy snapshot, Stage A prompts) — including the "anti-sycophancy nudge" text in the L4 envelope, which is named by its existing artefact-name and not retroactively relabelled.
+- Does not touch any runner code or test.
+- Does not change operational definitions, corpus features, lexicons, anchoring predictions, or empty result tables.
+
+---
+
 ## 2026-05-22 — E2-009 Phase 1 readiness audit — verdict: GO for Phase 2 (conditional on Sam's acknowledgement of 2 judgment-calls)
 
 **Readiness verdict**: GO. All 11 primary checklist items + all 4 additional gates verify against on-main artefacts (smoke PR #55, dry-run PR #57, runner code at HEAD `3427ca9`). Report committed at `planning/phase_1_readiness_report.md`.
