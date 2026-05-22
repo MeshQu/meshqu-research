@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-05-22 — Phase 3.2 F-series findings authored
+
+Six findings docs at `planning/findings/F007..F012.md`. Numbering picks up an E2-local F-series (E1's findings use the NNN-slug format under `procurement-decisions/results/notebook/findings/`, so the F-prefix sequence is fresh for this experiment as the brief specified).
+
+Headline: **F008 (L3 is the behavioural break, not L4)**.
+
+Restraint discipline calls executed in this authoring pass:
+- **F010** uses the v1.1-amended *"inversion-blind authority-conditioned alignment in the structural sense"* framing rather than the colloquial sycophancy framing. The word "sycophancy" appears in the findings only inside scare quotes when explicitly contrasted with the restrained framing.
+- **F012** commits to BOTH a methodological reading (v1 lexicon is too conservative) AND a substantive reading (silent precedent anchoring is a real behavioural mode). Single-reading suppression would have falsely resolved the tension the corpus itself preserves.
+- **F011** reports BOTH the "L4 nudge is working as designed" and "L4 over-corrects on the ambiguous-rule axis" readings rather than picking one. The PROC-005 29→1 swing is too large to wave through without flagging the open question.
+
+Carry-forward to Phase 3.3 writeup:
+- §1 Methodology must scrub the provisional headline "8 L4 PARSE_ERR + 71 DENY + 204 REVIEW" — see F007. Replace with the corpus-canonical "0 PARSE_ERR, 73 DENY, 210 REVIEW at L4".
+- The §X worked-example slot must use a corpus-resident OCID. The E1 worked example `ca19e737-…` (£57M case) is **absent** from the Phase 2 corpus. Notebook 05 substitutes a convergent PROC-001 record (`ocds-b5fd17-8beac1c6-…`); the final writeup should pick from corpus-resident OCIDs.
+- E3 design asks that crystallised in this pass:
+  - **L3.5 receipts-only variant** (F008): isolates whether the L3 behavioural break is anchoring or evidence-from-precedents.
+  - **Larger Permuted-Policy diagnostic (n ≥ 100)** (F010): 14 records is a signal, not a metric.
+  - **Embedding-similarity precedent lexicon + hand-coded reasoning rubric** (F012): v1 bare-lexicon under-counts paraphrased reasoning.
+  - **L1-prose-only control** (F009): isolates framing-effect vs rule-list-effect on the L0→L1 ALLOW-withdrawal pattern.
+  - **L4-without-nudge variant** (F011): isolates the anti-sycophancy nudge contribution from the policy text alone.
+
+Genuine-equipoise readings (Sam may want to re-arbitrate before Phase 3.3 commits):
+- **F008 Reading A (precedent-rung anchoring) vs Reading B (L4 nudge is the load-bearing element)**: this finding commits weakly to Reading A on the strength of the PROC-005 29→1 backoff direction. The commitment is defensible but not adjudicated by this corpus alone.
+- **F011 Reading A (nudge working as designed) vs Reading B (L4 over-corrects)**: this finding reports both because the magnitude of the PROC-005 backoff is large enough to warrant the question.
+
+**Files added** (all in worktree `/private/tmp/phase-3-2-findings-2116a0`):
+- `procurement-context-gradient/planning/findings/F007-headline-scan-correction-corpus-parses-clean.md`
+- `procurement-context-gradient/planning/findings/F008-l3-is-the-behavioural-break.md`
+- `procurement-context-gradient/planning/findings/F009-p1-p2-falsified-inverted-direction.md`
+- `procurement-context-gradient/planning/findings/F010-inversion-blind-authority-conditioned-alignment.md`
+- `procurement-context-gradient/planning/findings/F011-l3-to-l4-backoff-anti-sycophancy-nudge.md`
+- `procurement-context-gradient/planning/findings/F012-d6-lexicon-null-silent-precedent-anchoring.md`
+
+**Files modified**: this `decision_log.md` entry only. No notebooks touched. No v0.2-locked planning artefacts touched. No corpus bundles touched. No @meshqu/core modified. No live API calls.
+
+---
+
 ## 2026-05-22 — Phase 3.1 cross-level analysis completed
 
 **Decision**: Phase 3.1's seven notebook artefacts land in `results/notebook/cross_level_analysis/`. They populate Tables A/B/C of `behavioural_taxonomy.md` against the locked Phase 2 corpus and assign a disposition to each of the seven pre-registered predictions. No live API calls; no corpus modification; v0.2-predictions-locked artefacts untouched.
