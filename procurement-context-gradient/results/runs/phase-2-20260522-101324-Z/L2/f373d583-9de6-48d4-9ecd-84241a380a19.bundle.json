@@ -1,0 +1,71 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 2418,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1256,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"This is an above-threshold \u00a313,057,810 award under PA23, published 61 days after the award date proxy, which may breach publication timing depending on the notice type. The method is recorded as selective rather than open, and no direct-award justification or COI/debarment evidence is present in this record.\",\"recommended_action\":\"Check notice timing and award-route justification\"}",
+    "reasoning": "This is an above-threshold \u00a313,057,810 award under PA23, published 61 days after the award date proxy, which may breach publication timing depending on the notice type. The method is recorded as selective rather than open, and no direct-award justification or COI/debarment evidence is present in this record.",
+    "reasoning_sha256": "fb5362104a4cd4b3cd24f271c8a0de196ade23644ed0ce48581955ed8fa6ec79",
+    "recommended_action": "Check notice timing and award-route justification",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"fb5362104a4cd4b3cd24f271c8a0de196ade23644ed0ce48581955ed8fa6ec79\",\"agent_recommended_action\":\"Check notice timing and award-route justification\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":13057810.0,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L2\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"publication_delay_days\":61,\"supplier_id\":\"GB-COH-07413801\"}",
+  "decision_id": "f373d583-9de6-48d4-9ecd-84241a380a19",
+  "governance_context_level": "L2",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-4f3a02e7-cb22-48e8-b503-fa3dbf1f6b7b",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "f373d583-9de6-48d4-9ecd-84241a380a19",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "6740211afccbaac57dfd8c1fa6fcbe049978adccdfcc9d742ea45c7c5e1a1f4d",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "QxkYtzFWuDvFux1CIK9CetNsp8WXQn2DEXUkbxEpc-Dho67bSq45qRSYbYczll36HSQteECn21_HuuxxVeAvDQ",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-22T10:51:39.847Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 61,
+        "expected_value": "<= 30",
+        "field": "publication_delay_days",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'publication_delay_days' value 61 exceeds maximum 30",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-001-S53",
+        "severity": "critical"
+      },
+      {
+        "actual_value": 13057810,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 13057810 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 86,
+  "timestamp": "2026-05-22T10:51:40+00:00"
+}

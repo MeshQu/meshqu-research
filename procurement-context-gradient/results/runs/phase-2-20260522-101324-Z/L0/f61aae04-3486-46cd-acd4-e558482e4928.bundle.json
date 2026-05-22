@@ -1,0 +1,49 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 2217,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1003,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"This is an above-threshold PA23 procurement (\u00a3209,490) and the record shows a selective method, but no direct-award justification is present and that field is noted as low-confidence with known false negatives. Publication was 20 days after award, so the audit trail should be checked for the correct procedure and any missing notices.\",\"recommended_action\":\"Verify procedure and linked notices\"}",
+    "reasoning": "This is an above-threshold PA23 procurement (\u00a3209,490) and the record shows a selective method, but no direct-award justification is present and that field is noted as low-confidence with known false negatives. Publication was 20 days after award, so the audit trail should be checked for the correct procedure and any missing notices.",
+    "reasoning_sha256": "1fb24809d17dfe29a142e58e6c6ad1546f803b6d0c2be2a0f0081c4451e7963b",
+    "recommended_action": "Verify procedure and linked notices",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"1fb24809d17dfe29a142e58e6c6ad1546f803b6d0c2be2a0f0081c4451e7963b\",\"agent_recommended_action\":\"Verify procedure and linked notices\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":209490.0,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L0\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"publication_delay_days\":20,\"supplier_id\":\"GB-COH-04283951\"}",
+  "decision_id": "f61aae04-3486-46cd-acd4-e558482e4928",
+  "governance_context_level": "L0",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-2147773f-eb5f-4fbf-9b1e-edc10928210b",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "f61aae04-3486-46cd-acd4-e558482e4928",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "9a124af9399495150f18ffe24999ee8a3ae141851ffa51ae6c8af25c18876f19",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "cw1d-9SbBnn-zkoMMCPPMm1dNEBRpHmRa5QeuKJZMFsTfNqTDZCdYnv-N353gmmjGW-ktbKWIidAeoZSZNrXBw",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-22T10:15:51.917Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 40,
+  "timestamp": "2026-05-22T10:15:52+00:00"
+}

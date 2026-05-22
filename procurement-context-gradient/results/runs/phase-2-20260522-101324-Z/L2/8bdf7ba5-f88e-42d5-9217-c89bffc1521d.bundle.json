@@ -1,0 +1,49 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 4092,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1252,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"This is an above-threshold PA23 award (\u00a3367,600) published 30 days after award, and the record shows a selective method with no direct-award justification present. COI and debarment checks are not evidenced in this substrate, so the audit trail is incomplete.\",\"recommended_action\":\"Obtain award-route and governance evidence\"}",
+    "reasoning": "This is an above-threshold PA23 award (\u00a3367,600) published 30 days after award, and the record shows a selective method with no direct-award justification present. COI and debarment checks are not evidenced in this substrate, so the audit trail is incomplete.",
+    "reasoning_sha256": "e97d4946b58207ec81a755d7cdc8707937f5ddaceee034d01e8b3e4f05596360",
+    "recommended_action": "Obtain award-route and governance evidence",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"e97d4946b58207ec81a755d7cdc8707937f5ddaceee034d01e8b3e4f05596360\",\"agent_recommended_action\":\"Obtain award-route and governance evidence\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":367600.0,\"direct_award_justification_present\":\"false\",\"governance_context_level\":\"L2\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"publication_delay_days\":30,\"supplier_id\":\"GB-COH-02266016\"}",
+  "decision_id": "8bdf7ba5-f88e-42d5-9217-c89bffc1521d",
+  "governance_context_level": "L2",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-1ab7b558-8263-4e3d-944f-e2ad406873d3",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "8bdf7ba5-f88e-42d5-9217-c89bffc1521d",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "9805d110e8f61a546db5fc4b2f2121ff7fb3b3c7000c2d4a3cc66e4d8c536bf9",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "mtKti1uBv29ILiheztCBgUAVp3yAQx95dAd9oHk1Ctj98kdanqNhuqo4LFr2vK1P8SS0F-KxIdn32r4JxRIABQ",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-22T10:48:28.955Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 34,
+  "timestamp": "2026-05-22T10:48:29+00:00"
+}
