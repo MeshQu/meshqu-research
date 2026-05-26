@@ -1,4 +1,4 @@
-# DRAFT — When precedents commit AI
+# DRAFT — When precedents commit AI and policy pulls it back
 
 *A five-rung governance-context ladder on 283 procurement decisions*
 
