@@ -303,7 +303,21 @@ These items are required before iko-tools publication and are not produced in th
 - **E1 cross-reference link** resolved to the published MRP-2026-02 surface URL once iko-tools renders E2 alongside it.
 - **Worked-example reasoning quotes** (§4) reproduced from notebook 05 — the published version should attach the exact bundle paths and decision IDs in a verifier-friendly appendix so any reader can re-derive the quoted texts from the on-disk bundles.
 
+## §11 — What's next
+
+E2 is the second experiment in a three-experiment programme. E1 (MRP-2026-02) established the baseline — a foundation-model agent reviewing real procurement records without policy visibility, reaching for REVIEW under incomplete evidence. E2 extends that baseline by adding governance context one rung at a time and reporting the resulting non-monotonic shape. **E3** introduces the investigative-agent variant: instead of reviewing static records, the agent actively retrieves linked notices, inspects documents, verifies timelines, and gathers evidence — with MeshQu governing the investigation process itself as a replayable, cryptographically verifiable receipt chain.
+
+The arc is: passive reviewer → context-aware reviewer → governed investigative agent. Each experiment compounds on the same methodology substrate: signed receipts, locked prompts, pre-registered predictions, anti-claims as first-class output, and the F-series two-readings discipline.
+
+E3 also carries the disambiguators E2 surfaced: the **L3.5 receipts-only variant** that separates precedent influence from information-density influence, the **larger Permuted-Policy diagnostic** (n ≥ 100 with a hand-coded reasoning rubric), the **authoritative-versus-hypothetical framing axis** that isolates the "authority-conditioned" qualifier, and **cross-model replication** to test whether the rule-intent prior is a property of this model or of the task class.
+
+The pattern — governance-context structure as a first-class object of empirical study, not just an audit trail emitted from one — generalises beyond procurement to AML, KYC, underwriting, and clinical-decision domains. The methodology there is one substrate-adapter implementation and one domain-specific policy-authoring pass away, not a rebuild.
+
 ---
+
+## Declaration of AI assistance
+
+AI tools were used during ideation, drafting, and editorial refinement of this paper. The pre-registration, ladder design, locked-prompt SHA fingerprints, corpus collection, and analytical conclusions were directed and reviewed by the author. In a paper on agent behaviour under governance context, disclosing the assistance trail is the same primitive the paper advocates for — making the work legible at the point of the work.
 
 ## Appendix A — Pre-registration provenance
 
