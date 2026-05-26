@@ -319,6 +319,14 @@ The pattern — governance-context structure as a first-class object of empirica
 
 AI tools were used during ideation, drafting, and editorial refinement of this paper. The pre-registration, ladder design, locked-prompt SHA fingerprints, corpus collection, and analytical conclusions were directed and reviewed by the author. In a paper on agent behaviour under governance context, disclosing the assistance trail is the same primitive the paper advocates for — making the work legible at the point of the work.
 
+## References
+
+1. **Chen, Q.Z. & Zhang, A.X.** *Case Law Grounding: Using Past Cases to Align Decision-Making for Humans and AI*. arXiv:2310.07019, 2023 (accepted ACM Collective Intelligence 2025). https://arxiv.org/abs/2310.07019
+2. **MeshQu Research.** *MRP-2026-02 — When AI hedges and policy commits: Anatomy of agent–policy disagreement on UK procurement decisions, signed and verifiable*. 2026-05-18. (The programme's E1 baseline; see §2.3.)
+3. **UK Parliament.** *Procurement Act 2023, s.53(1) — Contract Details Notice publication obligation*. 2023.
+4. **UK Government.** *Public Contracts Regulations 2015 (PCR 2015)*. (Referenced in §4 as the pre-PA23 regulatory regime governing the worked-example record.)
+5. **Sigstore project.** *Rekor — transparency log for software artifacts*. https://docs.sigstore.dev/logging/overview/
+
 ## Appendix A — Pre-registration provenance
 
 - **Git tag**: `v0.2-predictions-locked`
