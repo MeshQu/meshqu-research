@@ -12,7 +12,7 @@ meshqu-research/
 ├── programme/                   # Research-process discipline: PROCESS.md (gates) + STRUCTURAL-PARITY.md (publication checklist)
 ├── procurement-decisions/       # E1 — AI-assisted UK procurement compliance review (MRP-2026-02, published)
 ├── procurement-context-gradient/# E2 — governance-context ladder over E1's corpus (MRP-2026-03, in publication)
-└── procurement-e3/              # E3 — scaffolding only; scope + descriptive name pending
+└── procurement-context-disambiguation/  # E3 — scaffolding only; scope locks at pre-registration
 ```
 
 ## What this repo is

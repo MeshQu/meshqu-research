@@ -12,10 +12,9 @@ The carry-forward design asks from E2 (§8, §11) form a menu, not a commitment.
 - [ ] **Larger Permuted-Policy diagnostic** (target n ≥ 100, hand-coded reasoning rubric)
 - [ ] **Authoritative-vs-hypothetical framing axis** — isolates the "authority-conditioned" qualifier
 - [ ] **Cross-model replication** — adds at least one of Claude / Gemini
-- [ ] **Investigative-agent variant** — the bigger leap (per §11)
 - [ ] **L4-without-nudge variant** — disambiguates Framing A.1 vs A.2 from E2 §5
 
-A defensible E3 covers some subset of the first four (static-record format, sharpens E2's open readings). The fifth — investigative-agent — is a format shift and probably warrants its own paper (E3.5 or E4).
+E3 is the **disambiguation experiment**: it covers some subset of the above (static-record format, sharpens E2's open readings). The **investigative-agent variant** (per E2 §11's arc framing) is a larger format shift — agent invokes tools, retrieves linked notices, emits multi-step replayable traces — and is scoped as **E4**, not E3. The arc: passive reviewer (E1) → context-aware reviewer (E2) → mechanism disambiguation (E3) → governed investigative agent (E4).
 
 ## Substrate decision
 

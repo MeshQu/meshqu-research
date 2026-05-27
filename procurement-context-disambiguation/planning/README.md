@@ -1,7 +1,7 @@
 # Experiment 3 (E3) — planning directory
 
 **Status**: scaffolding only. No content commitments yet.
-**Directory name**: `procurement-e3/` is a placeholder. Rename to `procurement-<contribution-axis>/` once Sam commits to E3's scope (e.g. `procurement-context-disambiguation/`, `procurement-investigative-agent/`, etc., following the E1/E2 naming convention).
+**Directory name**: `procurement-context-disambiguation/` — the direct sequel to `procurement-context-gradient/` (E2). E3 is the disambiguation experiment: it isolates the mechanisms E2 surfaced but could not separate. The investigative-agent variant (per E2 §11's arc framing) is a larger format shift and is scoped as a later experiment (E4), not E3.
 
 ## Purpose
 
