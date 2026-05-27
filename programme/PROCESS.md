@@ -66,6 +66,10 @@ External citations are verified before they enter the writeup, not after. An ind
 
 Every paper in the programme carries a short declaration naming where AI tools were used in its production. In a programme on auditable AI decision-making, disclosing the assistance trail is the same primitive the papers advocate for — making the work legible at the point of the work.
 
+### 11. Independent reader review is best-effort, not publication-blocking
+
+Independent reader review strengthens a paper but is not a gate on publication. A finished paper is not held indefinitely for want of an available reviewer. Publication proceeds at `status: STABLE` once the structural-parity checklist passes; independent review is sought when a reviewer is available and folded in as a versioned revision (v1.1 / correction note) if it surfaces something substantive. The programme's correction primitive (errata, version bumps) makes review-after-publication a clean operation, not a compromise. The integrity the programme leans on — pre-registration, locked predictions, signed corpus, anti-claims — is load-bearing at publication time; the human reader is a strengthening pass, not the integrity mechanism.
+
 ## How this document evolves
 
 This is a working spec. It is updated:
