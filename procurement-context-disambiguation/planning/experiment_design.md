@@ -124,7 +124,10 @@ Not started — gated behind design review. When ready:
 ## Locked parameters (authored 2026-05-27; SHA-bound at the tag)
 
 - **Diagnostic subset selection rule** — the 100 records whose `sha256(ocid)` hex digests sort lowest, over the frozen 283-corpus. Deterministic, reproducible, no selection bias, and independent of any verdict. The *same* 100 run on both the primary model and Claude (record-matched).
-- **Second model** — **`claude-opus-4-7`**, temperature 0 (matched to the primary agent's temp-0 setting for comparability). *Confirm this is the tier you hold a key for — if it's Sonnet (`claude-sonnet-4-6`), say so and we pin that instead.*
+- **Second model** — **PENDING the feasibility spike** (`runner/spike/claude_spike.py`; report at `planning/feasibility_spike_claude.md`). Constraint surfaced before lock: **Claude Opus 4.7 (`claude-opus-4-7`) removed the `temperature` parameter** — sending `temperature=0` returns HTTP 400, so the cross-model arm *cannot* match the primary agent's temp-0 setting on Opus 4.7. Two candidate pins, decided from the spike output:
+  - **(A) `claude-opus-4-7`, no temperature** — most capable; determinism via low effort + a tight prompt rather than a temp knob. Accepts the sampling mismatch as a documented caveat (the arm is diagnostic-only and asymmetric anyway).
+  - **(B) `claude-sonnet-4-6`, temperature 0** — Sonnet 4.6 still accepts `temperature`, matching the primary agent's temp-0 setting more closely; less capable.
+  The diagnostic arm is asymmetric and exploratory, so a documented sampling caveat under (A) is acceptable. Final pin recorded here before the tag.
 - **Primary model** — unchanged from E1/E2: `gpt-5.4-2026-03-05`, temperature 0.
 - **Locked content authored** (in `runner/prompts/` + `planning/`), SHA-bound at the tag:
   - `armC_density_control.md` — the dry/neutral 4-block density control **(needs Sam's neutrality review before tag)**
