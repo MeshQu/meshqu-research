@@ -2,7 +2,7 @@
 
 **Status**: working document. Updated after each publication.
 **Programme**: MeshQu Research Programme.
-**Published outputs to date**: MRP-2026-02 (E1 — procurement-decisions, published 2026-05-18); MRP-2026-03 (E2 — procurement-context-gradient, in publication).
+**Published outputs to date**: MRP-2026-02 (E1 — procurement-decisions, published 2026-05-18); MRP-2026-03 (E2 — procurement-context-gradient, published 2026-05-27).
 
 This document captures the process discipline applied across the programme. It is a working spec, not a polished publication. It evolves as the programme accumulates evidence about what works and what creates friction. Each gate below exists because we either started with it (and it held up) or added it after a specific friction surfaced.
 

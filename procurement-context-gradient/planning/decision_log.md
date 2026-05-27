@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-05-27 — E2 published as MRP-2026-03 v1.0
+
+**Decision**: cut E2 at v1.0 STABLE and published at `meshqu.com/research/procurement-context-gradient/`.
+
+**What shipped**: the full writeup (§1–§11 + Declaration + References + Appendices A–D), five mandatory figures + one supporting, five curated Grafana captures, the 1,429-receipt signed corpus, all offline-verifiable at verify.meshqu.com. Title: *When precedents commit AI and policy pulls it back*. Byline: Sam Carter, MeshQu. No DOI (not on Zenodo).
+
+**Publish-first decision**: published ahead of independent reader review. Per `programme/PROCESS.md` gate #11, independent review is best-effort and non-blocking — sought when a reviewer is available, folded in as a v1.1 / correction if it surfaces something. The load-bearing integrity (pre-registration, locked predictions, signed corpus, anti-claims) is in place at publication time; the human reader is a strengthening pass. Rationale: a finished paper held indefinitely for want of an available reviewer is a worse outcome than a strong paper published with review as a follow-up.
+
+**Reason**: E2 cleared the structural-parity checklist and is structurally at parity with E1. All pre-publication polish (personal edit, reviewer-agent pass, F-series gloss, de-DRAFT) merged before the cut. Nothing substantive outstanding.
+
+**What's next**: post-publication independent reader (non-blocking); the Receipt-Anchored Evaluation methods note (MM series); E3 (procurement-context-disambiguation) scope lock.
+
+---
+
 ## 2026-05-22 — Phase 3.2 F-series findings authored
 
 Six findings docs at `planning/findings/F007..F012.md`. Numbering picks up an E2-local F-series (E1's findings use the NNN-slug format under `procurement-decisions/results/notebook/findings/`, so the F-prefix sequence is fresh for this experiment as the brief specified).
