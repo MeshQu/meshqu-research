@@ -8,8 +8,11 @@ This repository carries applied research on AI-assisted decision-making in regul
 
 ```
 meshqu-research/
-└── procurement-decisions/   # First worked application: AI-assisted UK procurement compliance review (MRP-2026-02)
-    └── planning/            # Methodology documentation for this piece (substrate, evaluation pipeline, policy authoring)
+├── methodology/                 # The reusable audit-grade decision-receipt method (canonical reference)
+├── programme/                   # Research-process discipline: PROCESS.md (gates) + STRUCTURAL-PARITY.md (publication checklist)
+├── procurement-decisions/       # E1 — AI-assisted UK procurement compliance review (MRP-2026-02, published)
+├── procurement-context-gradient/# E2 — governance-context ladder over E1's corpus (MRP-2026-03, in publication)
+└── procurement-context-disambiguation/  # E3 — scaffolding only; scope locks at pre-registration
 ```
 
 ## What this repo is
@@ -22,7 +25,7 @@ A public, MIT-licensed research surface. Each piece is published with:
 - A long-form writeup published at `meshqu.com/research/<slug>/`.
 - An open repository (this one) carrying the harness, sample-selection criteria, system prompts, and the receipt corpus.
 
-The methodology is intentionally public. For MRP-2026-02 it is documented in [`procurement-decisions/planning/`](procurement-decisions/planning/) — substrate adapter, evaluation pipeline, and policy authoring layers each written up alongside the experiment trail. The abstracted-and-reusable form will be extracted to a top-level `methodology/` directory once a second worked application provides a second anchor point to triangulate the abstraction from. Client engagements applying this methodology to private data live in separate, client-specific repositories that import the methodology as a dependency. The techniques are auditable; the engagements are confidential.
+The methodology is intentionally public. The abstracted, reusable form now lives in [`methodology/`](methodology/) — extracted once a second worked application (E2 / MRP-2026-03) provided a second anchor point to triangulate the abstraction from. Per-piece methodology detail still lives alongside each experiment trail (e.g. [`procurement-decisions/planning/`](procurement-decisions/planning/) — substrate adapter, evaluation pipeline, policy authoring). The research-process discipline that wraps the method — pre-registration gates, anti-claims, publication-parity checklist — lives in [`programme/`](programme/). Client engagements applying this methodology to private data live in separate, client-specific repositories that import the methodology as a dependency. The techniques are auditable; the engagements are confidential.
 
 ## What this repo is NOT
 
@@ -37,6 +40,12 @@ The methodology is intentionally public. For MRP-2026-02 it is documented in [`p
 An LLM agent reviews 300 public UK procurement filings and proposes compliance verdicts. MeshQu evaluates each decision against a documented policy synthesised from the UK Procurement Act 2023, the Procurement Regulations 2024, EU Directive 2014/24/EU, and US FAR. One rule is a faithful implementation of PA23 s.53 (30-day Contract Details Notice publication obligation); the other five are illustrative composites with per-rule framework provenance. Every decision produces a signed receipt anchored to Sigstore Rekor and verifiable offline at verify.meshqu.com.
 
 Status: published as MRP-2026-02 (2026-05-18). Planning trail, methodology documentation, and corpus artefacts in [`procurement-decisions/`](procurement-decisions/); per-piece publication-discipline lineage in [`procurement-decisions/planning/decision_log.md`](procurement-decisions/planning/decision_log.md).
+
+### procurement-context-gradient
+
+The second worked application. Reuses E1's corpus, model, policy snapshot, and substrate adapter unchanged, and varies one thing — the governance context the agent sees — across a strictly additive five-rung ladder (L0 baseline → L4 full policy text). The headline finding is non-monotonic: the precedent-receipt rung (L3) is where the agent's verdicts first commit at scale, and the full-policy rung (L4) partially pulls that commitment back. Two pre-registered predictions were falsified in the inverted direction, and a 14-record adversarial Permuted-Policy diagnostic surfaced inversion-blindness (the agent reasons against a rule's semantic intent rather than the literal inverted operator).
+
+Status: in publication as MRP-2026-03. Corpus, analysis notebooks, findings, and writeup in [`procurement-context-gradient/`](procurement-context-gradient/).
 
 ## Methodology lineage
 
