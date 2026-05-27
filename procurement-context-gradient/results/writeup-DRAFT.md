@@ -12,7 +12,7 @@ Two of the locked predictions — P1 (monotonic REVIEW decrease) and P2 (monoton
 
 E2 does not prove cause, does not show the result generalises to other models, and does not establish that precedent receipts "manipulate" the agent. What it does show, against locked predictions, is the shape the ladder actually produced — and that shape is non-monotonic. Where the corpus admits more than one reading, the writeup reports both, leans toward one when the pattern weakly favours it, and names the E3 experiment that would settle it.
 
-> **Correction — provisional Phase 2 figures superseded.** Earlier Phase 2 communications carried provisional headline counts ("8 PARSE_ERR + 71 DENY + 204 REVIEW" at L4). The final on-disk corpus parses cleanly: 0 PARSE_ERR across all 1,415 main + 14 diagnostic bundles; final L4 verdict distribution **73 DENY / 210 REVIEW / 0 ALLOW**. The bundles on disk are authoritative; any external citation of the earlier provisional counts should be updated. See F007 for the full reconciliation.
+> **Correction — provisional Phase 2 figures superseded.** Earlier Phase 2 communications carried provisional headline counts ("8 PARSE_ERR + 71 DENY + 204 REVIEW" at L4). The final on-disk corpus parses cleanly: 0 PARSE_ERR across all 1,415 main + 14 diagnostic bundles; final L4 verdict distribution **73 DENY / 210 REVIEW / 0 ALLOW**. The bundles on disk are authoritative; any external citation of the earlier provisional counts should be updated. See F007 (the findings register; defined in §3) for the full reconciliation.
 
 ## §2 — Methodology
 
@@ -73,7 +73,7 @@ E2 is the second experiment in the procurement-decisions / procurement-context-g
 
 ## §3 — Predictions vs. outcomes
 
-Each row pulls its disposition from F007–F012 and the Phase 3.1 `decision_log` summary. The disposition vocabulary is locked at pre-registration (`predictions.md` §"Definition of 'report honestly'").
+Each row pulls its disposition from the **F-series** — the experiment's numbered post-data findings register (F007–F012), each finding carrying a status label, an evidence block with denominators, and its own anti-claims (the structure is detailed in §7). The F-series is the post-data analog of the pre-registered P1–P7 predictions: predictions are locked before the data; findings are registered after it. Dispositions here also draw on the Phase 3.1 `decision_log` summary. The disposition vocabulary is locked at pre-registration (`predictions.md` §"Definition of 'report honestly'").
 
 | ID | Pre-registered claim | Falsification criterion | Outcome (corpus) | Disposition |
 |---|---|---|---|---|
