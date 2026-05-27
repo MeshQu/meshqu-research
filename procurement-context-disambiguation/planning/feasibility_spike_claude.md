@@ -47,20 +47,40 @@ python3 claude_spike.py            # option (A): claude-opus-4-7, no temperature
 python3 claude_spike.py --sonnet   # option (B): claude-sonnet-4-6, temperature=0
 ```
 
-## Results
+## Results (run 2026-05-27, both options)
 
-_To be filled in after the run._
+| Q | Option (A) `claude-opus-4-7`, no temp | Option (B) `claude-sonnet-4-6`, temp=0 |
+|---|---|---|
+| **Q1 — model reached** | `claude-opus-4-7` ✓ | `claude-sonnet-4-6` ✓ |
+| **Q2 — verbatim-scaffold parse** | **CLEAN** — raw JSON object, no fence | **NEEDS SHIM** — wraps in ` ```json ` fences; harness fence-strip handles it |
+| **Q3 — sampling** | no `temperature` (as expected; no 400) | `temperature=0` accepted |
+| **Q4 — latency** | ~2.6–3.4 s / record | ~2.2–3.1 s / record |
+| **Q4 — tokens** | in ~860, out 102–133 | in ~605, out 80–103 |
 
-- **Q1 — model reached**: _<resp.model from the run>_
-- **Q2 — verbatim-scaffold parse**: _CLEAN / NEEDS SHIM / FAILED_
-- **Q3 — sampling**: _option run + whether it 400'd_
-- **Q4 — latency / tokens**: _per-record_
+**Verdict agreement across both models** (3 throwaway records, not corpus): identical on
+all three — A `review`, B `review`, C `allow` — under both Opus and Sonnet. Reassuring that
+the verdict surface isn't model-fragile on simple cases (says nothing yet about hard cases).
 
-## Decision (record before the tag)
+Both options are **runnable**. The arm is feasible either way; the choice is a pin, not a
+blocker. The Sonnet fence-wrapping is handled by the harness's existing `try_parse_verdict`
+shim (prompt stays byte-identical; only extraction adapts), so parse-format is not a real
+discriminator.
 
-- **Pinned second model**: _TBD — (A) or (B)_
-- **Rationale**: _TBD_
-- **Sampling caveat (if A)**: _document in the writeup methods section_
+## Decision (2026-05-27) — Option (A)
 
-Once decided, update `experiment_design.md` → Locked parameters → "Second model" with the
-final pin and remove the PENDING marker.
+- **Pinned second model**: **`claude-opus-4-7`, no `temperature`, `output_config.effort: low`.**
+- **Rationale**: the cross-model arm is diagnostic-only and asymmetric — its purpose is "is
+  inversion-blindness model-specific or task-class," so the most capable available second model
+  gives the most informative result and the strongest critic-resistance. Pinning the weaker
+  Sonnet just to match a temp knob would optimise the wrong variable. Capability > temp-matching
+  for this arm.
+- **Sampling caveat**: Opus 4.7 has no `temperature`, so the arm does not match the primary
+  agent's temp-0 sampling. This is documented in the writeup methods section as a caveat, not a
+  confound — no verdict-for-verdict comparability is claimed; the comparison is the reasoning-axis
+  rubric distribution. `effort: low` is fixed for near-determinism. Reproducibility is carried by
+  the signed receipt, not by temp-0 byte-determinism.
+- **Parsing**: Opus returns raw verdict JSON — **no shim needed**. (The harness fence-strip shim
+  remains in place and is harmless; it would only have mattered under option B.)
+
+`experiment_design.md` → Locked parameters → "Second model" updated to this pin; PENDING marker
+removed. Model line is cleared for the pre-registration tag.
