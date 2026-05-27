@@ -56,7 +56,7 @@ Each application reuses the technical method and the research discipline unchang
 
 ## The methods note (planned)
 
-A standalone methods note — the narrative, citable version of Receipt-Anchored Evaluation, distinct from the experiment papers — is planned for publication on the website and GitHub, following the same pipeline as the experiment writeups. Working idea: an `MM-NNNN-NN` (MeshQu Methods) series alongside the `MRP` (MeshQu Research Piece) experiment series. The note argues the "product is the research instrument" framing in full and is the citable anchor for partners (e.g. the University of South Wales collaboration) adopting the method.
+A standalone methods note — the narrative, citable version of Receipt-Anchored Evaluation, distinct from the experiment papers — is planned for publication on the website and GitHub, following the same pipeline as the experiment writeups. Working idea: an `MM-NNNN-NN` (MeshQu Methods) series alongside the `MRP` (MeshQu Research Piece) experiment series. The note argues the "product is the research instrument" framing in full and is the citable anchor for external partners adopting the method.
 
 ## Files
 

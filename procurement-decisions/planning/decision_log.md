@@ -630,7 +630,7 @@ A pre-build audit cross-checked the harness's claims against the actual code. Fo
 **Decision**: this is a commercial research report in the Stripe-engineering-blog mould. Not a peer-reviewable paper. Not a demo. Not a customer case study. A vendor publishing rigorous applied work on its own infrastructure.
 
 **Alternatives considered**:
-- Peer-reviewable academic paper, possibly co-authored with USW. Rejected: USW collaboration is months out and not on this artefact's critical path. Stripe-style ships faster, lands the commercial-credibility goal sooner, doesn't preclude a later academic version.
+- Peer-reviewable academic paper, possibly co-authored with an academic partner. Rejected: any such collaboration is months out and not on this artefact's critical path. Stripe-style ships faster, lands the commercial-credibility goal sooner, doesn't preclude a later academic version.
 - Customer case study. Rejected: no customer to anchor it on.
 - Demo writeup. Rejected: demos look like sales fiction. The experiment is the opposite.
 
