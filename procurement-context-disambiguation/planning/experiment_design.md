@@ -47,7 +47,13 @@ Reading the three arms:
 | All three commit | **Reading B** — raw volume drives it; precedents not special. *(Deflationary but honest.)* |
 | Only C fails to match | Cases matter, volume alone doesn't (collapses to one of the two rows above). |
 
-**The contamination risk lives in Arm C.** Match the precedent payload on what Reading B would plausibly credit: **token count** (the volume claim), **number of discrete informational units** (precedents are N items; the control is N items), and **prompt position** (same slot). Differ on: no concrete records, no verdicts. Perfect density-matching is impossible (precedents have a case→facts→verdict→reasoning structure prose can't replicate) — so the matching criteria are pre-registered for transparency, and the authored Arm-C payload is inspected for accidental verdict-signal before lock. We don't need perfect; we need "no one can argue Arm C smuggled in decision-relevant signal."
+**The contamination risk lives in Arm C, and it has two faces.**
+
+*Match* the precedent payload on what Reading B would plausibly credit: **token count** (the volume claim), **number of discrete informational units** (precedents are N items; the control is N items), and **prompt position** (same slot). Differ on: no concrete records, no verdicts.
+
+*The subtler hazard is semantic flavour, not just verdict signal.* If Arm C is filled with dense regulatory-alert prose — "must enforce", "material failure", "severe compliance risk" — it can trigger the model's intrinsic over-caution and move verdicts *without carrying any verdict exemplar at all*, contaminating the control by a side channel. So Arm C must be deliberately **dry and neutral**: textbook-style structural/administrative prose (e.g. a description of the OCDS schema or generic public-procurement workflow), devoid of high-alert compliance imperatives. The control's job is to add *volume*, not *threat*.
+
+*Authoring*: the Arm C payload is **authored manually** (not procedurally shuffled from compliance vocabulary — shuffling can't guarantee neutral tone and risks smuggling alert-words in). It is locked content, SHA-bound like the E2 prompts. Before lock it passes a two-part inspection: (i) no verdict words or decision signal; (ii) no high-alert compliance imperatives. Perfect density-matching is impossible (precedents have a case→facts→verdict→reasoning structure prose can't replicate) — the matching criteria are pre-registered for transparency. We don't need perfect; we need "no one can argue Arm C smuggled in decision-relevant signal *or* a defensive-posture trigger."
 
 > **Terminology fix carried into the writeup later:** E2 used "L3.5" loosely for this. E3 retires "L3.5" entirely — the single label hid that *three* probe conditions are needed to isolate the mechanism, not one.
 
