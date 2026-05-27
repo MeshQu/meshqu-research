@@ -119,4 +119,18 @@ Not started — gated behind design review. When ready:
 3. **Scaled-diagnostic n: pre-registered subset, target 100** — same 100 records on both models (record-matched); deterministic selection rule fixed at lock. Expandable later if the subset signal warrants.
 4. **L4-without-nudge: in scope.**
 
+## Locked parameters (authored 2026-05-27; SHA-bound at the tag)
+
+- **Diagnostic subset selection rule** — the 100 records whose `sha256(ocid)` hex digests sort lowest, over the frozen 283-corpus. Deterministic, reproducible, no selection bias, and independent of any verdict. The *same* 100 run on both the primary model and Claude (record-matched).
+- **Second model** — **`claude-opus-4-7`**, temperature 0 (matched to the primary agent's temp-0 setting for comparability). *Confirm this is the tier you hold a key for — if it's Sonnet (`claude-sonnet-4-6`), say so and we pin that instead.*
+- **Primary model** — unchanged from E1/E2: `gpt-5.4-2026-03-05`, temperature 0.
+- **Locked content authored** (in `runner/prompts/` + `planning/`), SHA-bound at the tag:
+  - `armC_density_control.md` — the dry/neutral 4-block density control **(needs Sam's neutrality review before tag)**
+  - `armB_precedent_no_verdict_format.md` — E2's L3 block with verdict/violations/E1-reasoning redacted
+  - `L4_without_nudge.md` — E2's L4 envelope minus the nudge clause
+  - `diagnostic_rubric.md` — the 3-category hand-coding protocol
+  - Arm A reuses E2's `L3_precedent_block_format.md` unchanged.
+
+Checklist items above now satisfied except: Arm C neutrality review (Sam); working title; the tag itself.
+
 Design is resolved. Next: draft segment-level predictions (`predictions.md`), then pre-registration lock.
