@@ -7,7 +7,7 @@
 
 ## 2026-05-27 — E2 published as MRP-2026-03 v1.0
 
-**Decision**: cut E2 at v1.0 STABLE and published at `meshqu.com/research/procurement-context-gradient/`.
+**Decision**: cut E2 at v1.0 STABLE and published at `https://www.meshqu.com/research/when-precedents-commit-ai-and-policy-pulls-it-back`. The published slug is title-derived, not the directory name — E1's URL used the directory-name slug, so the convention shifted to a title-slug for E2.
 
 **What shipped**: the full writeup (§1–§11 + Declaration + References + Appendices A–D), five mandatory figures + one supporting, five curated Grafana captures, the 1,429-receipt signed corpus, all offline-verifiable at verify.meshqu.com. Title: *When precedents commit AI and policy pulls it back*. Byline: Sam Carter, MeshQu. No DOI (not on Zenodo).
 
