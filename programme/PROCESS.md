@@ -36,7 +36,7 @@ At every phase boundary, provisional figures (counts, percentages, run telemetry
 
 ### 3. Structural-parity checklist (live document)
 
-A living checklist of every structural element the programme's published papers carry — sections, appendices, declarations, conventions, hash-truncation rules, capture counts, frontmatter keys, voice-anchor sentences. Updated after each paper publishes. Mandatory pass-through before any paper claims publication-ready.
+A living checklist of every structural element the programme's published papers carry — sections, appendices, declarations, conventions, hash-truncation rules, capture counts, frontmatter keys, voice-anchor sentences. Lives at [`STRUCTURAL-PARITY.md`](./STRUCTURAL-PARITY.md). Updated after each paper publishes. Mandatory pass-through before any paper claims publication-ready.
 
 ### 4. Cross-repo edit scope convention
 
