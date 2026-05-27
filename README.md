@@ -2,7 +2,7 @@
 
 Public research surface for [MeshQu](https://meshqu.com).
 
-This repository carries applied research on AI-assisted decision-making in regulated contexts. Each piece is a worked application of an audit-grade decision-receipt methodology to a specific public-record substrate. The methodology layer is reusable across pieces and across future client engagements.
+This repository carries applied research on AI-assisted decision-making in regulated contexts. Each piece is a worked application of **Receipt-Anchored Evaluation** — an audit-grade, signed-receipt methodology — to a specific public-record substrate. The methodology layer is reusable across pieces and across future client engagements; it is documented in [`methodology/`](methodology/).
 
 ## What's here
 

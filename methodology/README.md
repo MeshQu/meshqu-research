@@ -1,8 +1,8 @@
-# Methodology — audit-grade decision-receipt research
+# Receipt-Anchored Evaluation
 
-**Status**: extracted 2026-05-27, triangulated from two worked applications (E1 / MRP-2026-02 and E2 / MRP-2026-03). Working reference; evolves as further applications add anchor points.
+**Receipt-Anchored Evaluation** is the methodology this research programme runs on: an audit-grade, signed-receipt method for empirical research on AI-governance behaviour. The name is literal — every decision in a study is recorded as a Decision Receipt, signed and anchored to a public transparency log, so the entire evidence corpus is independently verifiable.
 
-> **Naming (pending — author to confirm).** This document uses the descriptor *"audit-grade decision-receipt methodology"* throughout. A formal short name has not been coined. Candidates floated for the author's decision: **Receipt-Anchored Evaluation**, **Signed-Corpus Governance Research**, **Replayable Governance Evaluation**. The methods note (see below) is where the name gets committed.
+**Status**: extracted 2026-05-27, triangulated from two worked applications (E1 / MRP-2026-02 and E2 / MRP-2026-03). Working reference; evolves as further applications add anchor points. The full narrative argument lands in the methods note (see below).
 
 ## The core idea
 
@@ -56,7 +56,7 @@ Each application reuses the technical method and the research discipline unchang
 
 ## The methods note (planned)
 
-A standalone methods note — the narrative, citable version of this methodology, distinct from the experiment papers — is planned for publication on the website and GitHub, following the same pipeline as the experiment writeups. Working idea: an `MM-NNNN-NN` (MeshQu Methods) series alongside the `MRP` (MeshQu Research Piece) experiment series. The note is where the methodology's formal name is committed and where the "product is the research instrument" framing is argued in full.
+A standalone methods note — the narrative, citable version of Receipt-Anchored Evaluation, distinct from the experiment papers — is planned for publication on the website and GitHub, following the same pipeline as the experiment writeups. Working idea: an `MM-NNNN-NN` (MeshQu Methods) series alongside the `MRP` (MeshQu Research Piece) experiment series. The note argues the "product is the research instrument" framing in full and is the citable anchor for partners (e.g. the University of South Wales collaboration) adopting the method.
 
 ## Files
 
