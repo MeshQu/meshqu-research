@@ -1,8 +1,6 @@
-# DRAFT — When precedents commit AI and policy pulls it back
+# When precedents commit AI and policy pulls it back
 
 *A five-rung governance-context ladder on 283 procurement decisions*
-
-> **Status**: DRAFT. Sam handles Phase 3.4 step-away, 3.5 personal edit, 3.6 independent reader review, and 3.7 publication. Do not auto-merge or auto-publish. The publication slug, MRP number, byline, and any iko-tools metadata block are out of scope for this draft.
 
 ## §1 — Abstract
 
