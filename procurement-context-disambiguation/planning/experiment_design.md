@@ -30,24 +30,26 @@ E3 commits to three pieces — the spine — and defers two.
 
 ## Design
 
-### Piece 1 — L3 decomposition (resolves the Reading A vs B confound)
+### Piece 1 — L3 decomposition (resolves Reading A vs B, and isolates the mechanism)
 
-The crux. E2's L3 rung = L0 baseline + L1 prose + L2 named rules + L3 precedent receipts, *accumulated additively*. So at L3 the agent has both (a) precedents and (b) the most context density it has seen — and they arrived together. To separate them, E3 runs two **non-additive** probe rungs against the same 283 records:
+The crux. E2's L3 rung = L0 baseline + L1 prose + L2 named rules + L3 precedent receipts, *accumulated additively*. A precedent receipt bundles **three** properties, any of which could drive the L3 commitment: (1) raw context **volume**, (2) **concreteness** (specific prior cases, not abstract rules), (3) **verdict exemplars** (those cases carry verdicts — other records got DENY'd). To separate them, E3 runs three **non-additive** probe arms against the same 283 records, each read against E2's L3 (37.8% DENY):
 
-- **L3-precedents-only** = L0 baseline **+ precedent receipts**, with the L1 prose and L2 named-rules layers *removed*. Precedents in isolation.
-- **L3-density-control** = L0 baseline + a **non-precedent content block matched for length/density** to the precedent payload (e.g. an expanded prose policy summary carrying comparable token count and structural richness but no concrete prior cases).
+- **Arm A — precedents-only** = L0 baseline **+ E2's full precedent receipts** (cases + verdicts), L1/L2 stripped. The whole precedent effect in isolation.
+- **Arm B — precedents-no-verdict** = same cases as Arm A, **verdict field redacted**. Concreteness *without* the verdict signal.
+- **Arm C — density-control** = L0 baseline + **length/structure-matched abstract content** (expanded domain/policy prose), no concrete cases, no verdicts. Raw volume only.
 
-Reading against E2's L3 (37.8% DENY):
+Reading the three arms:
 
-| Probe result | Interpretation |
+| Outcome | Interpretation |
 |---|---|
-| L3-precedents-only commits (≈ L3), L3-density-control does not | **Reading A** — precedents specifically drive commitment |
-| Both commit similarly | **Reading B** — any sufficient content density drives commitment; precedents not special |
-| Neither commits like L3 | Commitment requires the *accumulated* ladder, not any single rung — a third reading E2 didn't enumerate |
+| A commits, B doesn't, C doesn't | **Verdict exemplars are load-bearing** — prior DENYs anchor new ones. The governance-memory mechanism (E2 §10) made empirical. *(Sharpest result.)* |
+| A and B commit, C doesn't | **Concreteness** — seeing similar cases anchors; verdicts not needed. |
+| All three commit | **Reading B** — raw volume drives it; precedents not special. *(Deflationary but honest.)* |
+| Only C fails to match | Cases matter, volume alone doesn't (collapses to one of the two rows above). |
 
-This is the piece that most needs your eyes — the **density-control payload is a judgement call** (what counts as "matched density without precedent content"). Getting it right is the difference between a clean disambiguation and a contaminated one.
+**The contamination risk lives in Arm C.** Match the precedent payload on what Reading B would plausibly credit: **token count** (the volume claim), **number of discrete informational units** (precedents are N items; the control is N items), and **prompt position** (same slot). Differ on: no concrete records, no verdicts. Perfect density-matching is impossible (precedents have a case→facts→verdict→reasoning structure prose can't replicate) — so the matching criteria are pre-registered for transparency, and the authored Arm-C payload is inspected for accidental verdict-signal before lock. We don't need perfect; we need "no one can argue Arm C smuggled in decision-relevant signal."
 
-> **Terminology fix carried into the writeup later:** E2 used "L3.5" loosely for this. E3 should retire "L3.5" in favour of the two named probes above — the single label hid that *two* probe conditions are needed, not one.
+> **Terminology fix carried into the writeup later:** E2 used "L3.5" loosely for this. E3 retires "L3.5" entirely — the single label hid that *three* probe conditions are needed to isolate the mechanism, not one.
 
 ### Piece 2 — L4 decomposition (resolves Framing A.1 vs A.2)
 
@@ -63,9 +65,9 @@ Reading against E2's L4 (the 46-record backoff, PROC-005 29→1):
 ### Piece 3 — Scaled diagnostic + cross-model arm (resolves inversion-blindness)
 
 - **Scaled Permuted-Policy diagnostic**: lift from 14 records to **n ≥ 100** (target the full corpus or a pre-registered larger subset). Add a **hand-coded reasoning rubric** — three categories per record: *names the inversion in any words* / *reasons solely against rule intent* / *partially recognises but applies anyway*. This moves D4 (policy resistance) from lexicon-only (which fired 0/14 in E2) to human-coded, so the resistance axis is reportable beyond the bare lexicon.
-- **Cross-model arm**: run **the scaled diagnostic only** (not the full ladder) on **one second model**. This is the asymmetric design — full diagnostic on the primary model, same diagnostic on the second model — buying "is inversion-blindness real at scale" *and* "is it model-specific or task-class" without a full second-model corpus.
+- **Cross-model arm**: run **the scaled diagnostic only** (not the full ladder) on **Claude** (second model confirmed; key available). Asymmetric design — full diagnostic on the primary model, same diagnostic on Claude — buying "is inversion-blindness real at scale" *and* "is it model-specific or task-class" without a full second-model corpus.
 
-**Model decision needed:** the second model. Options: Claude (frontier, strong reasoning, natural comparison) or Gemini. **Recommendation: Claude** — it is the most capable comparison and the most-scrutinised for exactly the sycophancy/instruction-following properties at issue, so a divergence or agreement is maximally informative. Your call; flag if you'd prefer Gemini or both.
+**Scaled-diagnostic n: a pre-registered subset** (confirmed — expandable later if the subset signal warrants it). Target n = 100 records, selected by a deterministic, pre-registered rule over the 283-corpus (e.g. `sha256(ocid) mod 283 < 100`, or the first 100 by sorted OCID — to be fixed at lock). The same 100 run on both the primary model and Claude, so the cross-model comparison is record-matched.
 
 ## Substrate
 
@@ -104,9 +106,11 @@ Not started — gated behind design review. When ready:
 - [ ] Working title committed (or placeholder with intent)
 - [ ] Git tag created: `v0.X-predictions-locked`
 
-## Decisions needed from Sam before predictions can be drafted
+## Decisions resolved (2026-05-27)
 
-1. **Density-control payload** — confirm the approach (length/density-matched non-precedent content) and what it's matched *on* (token count? structural sections? both?).
-2. **Second model** — Claude (recommended), Gemini, or both.
-3. **Scaled-diagnostic n** — full 283 as the diagnostic, or a pre-registered subset (e.g. n=100)?
-4. **L4-without-nudge** — confirm it's in scope (recommended in; it's cheap and clean).
+1. **L3 decomposition: 3 arms** — precedents-only (A) / precedents-no-verdict (B) / density-control (C). The 3rd arm isolates the verdict-exemplar mechanism, directly testing the §10 governance-memory interpretation. Arm C matched on token count + number of discrete units + prompt position; inspected for verdict-signal contamination before lock.
+2. **Second model: Claude** (key available). Diagnostic-only cross-model arm.
+3. **Scaled-diagnostic n: pre-registered subset, target 100** — same 100 records on both models (record-matched); deterministic selection rule fixed at lock. Expandable later if the subset signal warrants.
+4. **L4-without-nudge: in scope.**
+
+Design is resolved. Next: draft segment-level predictions (`predictions.md`), then pre-registration lock.
