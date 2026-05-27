@@ -106,4 +106,9 @@ Visual register: Anthropic system-card / IBM Research / GDS register. Restrained
 
 After each publication ships, audit the published artefact against this checklist. Anything that's now convention (because both E2 and E3 carry it) gets promoted to mandatory. Anything that turned out not to matter gets removed. Anything new gets added with a note about which publication first introduced it.
 
+## Application log
+
+- **E2 — MRP-2026-03 (published 2026-05-27).** First paper to pass through this checklist as a gate. Cleared all body sections, closing elements, Appendices A–D, the 5-capture Grafana convention, contiguous figure numbering, and the voice conventions. The checklist was itself triangulated from E1 + E2, so E2 is both an input and the first audited artefact; no items required promotion or removal on this pass. One item newly exercised: AI-assistance declaration (gate #10) — E2 carries it after E1's precedent, confirming it as mandatory.
+
+
 Drift from the checklist is fine — that's what the checklist exists to catch — but un-drifted-from-without-review-pass is the failure mode this gate exists to prevent.
