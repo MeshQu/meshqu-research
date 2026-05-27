@@ -45,7 +45,7 @@ Status: published as MRP-2026-02 (2026-05-18). Planning trail, methodology docum
 
 The second worked application. Reuses E1's corpus, model, policy snapshot, and substrate adapter unchanged, and varies one thing — the governance context the agent sees — across a strictly additive five-rung ladder (L0 baseline → L4 full policy text). The headline finding is non-monotonic: the precedent-receipt rung (L3) is where the agent's verdicts first commit at scale, and the full-policy rung (L4) partially pulls that commitment back. Two pre-registered predictions were falsified in the inverted direction, and a 14-record adversarial Permuted-Policy diagnostic surfaced inversion-blindness (the agent reasons against a rule's semantic intent rather than the literal inverted operator).
 
-Status: published as MRP-2026-03 (2026-05-27) at `meshqu.com/research/procurement-context-gradient/`. Corpus, analysis notebooks, findings, and writeup in [`procurement-context-gradient/`](procurement-context-gradient/).
+Status: published as MRP-2026-03 (2026-05-27) at [meshqu.com/research/when-precedents-commit-ai-and-policy-pulls-it-back](https://www.meshqu.com/research/when-precedents-commit-ai-and-policy-pulls-it-back). Corpus, analysis notebooks, findings, and writeup in [`procurement-context-gradient/`](procurement-context-gradient/).
 
 ## Methodology lineage
 
