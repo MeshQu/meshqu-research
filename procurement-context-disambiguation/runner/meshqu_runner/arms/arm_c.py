@@ -8,14 +8,13 @@ the precedent effect (see ``planning/experiment_design.md`` § Piece 1).
 
 ## Module layout
 
-The package spec calls for ``meshqu_runner/arms/arm_c.py`` (an ``arms/``
-package). Wave 2 of E3 dispatches up to six sibling agents in parallel
-working on per-arm handlers; converting the existing ``arms.py`` module
-to an ``arms/`` package would collide with every other Wave 2 PR. The
-minimum-intervention compromise — same as E3-001's "extend in place,
-don't re-shape" posture — is a sibling module ``arm_c.py`` that
-registers against the existing ``arms.HANDLERS`` registry. Behaviour is
-identical; only the import path differs.
+This module lives at ``meshqu_runner/arms/arm_c.py`` — the convention
+established by PR #92 (E3-002, Arm A) when the foundation's ``arms.py``
+module was refactored into an ``arms/`` subpackage. Each per-arm
+handler is its own module under ``arms/`` and is registered by an
+import line in ``arms/__init__.py``. The handler binds against the
+``HANDLERS`` registry via ``@register(...)``; behaviour is unchanged
+from the original flat-layout draft, only the import path differs.
 
 ## The static block
 
@@ -63,8 +62,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
-from .arms import register
-from .eval_loop import build_user_message
+from . import register
+from ..eval_loop import build_user_message
 
 
 # ---------------------------------------------------------------------------
@@ -133,8 +132,12 @@ def load_locked_arm_c_template(template_path: Path | None = None) -> str:
     tests verify the locked content hasn't been mutated by comparing
     SHA-256 against the v0.3-tag-bound value."""
     if template_path is None:
+        # ``__file__`` lives at ``runner/meshqu_runner/arms/arm_c.py``; the
+        # locked template is at ``runner/prompts/armC_density_control.md``.
+        # Three ``.parent`` climbs land at ``runner/``; the relative path
+        # then resolves the prompt file.
         template_path = (
-            Path(__file__).resolve().parent.parent
+            Path(__file__).resolve().parent.parent.parent
             / ARM_C_TEMPLATE_RELATIVE_PATH
         )
     if not template_path.is_file():

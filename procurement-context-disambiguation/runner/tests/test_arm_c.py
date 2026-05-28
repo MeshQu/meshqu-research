@@ -33,8 +33,9 @@ from typing import Any, Mapping
 
 import pytest
 
-from meshqu_runner import arm_c, arms
-from meshqu_runner.arm_c import (
+from meshqu_runner import arms
+from meshqu_runner.arms import arm_c
+from meshqu_runner.arms.arm_c import (
     ARM_C_SECTION_HEADER,
     ARM_C_TEMPLATE_RELATIVE_PATH,
     DEFAULT_PARITY_SAMPLE_SIZE,
