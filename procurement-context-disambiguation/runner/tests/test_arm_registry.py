@@ -86,13 +86,26 @@ def test_arm_handlers_callable_with_just_a_record():
     variants (E3-005) — both ``l4_with_nudge`` and ``l4_without_nudge``
     render the policy envelope (with or without the nudge clause); their
     rendered prompts do not embed the placeholder marker, so they are
-    excluded from the placeholder-content assertion as well.
+    excluded from the placeholder-content assertion as well. The
+    diagnostic arms (E3-008) — both ``diagnostic_primary`` and
+    ``diagnostic_claude`` — render the permuted L4 envelope; their
+    rendered prompts do not embed the placeholder marker, so they are
+    excluded as well.
     """
     record = {"ocid": "stub-ocid-test", "decision_type": "procurement_decision"}
     placeholder_arms = tuple(
         arm
         for arm in ARM_NAMES
-        if arm not in ("arm_a", "arm_b", "arm_c", "l4_with_nudge", "l4_without_nudge")
+        if arm
+        not in (
+            "arm_a",
+            "arm_b",
+            "arm_c",
+            "l4_with_nudge",
+            "l4_without_nudge",
+            "diagnostic_primary",
+            "diagnostic_claude",
+        )
     )
     for arm in ARM_NAMES:
         prompt = HANDLERS[arm](record)
