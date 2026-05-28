@@ -4,6 +4,69 @@ Reverse-chronological. Most recent decision at the top. Each entry: date, decisi
 
 ---
 
+## 2026-05-28 — Smoke read v2 + handler record-composition fix (PR #97, merge `0c4ce13`)
+
+**Decision**: smoke v1 (run `smoke-20260528T152346-Z`) passed cryptographic verification cleanly (14/14, Ed25519 + integrity markers all correct) but the substantive experimental signal was empty — every arm returned a "no procurement record provided" refusal. Decision-point #5 read on the diagnostic shapes surfaced a cross-arm pattern, root-caused to a bug not in the diagnostic alone but in three arm handlers plus the smoke driver. Fixed in PR #97 (`0c4ce13`); smoke re-fired (`smoke-20260528T161121-Z`) reads clean across all six arms.
+
+**The bug cluster** (one root cause + a triggering condition):
+
+| # | Location | Behaviour |
+|---|---|---|
+| A | `arms/l4_without_nudge.py:l4_without_nudge_handler` | Returned only the L4 envelope; `record` arg ignored |
+| A′ | `arms/l4_without_nudge.py:l4_with_nudge_handler` | Same shape (sanity-comparison baseline; off-grid, in-runner only — folded into the fix per Sam's 2026-05-28 call to hold every registered arm to the composition contract regardless of grid status) |
+| B | `arms/diagnostic.py:diagnostic_primary_handler` + `diagnostic_claude_handler` | Returned only the permuted L4 envelope; `record` arg ignored. Module docstring falsely claimed `multi_pass._process_record` composes the base user message — `multi_pass.py:588-592` explicitly says the opposite ("Arm handler returns the FULLY rendered user message — no additive composition, no level prefix. The handler is self-contained.") |
+| C | `scripts/smoke_e3.py:_build_records` | Intentionally fabricated minimal-shape records with `fields={}` and `substrate_notes={}`, on the assumption that "smoke is an integration probe, not a substrate test." This *hid* bugs A+B — every arm was receiving empty records anyway, so the missing-record-composition didn't surface visibly; the smoke completed and verified, leaving the substantive engagement question untested. |
+
+**Empirical confirmation** (lifted from PR #97):
+
+| Arm | Record A (marker ALPHA-12345) | Record B (marker BRAVO-67890) | Prompt-SHA distinct? | Markers in prompt? |
+|---|---|---|---|---|
+| arm_a / arm_b / arm_c | distinct | distinct | ✓ | ✓ |
+| l4_without_nudge | identical | identical | ✗ | ✗ |
+| diagnostic_primary / diagnostic_claude | identical | identical | ✗ | ✗ |
+
+**The fix** (PR #97, three commits):
+
+1. `0854787` — Test-first: `tests/test_handler_record_composition.py` parametrized across the 6 grid arms. Pre-fix: 3 PASS (arm_a/b/c), 3 FAIL (l4_without_nudge + both diagnostics). Locked-in evidence.
+2. `5e5f913` — Compose `base_user_message` at the tail of the rendered envelope in `arms/diagnostic.py` (both handlers via shared `_compose_base_user_message` helper) and `arms/l4_without_nudge.py:l4_without_nudge_handler`. Envelope-first / record-trailing order mirrors E2's `level_l4.compose_full_message` — load-bearing for OpenAI prompt-cache prefix preservation. Smoke driver swapped to `substrate_cache.load_cached_records(repo_dir)` filtered to the smoke OCIDs.
+3. `70c40bf` — Extended `l4_with_nudge_handler` with the identical compose pattern; lock-in test parametrize extended from 6 to 7 arms (`l4_with_nudge` included despite being off the smoke / dry-run / full-run matrices — the discipline is "every registered arm that touches Phase-1 experimental substance," not "every arm on the current grid"). Post-fix: 7/7 PASS.
+
+**Method-note carry-forward**: every arm-handler PR going forward MUST include a parametrized "record A and record B render to distinct prompts containing their respective markers" assertion at the wave-1 expectation level. This locks the property; a future agent "simplifying" the renderer back to envelope-only trips the test. Worth a sentence in the eventual receipt-anchored-evaluation methods note — "lock-in tests on per-record prompt distinctness" is a small but real piece of the discipline.
+
+**Smoke v2 — decision-point #5 read (the load-bearing finding)**
+
+Re-fired smoke `smoke-20260528T161121-Z` against the real substrate (3 OCIDs × 4 main arms + 2 diagnostic arms = 14 receipts; 51.4s wall-clock; 14/14 verifier PASS; no errors).
+
+All six arms now substantively engage with the OCID 0 record (`contract_value: 40000.0`, `supplier_id: GB-CFS-321175`, `publication_delay_days: 29`, `governed_by_pa23: true`, `above_threshold: false`). Per-arm prompt-token growth confirms record content reaching the model (arm_a +38%, l4_without_nudge +26%, diagnostic_primary +26%, diagnostic_claude +28% vs the pre-fix smoke).
+
+**The Claude verdict-shape question (DP#5 the load-bearing item)**:
+
+| Axis | Result |
+|---|---|
+| JSON parsing | Clean. `parse_status: ok` on both diagnostic bundles. No fence wrapping. Spike's claim holds at real-corpus scale. |
+| Field shape | `verdict` / `reasoning` / `recommended_action` — same three-field shape as the primary agent. |
+| Inversion-blindness signal at n=1 | **Both models inversion-blind on OCID 0.** Neither names the inversion; both apply the policy as-stated. Locked rubric category 2 ("reasons solely against rule intent") on this record, both arms. |
+
+**Worked-example anchor (the smoking quote)**: under the permuted policy (LOCKED_PERMUTATION_SEED=0, operators flipped), Opus 4.7 wrote:
+
+> *"Below-threshold (£40k) PA23 contract, not a modification, supplier not on listed sanctions IDs, publication within 29 days. Open-competition rule does not trigger below threshold. COI field absent from substrate but rule's when-clause requires its existence to fire."*
+
+This is the **unperturbed** semantic interpretation of the rules. Under the permuted policy, "below threshold" should TRIGGER the (inverted) authority/open-competition rule. Opus reads the permuted policy text, then applies the rule's *intent* — exactly category 2 in the locked rubric. This is the inversion-blindness behaviour P5 predicts, captured on first contact with a real corpus record. (n=1 is direction-of-signal only; P5 confirmation/falsification requires the locked rubric across n=100 in Phase 2.)
+
+GPT-5.4's `diagnostic_primary` reasoning shows the same applies-as-stated pattern with hedging language; verdict-axis style differs (REVIEW vs Opus's decisive ALLOW), reasoning-axis behaviour is identical.
+
+**Methodological caveat for the writeup (track separately)**: Opus's compact-decisive vs GPT-5.4's hedging-toward-REVIEW on identical inputs is a real per-model behavioural axis. Verdict distributions will diverge between the two diagnostic arms even when rubric distributions agree. Belongs in the Methods section alongside the "no temperature on Opus 4.7" sampling caveat — same input class, different output style. Analysis notebook should track verdict distributions and rubric distributions independently; don't try to flatten them.
+
+**Other smoke v2 observations** (not load-bearing but worth recording):
+
+- All six arms got `meshqu_decision: ALLOW` with `violations_count: 0` on OCID 0 — with real fields the FIELD_MISSING violations from smoke v1 are gone. (Some records in dry-run / Phase 2 will trigger violations under their fields' actual values — expected; not a bug.)
+- The three L3 decomposition arms (Arm A / B / C) all produced REVIEW with similar "audit trail incomplete / direct-award justification low-confidence" reasoning at n=1 — expected, the L3 decomposition signal needs the n=283 distribution to read.
+- L4-without-nudge reasoning explicitly walked each rule (threshold, sanctions, publication delay, COI) — confirms the handler is now actually testing Framing A.1 vs A.2.
+
+**What's next**: Wave 5 — E3-011 (dry-run, 140 receipts) dispatched as the next agent. Scripts mock-tested in PR; Sam fires the live dry-run after merge. Cost projection sanity-check (±15% of smoke extrapolation). Receipt-orphan recovery is already in the fork at `meshqu_runner/recover_orphans.py` (with `tests/test_recover_orphans.py`); E3-011 added `scripts/recover_orphans.py` as a thin CLI shim so the spec's literal invocation form works. **Not a Phase-2 blocker.** (An earlier note in the build-package brief flagged the script as missing — that was based on a `scripts/` directory grep; the module-form recovery was always present. Corrected here.)
+
+---
+
 ## 2026-05-28 — Wave 2 close-out: arm handlers, Claude swap, rubric tool
 
 **Decision**: six Wave 2 PRs merged. Runner now has working arm handlers for the three L3 decomposition arms (Arm A precedents-only, Arm B precedents-no-verdict, Arm C density-control), the L4-without-nudge surgical variant, the Claude cross-model adapter, and the offline rubric-coding tool. Layout convergence on `meshqu_runner/arms/<arm_name>.py` subpackage with imports landing in `arms/__init__.py`.
