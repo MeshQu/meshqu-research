@@ -415,3 +415,4 @@ if _missing:
 # in HANDLERS unchanged.
 
 from . import arm_a as _arm_a  # noqa: F401, E402  (Arm A — E3-002)
+from . import arm_b as _arm_b  # noqa: F401, E402  (Arm B — E3-003)

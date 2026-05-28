@@ -77,10 +77,12 @@ def test_arm_handlers_callable_with_just_a_record():
 
     Arm A's real handler (E3-002) accepts ``record`` + optional kwargs
     and falls back to an empty archive when none is provided, so it
-    too is callable with just a record and is exercised below.
+    too is callable with just a record and is exercised below. Arm B's
+    real handler (E3-003) has the same fallback shape — returns the L0
+    baseline alone when no archive is supplied — and is exercised below.
     """
     record = {"ocid": "stub-ocid-test", "decision_type": "procurement_decision"}
-    placeholder_arms = tuple(arm for arm in ARM_NAMES if arm != "arm_a")
+    placeholder_arms = tuple(arm for arm in ARM_NAMES if arm not in ("arm_a", "arm_b"))
     for arm in ARM_NAMES:
         prompt = HANDLERS[arm](record)
         assert isinstance(prompt, str), f"handler for {arm!r} returned non-str"
