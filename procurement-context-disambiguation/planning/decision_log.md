@@ -4,6 +4,73 @@ Reverse-chronological. Most recent decision at the top. Each entry: date, decisi
 
 ---
 
+## 2026-05-28 — Wave 2 close-out: arm handlers, Claude swap, rubric tool
+
+**Decision**: six Wave 2 PRs merged. Runner now has working arm handlers for the three L3 decomposition arms (Arm A precedents-only, Arm B precedents-no-verdict, Arm C density-control), the L4-without-nudge surgical variant, the Claude cross-model adapter, and the offline rubric-coding tool. Layout convergence on `meshqu_runner/arms/<arm_name>.py` subpackage with imports landing in `arms/__init__.py`.
+
+**Merged PRs (in merge order)**:
+
+| PR | Merge SHA | Package | Notes |
+|---|---|---|---|
+| #88 | `d484892` | E3-006 Claude cross-model swap | Anthropic SDK adapter at `agents/claude.py`; model-id-keyed `DISPATCH`; receipt schema extended in place (no envelope v2 bump). Pin: `claude-opus-4-7`, no `temperature`, `effort: "low"`. System prompt SHA `db60d6f2…` unchanged. |
+| #91 | `a40371e` | E3-009 rubric-coding tool | Offline CLI walker at `diagnostic/code_rubric.py`. `diagnostic_rubric.md` SHA `f162953e…` unchanged. P5 bands parsed from `predictions.md` at runtime, not hard-coded. |
+| #92 | `1c6e1c2` | E3-002 Arm A — precedents-only | **Anchor PR for the layout convergence**: refactored foundation's `arms.py` → `arms/__init__.py` package. Byte-identity invariant verified against E2's `L3LiveHandler` on 3 smoke records via cross-tree `importlib`-loaded fixture. |
+| #89 | `fc1387f` | E3-003 Arm B — precedents-no-verdict | HTML-comment-strip applied at renderer. Contamination check empirically passes: 0 verdict/violation/E1-reasoning substrings across N=3 × 4 precedents = 12 precedent renders. Defence-in-depth field projection (whitelist before `str.format_map`). |
+| #93 | `e4f32c2` | E3-004 Arm C — density-control + token parity | **Asymmetric-control caveat resolved** (see below). HTML-comment-strip applied. Locked SHA `07abb32f…` unchanged. |
+| #90 | `e09f82a` | E3-005 L4-without-nudge | `strip_leading_html_comments` utility at `prompt_loader.py` (renderer layer). Post-strip diff against E2's `L4_policy_envelope.md` = exactly the nudge sentence and nothing else. Both `l4_with_nudge` (sanity baseline) and `l4_without_nudge` (load-bearing) registered from the same module. |
+
+**Process lessons captured (load-bearing for future waves)**:
+
+1. **Dispatch-architecture failure → per-agent git worktree isolation.** First Wave 2 dispatch had all 7 background agents working in a single shared working directory at `/Users/sam/Projects/meshqu-research`. The agents raced on git state, switched branches mid-work, and contaminated each other's untracked files (E3-009 found "orphan `test_arm_b.py` from a stash" leaked from E3-003; E3-006 misread cross-agent contention as a "system reminder" about a pinned file). One agent (E3-002) errored out at the end; five were stopped before push. Only E3-007 committed cleanly and was salvaged (became PR #87). **Resolution**: redispatch with `git worktree add /private/tmp/wt-e3-XXX -b feat/e3-XXX main` per agent — physical isolation prevents cross-agent racing on working tree state. Every parallel-dispatch wave from here on uses isolated worktrees, no exceptions. This is the dispatch-architecture lesson — bake it into Wave 3+ orchestration.
+
+2. **Layout convergence on `arms/<arm_name>.py` subpackage.** Six redispatched agents independently picked three different layout patterns (flat `arm_b.py`, sibling `arm_handlers/`, subpackage `arms/`). Anchor decision: **PR #92's `arms/__init__.py` subpackage is canonical.** The other three arm-handler PRs (#89 Arm B, #93 Arm C, #90 L4) rebased and `git mv`-ed into `arms/`, deleting the divergent locations. Convention now: each new arm lands as `meshqu_runner/arms/<arm_name>.py` and is imported at the bottom of `arms/__init__.py` with the idiom `from . import <arm_name> as _<arm_name>  # noqa: F401, E402  (<description> — E3-XXX)`. Wave 3+ agents follow this without question.
+
+3. **HTML-comment-strip convention** for locked-content files. **E3-005's discovery**: the locked `L4_without_nudge.md` (v0.3-bound) starts with an HTML comment header that quotes the nudge sentence verbatim. From the LLM's perspective, the "excised" text was still in the prompt (inside `<!-- ... -->`). **Sam's resolution (2026-05-28)**: strip leading HTML comments at the renderer layer before sending to the LLM. Locked file bytes (and SHA) stay untouched on disk. `_strip_leading_html_comments` lives at `meshqu_runner/prompt_loader.py` so any arm with a leading methodological comment in its locked content can reuse it (Arm B did, in PR #89). Convention: leading HTML comments in locked prompt files are documentation; the renderer strips them; on-disk file is the v0.3-bound source of truth; the LLM sees the stripped form.
+
+4. **`test_arm_registry.py` `placeholder_arms` tuple-exclusion idiom is canonical.** Three rebase agents independently picked three different shapes (`promoted_arms` set / `ARMS_WITH_REAL_HANDLER` set / extended `placeholder_arms` tuple). Convergence (merge order #89 → #93 → #90): `placeholder_arms = tuple(arm for arm in ARM_NAMES if arm not in ("arm_a", "arm_b", "arm_c", "l4_with_nudge", "l4_without_nudge"))`. Variable name is somewhat misleading (it actually means "arms whose handler is still a placeholder"); current shape preserved for stability rather than renaming.
+
+**Decision Point #3 resolved — Arm C asymmetric-control caveat (PR #93)**
+
+Realised token-count parity vs E2's L3 payload (n=10 records): **mean ratio 0.8357 (-16.43%)**, range 0.8089–0.8572. Below both the design's ±5% band and the orchestrator's ±10% buffer; below the spec's "wildly off (< 0.85)" threshold by a hair. Locked Arm C content (`armC_density_control.md`, SHA `07abb32f…c1824134`) **NOT modified**.
+
+**Verdict**: accept as documented methods caveat. Do NOT retag. Pre-registration commitment (`v0.3-predictions-locked`) unchanged.
+
+**Asymmetric-control disclosure language** (lifted from PR #93 body, for the writeup methods section):
+
+The gap rules out *one* family of confounds and introduces *another*:
+
+| Confound | Direction of Arm C gap | Status |
+|---|---|---|
+| "Arm C shouted louder than precedents" (excess volume drove commitment) | Arm C is **shorter** than Arm A | ✓ Precluded |
+| "Arm C didn't have enough volume to commit" (insufficient volume left a confound) | Arm C is **shorter** than Arm A | ✗ Introduced, not precluded |
+
+How this constrains the four-outcome interpretation table at results-time:
+
+- **A commits, B doesn't, C doesn't → verdict exemplars load-bearing.** *Sharpest result.* **Qualified**: with Arm C ~16% short, a critic can argue "Arm C didn't commit because it had less volume, not because verdicts/concreteness matter." Disclosure required at results-time; the claim cannot be presented as sharp on this evidence alone.
+- **A commits, B commits, C doesn't → concreteness matters.** Same critic, same gap. Qualified.
+- **All three commit → volume drives it (Reading B / deflationary).** The gap actually *strengthens* this claim — even less-volume Arm C triggered commitment, so volume-or-less is sufficient.
+- **Only C fails to match** — collapses to one of the above.
+
+**Why not commission a v0.3.1 post-tag top-up**: retagging an authored amendment for an integrity issue surfaced during build, before any corpus run has been read, would set a precedent that any pre-registration imperfection warrants a retag. That cost the integrity narrative of the methodology more than disclosure does. A documented caveat is the honest path; the asymmetry is real and we say so.
+
+**Receipt schema impact resolved (PR #88)**: extend in place. Bundle envelope rule (verified at `multi_pass.py:91` showing `BUNDLE_ENVELOPE_VERSION = 1`) does NOT force a v2 bump for cross-model metadata addition. E3-001's additive integrity-payload pattern accommodates `model_id` + `model_sampling` values (`claude-opus-4-7`, `{"temperature": None, "effort": "low"}`) for the Claude arm without schema mutation.
+
+**Post-Wave-2 cleanups filed (non-blocking, not Wave-2 scope)**:
+
+1. **`prompt_loader.py` vs `arm_b.py` strip duplication** — PR #89 (Arm B) landed before #90's `prompt_loader.py` strip utility existed; arm_b's renderer may carry its own ad-hoc strip implementation. Worth a quick refactor to use the centralised utility if it does.
+2. **Py3.14 dataclass error in `test_claude_adapter.py`** — pre-existing on main since #88 merged. Mutable-default-collection issue (observed by both the #93 and #89 rebase agents during full-suite sweeps). Small fix; doesn't block Wave 3 (the test passes on the Python version the agents ran in).
+3. **8 `test_precedent_selector.py` archive-dependent failures** — depend on a `procurement-decisions/results/runs/dry-run-7ddf7274-…` directory that isn't in git. Replace with synthetic fixture or `skipif`. Doesn't block Wave 3.
+
+**Three downstream contracts the next package (E3-008) inherits from Wave 2**:
+
+1. **Claude adapter contract** (from PR #88): `agents/claude.py:call()` returns a dict, NOT an `AgentResponse`. E3-008 either wraps it in a `ClaudeAgent` class implementing the existing `Agent` protocol, or routes the diagnostic_claude arm via a dict-consuming orchestration path. Adapter contract is the dict shape; runner-protocol wrapping is E3-008's call.
+2. **Inverted-operator-spec sibling artifact** (from PR #91): the rubric-coding tool requires E3-008 to emit `<run_dir>/diagnostic/inverted_operator_spec.json` alongside the diagnostic bundles. Shape is documented in `meshqu_runner/diagnostic/rubric_io.py:load_inverted_specs`'s docstring (the rubric tool reads it from there).
+3. **Subset selector contract** (from PR #87 / E3-007): E3-008 reads OCIDs from `planning/diagnostic_subset.json`, does NOT regenerate. The selector module exists at `meshqu_runner/diagnostic/subset_selector.py` for re-verification, but the runtime read is from the committed JSON file (so a corpus enumeration anywhere in the codebase doesn't accidentally produce a different subset).
+
+**What's next**: Wave 3 — E3-008 (scaled Permuted-Policy diagnostic, primary + Claude on the locked n=100 subset). **Blocked on PR #87 (E3-007 subset selector) merging into main** — E3-008 reads `planning/diagnostic_subset.json` which lives in PR #87. Once PR #87 merges, dispatch E3-008 in its own isolated worktree per the dispatch-architecture lesson above.
+
+---
+
 ## 2026-05-28 — E3-006 — Claude cross-model swap (Anthropic SDK adapter)
 
 **Decision**: added the second-model adapter at `meshqu_runner/agents/claude.py` plus a model-id-keyed `DISPATCH` table at `meshqu_runner/agents/__init__.py`. The cross-model diagnostic arm now has a real SDK adapter behind it. Primary-path callers are unaffected — `Agent.evaluate(...)` is untouched, the runner's existing `run_arm` orchestration still drives it directly.
