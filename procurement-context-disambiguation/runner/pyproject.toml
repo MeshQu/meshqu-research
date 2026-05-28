@@ -5,6 +5,7 @@ description = "Procurement-context-disambiguation (E3) experiment harness — ar
 requires-python = ">=3.11"
 dependencies = [
   "requests==2.32.3",
+  "anthropic>=0.104.1",
 ]
 
 [project.optional-dependencies]
