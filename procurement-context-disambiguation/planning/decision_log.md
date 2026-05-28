@@ -4,6 +4,27 @@ Reverse-chronological. Most recent decision at the top. Each entry: date, decisi
 
 ---
 
+## 2026-05-28 — E3-001 (PR #85, merge `e50030f`) — runner foundation shipped
+
+**Decision**: forked E2's runner into `procurement-context-disambiguation/runner/`; gutted the additive-ladder logic; introduced an arm-keyed handler registry (`meshqu_runner/arms.py`) + receipt-integrity-payload extension; CLI `--arm <name>` dispatch surface. Foundation for Wave 2's seven parallel agents.
+
+**Key resolutions during build/review**:
+1. **8 arm placeholders registered, not 7.** The package's "Definition of done" said 7 but §2 enumerated 8 (`arm_a`, `arm_b`, `arm_c`, `l4_with_nudge`, `l4_without_nudge`, `l0_baseline`, `diagnostic_primary`, `diagnostic_claude`). Spec typo, not a spec change — `l4_with_nudge` is the E2-L4 baseline against which E3-005's no-nudge variant compares. Under-registering would have forced E3-005 to mutate the registry (wrong place). Approved 8.
+2. **Deleted 8 inherited tests, then restored 1** (commit `9e2d07b`). 7 deletions were genuinely ladder-coupled (`test_multi_pass`, `test_l0_baseline`, `test_l1_l2_generators`, `test_l4_handler`, `test_permuted_policy`, `test_cache_preservation_smoke`, `test_phase_2_driver`). `test_precedent_selector.py` was over-pruned — restored 14 of its tests across 5 thematic scenarios (frozen-archive load, selector determinism, self-exclusion, OCID tie-break, k=4), stripped only the L3-handler / additivity-invariant block (imported `L3LiveHandler`, `L1ContextHandler`, `L2ContextHandler`, `compose_user_message`, `install_live_l3`).
+3. **Process principle for future Wave 2 agents**: when a module is in the "frozen from E2" bucket (substrate adapter, substrate cache, precedent selector, precedent archive, agent prompt scaffold, meshqu client), its **non-ladder-coupled tests** belong in the same preserve bucket. `test_fork_parity.py` covers source SHAs but not behaviour; behavioural tests of byte-identical modules must also be preserved (modulo ladder-coupled scenarios within them, which are stripped scenario-by-scenario, not file-by-file).
+
+**Fork-parity status**: the 7 SHA-guarded core files (`agent.py`, `meshqu_client.py`, `substrate.py`, `substrate_cache.py`, `precedent_archive.py`, `precedent_selector.py`, `system_prompt.md`) are byte-identical to E2 and asserted in `tests/test_fork_parity.py`. The 14 restored behavioural tests pass against the forked modules, corroborating byte-identity at runtime as well as at the SHA level.
+
+**Receipt integrity payload — new fields**: `l3_arm`, `nudge_excised`, `model_id`, `model_sampling`, `diagnostic`, `policy_permutation_seed`, `runner_git_commit`, `prereg_tag` (set to literal `"v0.3-predictions-locked"`). Backwards compatible with E2's bundle envelope v1 (additive only).
+
+**Test status at merge**: 254 passing (38 foundation + 14 restored + 202 other inherited). CLI smoke `python -m meshqu_runner.cli --arm arm_a --records 1 --dry` exits 0 with all 7 new integrity fields in the canonical bundle JSON.
+
+**Stop conditions**: none fired. No drift in byte-identical core files; arm refactor did not touch substrate/cache/selector/archive; bundle envelope v1 retained; locked content (v0.3 tag) untouched.
+
+**What's next**: Wave 2 dispatch — E3-002 (Arm A), E3-003 (Arm B), E3-004 (Arm C), E3-005 (L4-no-nudge), E3-006 (Claude swap), E3-007 (subset selector), E3-009 (rubric tool) — seven background agents in parallel, all cut from `main` at `e50030f`. E3-008 (scaled diagnostic) holds for Wave 3 pending E3-006 + E3-007 merge.
+
+---
+
 ## 2026-05-27 — E3 scope locked: the disambiguation experiment
 
 **Decision**: E3 is the disambiguation experiment. It reuses E1/E2's substrate, the frozen 283-record corpus, the policy snapshot, and the primary agent unchanged, and adds targeted variants to slice the confounds E2 surfaced but could not isolate. No new substrate; no investigative-agent format shift (that is E4).
