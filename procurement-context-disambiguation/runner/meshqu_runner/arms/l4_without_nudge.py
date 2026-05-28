@@ -65,7 +65,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Mapping
 
-from ..arms import register
+from . import register
 from ..context_levels.level_l4 import (
     POLICY_INTERPOLATION_KEY,
     load_policy_snapshot,
@@ -84,7 +84,7 @@ from ..prompt_loader import strip_leading_html_comments
 #   procurement-context-disambiguation/
 #       runner/
 #           meshqu_runner/
-#               arm_handlers/l4_without_nudge.py   <-- this file
+#               arms/l4_without_nudge.py           <-- this file
 #               context_levels/level_l4.py
 #           prompts/
 #               L4_without_nudge.md                <-- locked envelope

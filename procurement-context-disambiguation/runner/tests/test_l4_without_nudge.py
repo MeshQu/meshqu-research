@@ -30,9 +30,8 @@ from pathlib import Path
 
 import pytest
 
-from meshqu_runner import arm_handlers  # noqa: F401 -- ensure registration
 from meshqu_runner.arms import ARM_PROFILES, HANDLERS, inject_arm_fields
-from meshqu_runner.arm_handlers.l4_without_nudge import (
+from meshqu_runner.arms.l4_without_nudge import (
     DEFAULT_ENVELOPE_PATH,
     DEFAULT_L4_WITH_NUDGE_PATH,
     DEFAULT_POLICY_SNAPSHOT_PATH,
@@ -261,8 +260,12 @@ def test_arm_profile_for_l4_with_nudge_does_not_mark_nudge_excised():
 
 
 def test_l4_without_nudge_handler_replaces_placeholder():
-    """Importing ``arm_handlers`` (done at module top) wires the real
-    handler into ``arms.HANDLERS`` via the ``@register`` decorator.
+    """Importing ``meshqu_runner.arms`` (which the test does
+    transitively via ``from meshqu_runner.arms import ...``) wires the
+    real handler into ``arms.HANDLERS`` via the ``@register`` decorator
+    — ``arms/__init__.py`` eagerly imports its sub-module
+    ``l4_without_nudge``, whose ``@register("l4_without_nudge")`` call
+    overwrites the foundation's placeholder.
     The handler we see should produce a non-stub prompt — i.e. it
     contains the policy-independence sentence and the rendered policy
     JSON, not the placeholder's ``[arm:l4_without_nudge]`` marker."""
