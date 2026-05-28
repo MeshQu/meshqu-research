@@ -1,5 +1,7 @@
 # Experiment 3 (E3) — experiment design
 
+**Working title**: *Precedents, policy, and commitment — a disambiguation study of governance-context effects in AI decision agents.* (Committed 2026-05-27. The analytic factoring of E2's *"When precedents commit AI and policy pulls it back"* — three load-bearing nouns isolated in the order the design slices them: precedents via the L3 arm decomposition, policy via L4-without-nudge, commitment via what holds or releases at L3→L4.)
+
 **Status**: Phase 0 — design draft. **Not locked.** Predictions are not drafted until this design is reviewed; pre-registration lock is a separate gated step (see checklist at the end).
 
 E3 is the **disambiguation experiment**. E2 surfaced two structural findings it could not mechanistically isolate — the L3 commitment break and the L4_PERMUTED inversion-blindness — and left explicit open readings. E3's job is to slice those confounds. It reuses E1/E2's substrate, corpus, policy snapshot, and primary agent unchanged, and adds targeted variants. No new substrate, no investigative-agent format shift (that is E4).
@@ -109,7 +111,7 @@ Not started — gated behind design review. When ready:
 - [ ] Hand-coded rubric protocol written (coder instructions, the three categories, inter-coder check if more than one coder)
 - [ ] Second model + version pinned
 - [ ] Scaled-diagnostic n committed (full corpus or pre-registered subset)
-- [ ] Working title committed (or placeholder with intent)
+- [x] Working title committed (or placeholder with intent) — *Precedents, policy, and commitment* (see top of file)
 - [ ] Git tag created: `v0.X-predictions-locked`
 
 ## Decisions resolved (2026-05-27)
