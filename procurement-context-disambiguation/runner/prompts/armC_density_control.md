@@ -48,7 +48,7 @@ Exact token-count parity is verified against the rendered E2 precedent payload a
 - **Population stage**: set at tender publication and at award
 - **Encoding**: date-time values in ISO 8601; durations as start/end pairs
 - **Typical contents**: tender period start and end, award date, contract period
-- **Cross-references**: milestone dates are compared against publication timestamps
+- **Cross-references**: tender period and award date appear within the tender and award blocks respectively
 - **Provenance**: recorded by the contracting authority at each process stage
 - This reference describes the data format only and carries no assessment of the record above.
 
@@ -60,6 +60,6 @@ Exact token-count parity is verified against the rendered E2 precedent payload a
 - **Population stage**: declared at tender publication
 - **Encoding**: method drawn from the open / selective / limited codelist
 - **Typical contents**: procurement method, method rationale, framework indicator
-- **Cross-references**: method descriptor is read alongside the award and party blocks
+- **Cross-references**: method descriptor appears alongside the award and party blocks within the release structure
 - **Provenance**: declared by the contracting authority in the tender notice
 - This reference describes the data format only and carries no assessment of the record above.
