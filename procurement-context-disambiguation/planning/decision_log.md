@@ -4,6 +4,45 @@ Reverse-chronological. Most recent decision at the top. Each entry: date, decisi
 
 ---
 
+## 2026-05-28 — E3-006 — Claude cross-model swap (Anthropic SDK adapter)
+
+**Decision**: added the second-model adapter at `meshqu_runner/agents/claude.py` plus a model-id-keyed `DISPATCH` table at `meshqu_runner/agents/__init__.py`. The cross-model diagnostic arm now has a real SDK adapter behind it. Primary-path callers are unaffected — `Agent.evaluate(...)` is untouched, the runner's existing `run_arm` orchestration still drives it directly.
+
+**SDK call shape** (locked by `v0.3-predictions-locked`):
+- `model="claude-opus-4-7"`
+- NO `temperature` kwarg (Opus 4.7 removed it; sending it returns HTTP 400 — feasibility-spike headline finding)
+- `output_config={"effort": "low"}`
+- `max_tokens=1024`
+- `system=<verbatim E2 system_prompt.md>` (SHA `db60d6f297b0a97ab43988bdd8163a49c6e050afb81ff7379c8a1ff4fd932aa2` before + after this change)
+
+**Schema-impact decision (decision-point in the package spec)**: extend in place. The Claude arm's new receipt fields (`model_id`, `model_sampling`) were already added additively to `context.fields` by E3-001's foundation. The runner's bundle envelope v1 (`BUNDLE_ENVELOPE_VERSION = 1`) is preserved — every added field is additive, no existing field's semantics shift. The pre-existing `BUNDLE_ENVELOPE_VERSION` constant was inspected; no contract forces a v2 bump for the cross-model arm. Per the package spec's default recommendation, this is metadata addition, not a semantic shift.
+
+**Fence-strip shim**: lifted verbatim from `runner/spike/claude_spike.py` into `parse_verdict_json`. Opus parses clean (no fence — spike confirmed); the shim is a defensive no-op on Opus's output that would only matter under a future Sonnet fallback. Keeping it now avoids a code change later if the pin is ever revisited via a tag amendment.
+
+**Exception handling**: SDK typed errors (`NotFoundError`, `AuthenticationError`, `PermissionDeniedError`, `BadRequestError`, `APIError`) are wrapped into a single `ClaudeAdapterError` with a classified `kind` (`not_found`, `auth`, `permission`, `bad_request`, `api`). Mirrors `meshqu_runner.agent.AgentCallError`'s shape so the eval loop's catch + log path stays uniform across the two adapters.
+
+**Receipt integrity payload — Claude arm sets**:
+- `model_id: "claude-opus-4-7"`
+- `model_sampling: {"temperature": None, "effort": "low"}` (from `CLAUDE_MODEL_SAMPLING` in `arms.py`)
+- `diagnostic: True`
+- `policy_permutation_seed: <int>` (required for diagnostic arms — `inject_arm_fields` enforces)
+- `runner_git_commit`, `prereg_tag` per E3-001 foundation
+
+**Tests**: 24 mock-based tests in `tests/test_claude_adapter.py`. All pass (`pytest -v` → 24 passed). No live API calls. Coverage includes: SDK call shape (no temperature, effort low, max tokens, verbatim system), verdict-JSON parsing (clean + fenced + bare-backticks + invalid + non-object), out-of-vocab verdict normalisation, uppercase normalisation, typed exception wrapping for all five Anthropic error classes, `make_client()` env-var precondition, DISPATCH table wiring, stub-signer receipt payload assertions.
+
+**Out of scope (not touched)**: substrate adapter, substrate cache, precedent selector, precedent archive, agent prompt scaffold, meshqu client, `system_prompt.md`, the spike directory, `agent.py` (primary OpenAI Agent), `arms.py` (foundation laid the model_id + model_sampling fields already), `multi_pass.py`.
+
+**Stop conditions**: none fired. Anthropic SDK version installed (0.104.1) accepts `output_config` as a top-level kwarg on `messages.create`. The spike's verdict-JSON parse behaviour translated cleanly. The "Locked parameters → Second model" pin matched the spike report verbatim.
+
+**Decisions / surprises future agents need to know (E3-008 runs the diagnostic on this arm)**:
+1. The adapter's `call()` returns a dict, not an `AgentResponse`. The `run_arm` orchestrator still expects an object with `.evaluate(user_message) -> AgentResponse`. E3-008's diagnostic runner will need either to (a) wrap `call()` in a small `ClaudeAgent` class with the `Agent` protocol, or (b) take a different orchestration path that consumes the dict. Either is fine — the adapter's contract is the spec-defined dict shape, the runner-protocol wrapping is an E3-008 concern.
+2. Anthropic's typed exception classes require a real `httpx.Response` in their constructor (they call `response.request` in `__init__`). Tests construct a minimal `httpx.Response(status_code=400, request=httpx.Request("POST", url))`. If E3-008 needs additional exception scenarios, follow the same pattern.
+3. `output_config` is on the installed SDK (verified at 0.104.1) — no beta header needed. If a future bump moves it under a beta namespace, the adapter will need a small update; current code path is GA-stable.
+
+**What's next**: E3-008 (scaled diagnostic) can now consume the Claude adapter once E3-007 (subset selector) also lands. Smoke (E3-010) is the first time the cross-model arm runs against a real corpus record — surface any verdict-shape surprises there per master plan decision-point 5.
+
+---
+
 ## 2026-05-28 — E3-001 (PR #85, merge `e50030f`) — runner foundation shipped
 
 **Decision**: forked E2's runner into `procurement-context-disambiguation/runner/`; gutted the additive-ladder logic; introduced an arm-keyed handler registry (`meshqu_runner/arms.py`) + receipt-integrity-payload extension; CLI `--arm <name>` dispatch surface. Foundation for Wave 2's seven parallel agents.
