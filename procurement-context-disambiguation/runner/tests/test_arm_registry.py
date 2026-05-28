@@ -80,9 +80,12 @@ def test_arm_handlers_callable_with_just_a_record():
     too is callable with just a record and is exercised below. Arm B's
     real handler (E3-003) has the same fallback shape — returns the L0
     baseline alone when no archive is supplied — and is exercised below.
+    Arm C (E3-004) is likewise promoted and callable with just a record;
+    its rendered prompt does not embed the literal token ``arm_c``, so it
+    is excluded from the placeholder-content assertion as well.
     """
     record = {"ocid": "stub-ocid-test", "decision_type": "procurement_decision"}
-    placeholder_arms = tuple(arm for arm in ARM_NAMES if arm not in ("arm_a", "arm_b"))
+    placeholder_arms = tuple(arm for arm in ARM_NAMES if arm not in ("arm_a", "arm_b", "arm_c"))
     for arm in ARM_NAMES:
         prompt = HANDLERS[arm](record)
         assert isinstance(prompt, str), f"handler for {arm!r} returned non-str"
