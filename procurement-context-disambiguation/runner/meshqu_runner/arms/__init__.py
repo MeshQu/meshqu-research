@@ -397,3 +397,21 @@ if _missing:
         f"Arm registry incomplete at import: missing {_missing!r}. "
         f"Update the placeholder loop in arms.py."
     )
+
+
+# ---------------------------------------------------------------------------
+# Real-handler imports — replace placeholder entries
+# ---------------------------------------------------------------------------
+#
+# Each build package (E3-002..E3-006, E3-008) adds a module here whose
+# top-level @register(...) call overwrites the placeholder entry for
+# that arm. Imports go at the BOTTOM of this file because they depend
+# on register / ARM_NAMES / HANDLERS being defined above.
+#
+# Import side effects only — we don't re-export the handler symbols
+# (callers reach them via HANDLERS / dispatch / register, not by name).
+#
+# Placeholders for arms whose handler module hasn't landed yet remain
+# in HANDLERS unchanged.
+
+from . import arm_a as _arm_a  # noqa: F401, E402  (Arm A — E3-002)
