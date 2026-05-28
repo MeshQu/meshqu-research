@@ -249,29 +249,65 @@ def _check_env() -> dict[str, str]:
 
 
 def _build_records(ocids: Iterable[str]) -> list[dict[str, Any]]:
-    """Materialise the minimal-shape records the runner dispatches.
+    """Materialise the records the runner dispatches against — loaded
+    from the E1 frozen archive via ``substrate_cache.load_cached_records``.
 
-    The smoke driver intentionally feeds a minimal record shape (OCID +
-    decision_type + empty fields/substrate_notes). The four main arms
-    in smoke mode don't depend on substrate fields — Arm A/B select
-    precedents from the frozen archive by OCID, Arm C is static, and
-    L4-without-nudge is record-independent. The dry-run (E3-011) will
-    swap in the substrate-cache-fed records.
+    The smoke matrix runs against the REAL corpus records — same
+    substrate the dry-run and full-run paths consume — so the smoke
+    exercises the actual experimental substance (record fields under
+    each arm's prompt composition) rather than an integration-only
+    probe with empty records.
 
-    The smoke run's purpose is the integration probe — render the
-    arm, call the model, sign the receipt, verify offline — not a
-    substrate test. So a minimal record is correct here.
+    A prior version of this function fabricated minimal-shape stubs
+    (``fields={}``, ``substrate_notes={}``) on the assumption that
+    smoke was "integration-only, not a substrate test". That design
+    hid record-composition bugs in arm handlers — three of the six
+    promoted arms (``l4_without_nudge``, ``diagnostic_primary``,
+    ``diagnostic_claude``) were ignoring the ``record`` argument
+    entirely, and the empty-fields stubs masked the resulting
+    "no procurement record provided" agent refusals as a 14/14
+    cryptographically-verified PASS. Read on 2026-05-28; this
+    function now loads real records so the smoke is genuinely
+    representative.
+
+    ``substrate_cache.load_cached_records`` requires the monorepo
+    root (parent of ``procurement-context-disambiguation``) — the
+    archive lives at
+    ``procurement-decisions/results/runs/<E1_ARCHIVE_RUN_ID>/`` per
+    that loader's contract.
     """
-    return [
-        {
-            "ocid": ocid,
-            "decision_type": "procurement_decision",
-            "fields": {},
-            "substrate_notes": {},
-            "metadata": {"ocid": ocid},
-        }
-        for ocid in ocids
-    ]
+    # Lazy imports so --dry's stub mode pays no import cost on the
+    # archive-walking modules (and so a developer running --dry
+    # without the archive present still gets a clean error from this
+    # function rather than a cryptic import failure further up).
+    from meshqu_runner.substrate_cache import load_cached_records
+
+    # procurement-context-disambiguation/runner/scripts/smoke_e3.py
+    #   .parents[0] = scripts/
+    #   .parents[1] = runner/
+    #   .parents[2] = procurement-context-disambiguation/
+    #   .parents[3] = monorepo root (the repo_dir load_cached_records expects)
+    repo_dir = Path(__file__).resolve().parents[3]
+    cached_records = load_cached_records(repo_dir)
+    # CachedRecord.as_record() strips the E1 reference fields and
+    # returns the plain dict the orchestrator + arm handlers consume
+    # (ocid / decision_type / fields / substrate_notes / metadata).
+    by_ocid: dict[str, dict[str, Any]] = {
+        cr.ocid: cr.as_record() for cr in cached_records
+    }
+    requested = list(ocids)
+    records: list[dict[str, Any]] = []
+    for ocid in requested:
+        if ocid not in by_ocid:
+            raise SystemExit(
+                f"FAIL: smoke OCID {ocid!r} not in substrate cache. "
+                f"The locked subset (planning/diagnostic_subset.json) "
+                f"must agree with the E1 frozen archive. Re-check the "
+                f"subset selection or the archive's "
+                f"decision_traces.jsonl."
+            )
+        records.append(by_ocid[ocid])
+    return records
 
 
 def _records_for_arm(arm_name: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:

@@ -44,15 +44,32 @@ The strip utility lives at the prompt-loader level
 future arm whose locked content carries a leading methodological
 header can reuse it.
 
+## Composition layout
+
+The handler returns the FULL user message — per ``multi_pass.py:588-592``
+arm handlers are self-contained ("Arm handler returns the FULLY
+rendered user message — no additive composition, no level prefix.").
+Layout:
+
+    <L4-without-nudge envelope>     ← record-independent, cache-friendly
+    \\n
+    <base user message JSON>        ← record-varying
+
+The envelope-first / record-trailing order mirrors E2's
+``level_l4.compose_full_message`` policy-at-head ordering and is
+**load-bearing for OpenAI prompt caching** (the longest stable prefix
+wins cache hits). DO NOT reorder.
+
 ## What this handler does NOT do (out of scope)
 
 - It does not add L0..L3 prefixes the way E2's L4 user message did.
   E3's arm-keyed dispatch model treats each arm as a self-contained
-  probe (see ``meshqu_runner.arms`` module docstring); the rendered
-  envelope IS the full user message. E2's L4 handler's
-  ``compose_full_message`` re-ordered with L1..L3 in tow for prompt-
-  cache reasons; that re-ordering is a cross-level concern E3 has
-  deliberately retired.
+  probe (see ``meshqu_runner.arms`` module docstring); there is no
+  cross-level addendum. E2's L4 handler's ``compose_full_message``
+  re-ordered with L1..L3 in tow for prompt-cache reasons; that
+  re-ordering is a cross-level concern E3 has deliberately retired.
+  E3 keeps the same envelope-first cache-friendly ordering by
+  trailing the per-record base message AFTER the envelope.
 - It does not mutate ``L4_without_nudge.md``. The locked file stays
   byte-for-byte the same; the strip happens on the in-memory copy.
 - It does not re-author the policy snapshot. The same locked snapshot
@@ -71,6 +88,7 @@ from ..context_levels.level_l4 import (
     load_policy_snapshot,
     render_l4_envelope,
 )
+from ..eval_loop import build_user_message
 from ..prompt_loader import strip_leading_html_comments
 
 
@@ -176,6 +194,25 @@ def render_l4_without_nudge(
 # ---------------------------------------------------------------------------
 
 
+def _compose_base_user_message(record: Mapping[str, Any]) -> str:
+    """Render the per-record base user message via E1/E2's canonical
+    serialiser.
+
+    See ``eval_loop.build_user_message`` for the canonical-JSON
+    serialisation contract (``sort_keys=True``, ``ensure_ascii=False``,
+    ``separators=(',', ':')``). Mirrors the equivalent helper in
+    ``arms/diagnostic.py``.
+    """
+    return build_user_message(
+        context={
+            "decision_type": record.get("decision_type", "procurement_decision"),
+            "fields": record.get("fields") or {},
+            "metadata": dict(record.get("metadata") or {}),
+        },
+        substrate_notes=record.get("substrate_notes") or {},
+    )
+
+
 @register("l4_without_nudge")
 def l4_without_nudge_handler(
     record: Mapping[str, Any],
@@ -187,22 +224,27 @@ def l4_without_nudge_handler(
     """Handler entrypoint — registered against the arm name
     ``l4_without_nudge``.
 
-    The ``record`` argument is unused at the rendering level because
-    the L4 envelope is record-independent (every record sees the same
-    policy block; the base-record message lands inside the envelope
-    via the locked Stage A template). It is accepted to honour the
-    ``ArmHandler`` signature and so the dispatcher can pass records
-    through uniformly across arms.
+    Returns the FULL user message: the L4-without-nudge envelope
+    (record-independent — every record sees the same policy block)
+    followed by the per-record base user message (record-varying —
+    carries the substrate-derived ``fields`` + ``substrate_notes``).
+    Layout matches ``arms/diagnostic.py``'s ``<envelope>\\n<base>``.
+
+    Per ``multi_pass.py:588-592`` the handler is self-contained — the
+    orchestrator does NOT compose any additional prefix. If this
+    handler returned envelope-only the agent would see no record
+    fields and refuse on "no procurement record provided" (the
+    2026-05-28 smoke read; fixed by composing the base message in
+    this handler).
 
     Keyword arguments give tests a way to swap in alternative locked
     paths without monkey-patching. Production code calls this with no
     kwargs and gets the locked defaults.
 
     ``**_ignored`` swallows kwargs the dispatcher may forward for
-    other arms (e.g. a precedent selector). The L4-without-nudge arm
-    has no per-record state.
+    other arms (e.g. a precedent selector).
     """
-    return render_l4_without_nudge(
+    rendered_envelope = render_l4_without_nudge(
         envelope_path=envelope_path if envelope_path is not None else DEFAULT_ENVELOPE_PATH,
         policy_snapshot_path=(
             policy_snapshot_path
@@ -210,6 +252,8 @@ def l4_without_nudge_handler(
             else DEFAULT_POLICY_SNAPSHOT_PATH
         ),
     )
+    base_user_message = _compose_base_user_message(record)
+    return rendered_envelope + "\n" + base_user_message
 
 
 # ---------------------------------------------------------------------------
@@ -262,8 +306,18 @@ def l4_with_nudge_handler(
 
     The canonical L4-with-nudge data set lives in E2's already-shipped
     corpus; this handler exists for in-runner sanity-checks during
-    E3 smoke runs, not for re-running the corpus."""
-    return render_l4_with_nudge(
+    E3 smoke runs (e.g. head-to-head ``l4_with_nudge`` vs
+    ``l4_without_nudge`` on one record), not for re-running the corpus.
+
+    Composes the rendered envelope at the head and the record's
+    ``build_user_message`` at the tail — same shape as
+    ``l4_without_nudge_handler``. The fix from the 2026-05-28
+    decision-point #5 read applies here too: this arm is not on the
+    smoke / dry-run / full-run matrices, but is registered and could be
+    invoked ad-hoc; leaving it envelope-only would silently produce a
+    degenerate sanity comparison.
+    """
+    rendered_envelope = render_l4_with_nudge(
         envelope_path=envelope_path if envelope_path is not None else DEFAULT_L4_WITH_NUDGE_PATH,
         policy_snapshot_path=(
             policy_snapshot_path
@@ -271,3 +325,5 @@ def l4_with_nudge_handler(
             else DEFAULT_POLICY_SNAPSHOT_PATH
         ),
     )
+    base_user_message = _compose_base_user_message(record)
+    return rendered_envelope + "\n" + base_user_message
