@@ -306,8 +306,18 @@ def l4_with_nudge_handler(
 
     The canonical L4-with-nudge data set lives in E2's already-shipped
     corpus; this handler exists for in-runner sanity-checks during
-    E3 smoke runs, not for re-running the corpus."""
-    return render_l4_with_nudge(
+    E3 smoke runs (e.g. head-to-head ``l4_with_nudge`` vs
+    ``l4_without_nudge`` on one record), not for re-running the corpus.
+
+    Composes the rendered envelope at the head and the record's
+    ``build_user_message`` at the tail — same shape as
+    ``l4_without_nudge_handler``. The fix from the 2026-05-28
+    decision-point #5 read applies here too: this arm is not on the
+    smoke / dry-run / full-run matrices, but is registered and could be
+    invoked ad-hoc; leaving it envelope-only would silently produce a
+    degenerate sanity comparison.
+    """
+    rendered_envelope = render_l4_with_nudge(
         envelope_path=envelope_path if envelope_path is not None else DEFAULT_L4_WITH_NUDGE_PATH,
         policy_snapshot_path=(
             policy_snapshot_path
@@ -315,3 +325,5 @@ def l4_with_nudge_handler(
             else DEFAULT_POLICY_SNAPSHOT_PATH
         ),
     )
+    base_user_message = _compose_base_user_message(record)
+    return rendered_envelope + "\n" + base_user_message

@@ -9,10 +9,12 @@ arms produced "no procurement record provided" / "record contains no
 fields" refusals. Root cause: ``l4_without_nudge``, ``diagnostic_primary``
 and ``diagnostic_claude`` handlers returned an envelope-only string and
 ignored the ``record`` argument — the per-record base user message was
-never composed in. (``arm_a``/``arm_b``/``arm_c`` were always
-record-composing; they were never broken. They are parametrised here as
-regression sentinels — if one of them ever drifts to envelope-only,
-this test fires.)
+never composed in. ``l4_with_nudge`` (the in-runner sanity-comparison
+baseline, off the smoke matrix but registered) had the identical broken
+shape and was folded into the same fix on inspection. (``arm_a`` /
+``arm_b`` / ``arm_c`` were always record-composing; they were never
+broken. They are parametrised here as regression sentinels — if one of
+them ever drifts to envelope-only, this test fires.)
 
 See ``arms/diagnostic.py``, ``arms/l4_without_nudge.py``, and
 ``multi_pass.py:588-592`` ("Arm handler returns the FULLY rendered user
@@ -21,9 +23,9 @@ self-contained.") for the contract this test enforces.
 
 ## The assertions
 
-For each of the six promoted arms (``arm_a``, ``arm_b``, ``arm_c``,
-``l4_without_nudge``, ``diagnostic_primary``, ``diagnostic_claude``) the
-test:
+For each of the seven promoted arms (``arm_a``, ``arm_b``, ``arm_c``,
+``l4_without_nudge``, ``l4_with_nudge``, ``diagnostic_primary``,
+``diagnostic_claude``) the test:
 
 1. Renders the same arm against two records whose field content carries
    distinctive markers (``DISTINCTIVE-MARKER-ALPHA-12345`` /
@@ -35,13 +37,19 @@ test:
 
 ## Out-of-scope arms
 
-``l4_with_nudge`` and ``l0_baseline`` are NOT in the promoted-arms list
-in the smoke matrix or the planned dry-run / full-run. ``l4_with_nudge``
-is a "sanity-comparison" handler kept for in-runner diff observation
-(see its docstring in ``arms/l4_without_nudge.py``). ``l0_baseline`` is
-retained for the dry-run freshness check. Neither rides on Phase-1
-experimental data, so they are excluded here. If either ever gets
-promoted to the experimental grid, add them to ``PROMOTED_ARMS`` below.
+``l0_baseline`` is NOT on the smoke matrix or the planned dry-run /
+full-run; it's retained for the dry-run freshness check. It is excluded
+from the parametrize because it doesn't ride on Phase-1 experimental
+data. If it ever gets promoted to the experimental grid, add it to
+``PROMOTED_ARMS`` below.
+
+``l4_with_nudge`` is included here even though it's off the smoke /
+dry-run / full-run matrices — it's the in-runner sanity-comparison
+baseline for ``l4_without_nudge``, and a future ad-hoc invocation (head-
+to-head comparison, Phase-3 re-analysis) shouldn't be able to silently
+produce a degenerate result. The lock-in discipline covers every
+registered arm that touches experimental substance, not just arms on
+the current grid.
 """
 from __future__ import annotations
 
@@ -58,12 +66,17 @@ PROMOTED_ARMS: tuple[str, ...] = (
     "arm_b",
     "arm_c",
     "l4_without_nudge",
+    "l4_with_nudge",
     "diagnostic_primary",
     "diagnostic_claude",
 )
-"""The six arms that ride on Phase-1 experimental data. Mirrors the
-smoke matrix (``scripts/smoke_e3.py:MAIN_ARMS + DIAGNOSTIC_ARMS``) and
-the planned dry-run + full-run matrices in the E3 package spec."""
+"""The seven arms that touch Phase-1 experimental substance. Six of
+them ride on the smoke matrix (``scripts/smoke_e3.py:MAIN_ARMS +
+DIAGNOSTIC_ARMS``) + the planned dry-run + full-run matrices in the
+E3 package spec. ``l4_with_nudge`` is off those matrices but is
+registered as the in-runner sanity-comparison baseline for
+``l4_without_nudge`` — held to the same composition contract here so
+ad-hoc invocations can't silently degrade."""
 
 
 _MARKER_ALPHA = "DISTINCTIVE-MARKER-ALPHA-12345"
