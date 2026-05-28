@@ -1,0 +1,5 @@
+{
+  "ocid-EX-001": "Rule R-PUB normally fires when publication_delay <= 30 days; permuted to fire when publication_delay > 30 days.",
+  "ocid-EX-002": "Rule R-PUB normally fires when publication_delay <= 30 days; permuted to fire when publication_delay > 30 days.",
+  "ocid-EX-003": "Rule R-VAL normally fires when award_value > threshold; permuted to fire when award_value <= threshold."
+}

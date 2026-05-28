@@ -48,6 +48,17 @@ from .subset import (
     is_in_permuted_subset,
     pick_permuted_subset,
 )
+from .rubric_io import (
+    CATEGORY_LABELS,
+    CodedEntry,
+    DiagnosticBundle,
+    InvertedSpec,
+    P5Bands,
+    RubricSchemaError,
+    VALID_ARMS,
+    VALID_CATEGORIES,
+    parse_p5_bands,
+)
 
 
 # Names re-exported lazily from `.runner`. Listed here so static
@@ -84,16 +95,25 @@ if TYPE_CHECKING:  # pragma: no cover — type-checker visibility only
 
 
 __all__ = [
+    "CATEGORY_LABELS",
+    "CodedEntry",
     "DIAGNOSTIC_LEVEL",
     "DIAGNOSTIC_SUBDIR",
+    "DiagnosticBundle",
     "DiagnosticSummary",
+    "InvertedSpec",
     "LOCKED_PERMUTATION_SEED",
+    "P5Bands",
     "PERMUTATION_LOG_FILENAME",
     "PERMUTATION_LOG_KEY",
     "PERMUTED_SUBSET_DIVISOR",
     "PolicyPermutationError",
+    "RubricSchemaError",
+    "VALID_ARMS",
+    "VALID_CATEGORIES",
     "diagnostic_handlers",
     "is_in_permuted_subset",
+    "parse_p5_bands",
     "permute_policy",
     "pick_permuted_subset",
     "run_permuted_diagnostic",
