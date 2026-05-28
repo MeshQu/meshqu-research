@@ -49,3 +49,5 @@ procurement-decisions/results/audit/*.jsonl
 # above — throwaway during smoke / dev; real-run artefacts get added
 # explicitly via `git add -f` as part of corpus publication.
 procurement-decisions/results/runs/
+procurement-context-gradient/results/runs/
+procurement-context-disambiguation/results/runs/

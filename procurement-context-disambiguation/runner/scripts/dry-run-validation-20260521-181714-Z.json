@@ -1,0 +1,27 @@
+{
+  "run_id": "dry-run-20260521-181714-Z",
+  "bundles_loaded": 151,
+  "section_3b_pass": true,
+  "section_3c_pass": true,
+  "section_3d_pass": true,
+  "l4_cache_hit_fraction": 0.9,
+  "section_3e_pass": true,
+  "l0_vs_e1_match_count": 29,
+  "l0_vs_e1_total": 30,
+  "section_3f_pass": true,
+  "permuted_policy_quotes": [
+    {
+      "ocid": "ocds-b5fd17-119d1c05-7fa8-478f-ac6f-db416fb5b5c9",
+      "decision_id": "dc92b58b-a754-4873-a872-0b9847886e90",
+      "agent_verdict": "DENY",
+      "meshqu_decision": "DENY",
+      "reasoning": "The record shows an above-threshold PA23 award with publication_delay_days of 85, exceeding the 30-day rule, and no open-tender flag or direct-award justification is present. COI cannot be evaluated on this substrate, but the identified critical failures are sufficient to reject."
+    }
+  ],
+  "section_3g_pass": true,
+  "section_4a_pass": true,
+  "section_4b_pass": true,
+  "section_4c_pass": true,
+  "dry_run_realised_usd": 0.9292672251655629,
+  "full_run_projection_usd": 8.787140338410596
+}

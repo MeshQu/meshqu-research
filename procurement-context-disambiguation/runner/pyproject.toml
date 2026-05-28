@@ -1,0 +1,22 @@
+[project]
+name = "meshqu-runner-e3"
+version = "0.3.0"
+description = "Procurement-context-disambiguation (E3) experiment harness — arm-aware dispatch over L3 decomposition, L4-without-nudge, and the scaled diagnostic"
+requires-python = ">=3.11"
+dependencies = [
+  "requests==2.32.3",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Default invocation runs hermetic tests only. The `live` marker
+# gates tests that hit external APIs (inherited E2 marker; the E3
+# foundation does not register any live tests yet — those land with
+# the per-arm packages).
+addopts = "-q -m 'not live'"
+markers = [
+  "live: hits external services (OpenAI / Anthropic / MeshQu). Skipped by default; run with `pytest -m live`.",
+]
