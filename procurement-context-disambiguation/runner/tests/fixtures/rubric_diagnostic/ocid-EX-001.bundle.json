@@ -1,0 +1,26 @@
+{
+  "bundle_envelope_version": 1,
+  "governance_context_level": "L4_PERMUTED",
+  "is_stub": true,
+  "record_index": 0,
+  "ocid": "ocid-EX-001",
+  "decision_id": "dec_ex_001",
+  "timestamp": "2026-05-28T00:00:00Z",
+  "context_fields_canonical_json": "{}",
+  "receipt": {
+    "decision_id": "dec_ex_001",
+    "integrity_hash": "deadbeef",
+    "evaluated_rules_hash": "cafebabe",
+    "signature_kid": "fixture-kid"
+  },
+  "agent": {
+    "verdict": "VIOLATION",
+    "reasoning": "Reviewing the policy as stated, the rule actually requires publication delay greater than 30 days, which appears inverted relative to the usual transparency norm. Treating the rule as written, the record violates the inverted operator because the published_delay is 12 days.",
+    "reasoning_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "recommended_action": "FLAG",
+    "raw_response": "(omitted)",
+    "latency_ms": 0,
+    "output_mode": "json_object",
+    "parse_status": "ok"
+  }
+}

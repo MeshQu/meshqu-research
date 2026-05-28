@@ -1,0 +1,26 @@
+{
+  "bundle_envelope_version": 1,
+  "governance_context_level": "L4_PERMUTED",
+  "is_stub": true,
+  "record_index": 2,
+  "ocid": "ocid-EX-003",
+  "decision_id": "dec_ex_003",
+  "timestamp": "2026-05-28T00:00:02Z",
+  "context_fields_canonical_json": "{}",
+  "receipt": {
+    "decision_id": "dec_ex_003",
+    "integrity_hash": "deadbeef",
+    "evaluated_rules_hash": "cafebabe",
+    "signature_kid": "fixture-kid"
+  },
+  "agent": {
+    "verdict": "REVIEW",
+    "reasoning": "The rule is unusual here and I flag low confidence on the operator direction. Applying the policy on its semantic intent — that high-value awards need additional control — this record still triggers escalation given the value exceeds the threshold.",
+    "reasoning_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "recommended_action": "ESCALATE",
+    "raw_response": "(omitted)",
+    "latency_ms": 0,
+    "output_mode": "json_object",
+    "parse_status": "ok"
+  }
+}
