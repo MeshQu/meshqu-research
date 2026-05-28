@@ -31,27 +31,45 @@ policy + seed combination. The renderer pipeline is:
        ``render_l4_envelope`` — same indent / sort_keys / ensure_ascii
        locked rendering parameters.
 
-The rendered prompt is **record-independent** (the L4 envelope embeds
-only the policy, not record fields). That means:
+The rendered **envelope** is record-independent (it embeds only the
+policy, not record fields). But the handler returns the FULL user
+message: ``<permuted L4 envelope> + "\n" + <base_user_message>`` —
+the base user message is composed in by the handler itself. That
+means:
 
-- Same prompt SHA for every OCID within an arm.
-- Same prompt SHA across both arms — only the agent dispatch differs.
+- The envelope prefix has the same SHA for every OCID within an arm
+  (cache-friendly for the model serving infrastructure — longest
+  stable prefix wins).
+- The trailing per-record JSON varies, so the full user-message SHA
+  differs per record (verified in
+  ``tests/test_handler_record_composition.py``).
+- Across the two diagnostic arms the rendered prompt is byte-identical
+  per-record — only the agent dispatch differs (verified in
+  ``tests/test_scaled_diagnostic.py::test_arms_render_identical_prompts``).
 
-The Wave-2 ``run_arm`` orchestrator then composes the base user message
-(record fields + substrate notes) ahead of the rendered envelope — see
-``multi_pass._process_record``. The receipt's integrity hash binds
-both the envelope SHA (via the diagnostic ``policy_permutation_seed``
-field) and the record's per-call fields (via the standard ``agent_*``
-fields + the seven E3-specific fields from ``inject_arm_fields``).
+The composition layout — envelope first, record-trailing — mirrors
+E2's ``level_l4.compose_full_message`` ordering policy and is
+**load-bearing for OpenAI prompt caching** (cache hits require the
+longest stable prefix). DO NOT reorder.
 
-## Why the record argument is unused
+The Wave-2 ``run_arm`` orchestrator does NOT compose the base user
+message on the handler's behalf — see ``multi_pass.py:588-592``: the
+handler is self-contained, "Arm handler returns the FULLY rendered
+user message — no additive composition, no level prefix." The receipt's
+integrity hash binds the diagnostic ``policy_permutation_seed`` field
+(via ``inject_arm_fields``) plus the record's per-call fields (via the
+standard ``agent_*`` fields).
 
-Like the L4-without-nudge arm, the diagnostic L4 envelope is
-record-independent — every record sees the same policy block. The
-handler accepts ``record`` to honour the ``ArmHandler`` signature and
-so the dispatcher can pass records through uniformly across arms.
+## Composition contract — the handler IS self-contained
+
+The handler accepts ``record`` and uses it to build the per-record
+base user message via ``eval_loop.build_user_message`` — the same
+canonical-JSON serialisation E1/E2 used. The base user message
+trails the rendered envelope.
+
 ``**_ignored`` swallows kwargs other arms need (precedent selector,
-archive, etc.) without crashing.
+archive, etc.) without crashing. The diagnostic arm has no per-record
+state beyond the record's own fields + substrate_notes.
 
 ## Decision Point — Claude adapter contract (Path A taken)
 
@@ -117,6 +135,7 @@ from ..diagnostic.permute_policy import (
     PERMUTATION_LOG_KEY,
     permute_policy,
 )
+from ..eval_loop import build_user_message
 from ..prompt_loader import strip_leading_html_comments
 
 
@@ -233,6 +252,36 @@ def rendered_envelope_sha256(
 
 
 # ---------------------------------------------------------------------------
+# Per-record base message composition
+# ---------------------------------------------------------------------------
+
+
+def _compose_base_user_message(record: Mapping[str, Any]) -> str:
+    """Render the per-record base user message via E1/E2's canonical
+    serialiser.
+
+    The base message is the only record-varying component of the
+    diagnostic user message. It carries the substrate-derived
+    ``fields`` plus each field's substrate-honesty provenance
+    (``substrate_notes``) — same shape E1's main grid + E2's L0/L1/L2/L3
+    arms used, so the diagnostic's prompt-side substrate posture
+    matches the rest of the experiment programme.
+
+    See ``eval_loop.build_user_message`` for the canonical-JSON
+    serialisation contract (``sort_keys=True``, ``ensure_ascii=False``,
+    ``separators=(',', ':')``).
+    """
+    return build_user_message(
+        context={
+            "decision_type": record.get("decision_type", "procurement_decision"),
+            "fields": record.get("fields") or {},
+            "metadata": dict(record.get("metadata") or {}),
+        },
+        substrate_notes=record.get("substrate_notes") or {},
+    )
+
+
+# ---------------------------------------------------------------------------
 # Arm registration — diagnostic_primary
 # ---------------------------------------------------------------------------
 
@@ -246,11 +295,18 @@ def diagnostic_primary_handler(
     seed: int | None = None,
     **_ignored: Any,
 ) -> str:
-    """Render the permuted-L4 envelope for the primary-model diagnostic.
+    """Render the permuted-L4 envelope + per-record base user message
+    for the primary-model diagnostic.
 
-    The ``record`` argument is accepted (handler-signature contract) but
-    unused — the envelope is record-independent. Per-record state lands
-    via ``run_arm``'s base-message composition outside the handler.
+    Composition layout (mirrors E2's ``compose_full_message`` policy-
+    at-head ordering for cache-prefix preservation):
+
+        <permuted L4 envelope>      ← record-independent, cache-friendly
+        \\n
+        <base user message JSON>    ← record-varying
+
+    Both diagnostic arms render identical bytes for the same record —
+    only the agent dispatch (primary OpenAI vs Claude) differs.
 
     Kwargs give tests a way to swap in alternative locked paths or a
     non-zero seed for stochastic-variant smoke tests without
@@ -259,10 +315,9 @@ def diagnostic_primary_handler(
     0).
 
     ``**_ignored`` swallows kwargs the dispatcher may forward for other
-    arms (e.g. ``precedent_selector``, ``archive``). The diagnostic
-    arm has no per-record state.
+    arms (e.g. ``precedent_selector``, ``archive``).
     """
-    return render_permuted_l4_envelope(
+    rendered_envelope = render_permuted_l4_envelope(
         envelope_path=envelope_path if envelope_path is not None else DEFAULT_ENVELOPE_PATH,
         policy_snapshot_path=(
             policy_snapshot_path
@@ -271,6 +326,8 @@ def diagnostic_primary_handler(
         ),
         seed=seed if seed is not None else LOCKED_PERMUTATION_SEED,
     )
+    base_user_message = _compose_base_user_message(record)
+    return rendered_envelope + "\n" + base_user_message
 
 
 # ---------------------------------------------------------------------------
@@ -287,18 +344,18 @@ def diagnostic_claude_handler(
     seed: int | None = None,
     **_ignored: Any,
 ) -> str:
-    """Render the permuted-L4 envelope for the Claude diagnostic.
+    """Render the permuted-L4 envelope + per-record base user message
+    for the Claude diagnostic.
 
-    Identical rendering to ``diagnostic_primary_handler`` — the spec
-    requires the cross-model comparison to vary only on the model. The
-    handler is therefore a thin re-direction to the same renderer; the
-    agent dispatch (primary OpenAI ``Agent`` vs ``ClaudeAgent``) is
-    where the two arms diverge, not here.
+    Byte-identical rendering to ``diagnostic_primary_handler`` for the
+    same record — the spec requires the cross-model comparison to vary
+    only on the model. The agent dispatch (primary OpenAI ``Agent`` vs
+    ``ClaudeAgent``) is where the two arms diverge, not here.
 
-    The rendered prompt SHA is asserted equal across the two arms in
+    The cross-arm byte-identity property is asserted in
     ``tests/test_scaled_diagnostic.py::test_arms_render_identical_prompts``.
     """
-    return render_permuted_l4_envelope(
+    rendered_envelope = render_permuted_l4_envelope(
         envelope_path=envelope_path if envelope_path is not None else DEFAULT_ENVELOPE_PATH,
         policy_snapshot_path=(
             policy_snapshot_path
@@ -307,6 +364,8 @@ def diagnostic_claude_handler(
         ),
         seed=seed if seed is not None else LOCKED_PERMUTATION_SEED,
     )
+    base_user_message = _compose_base_user_message(record)
+    return rendered_envelope + "\n" + base_user_message
 
 
 __all__ = [
