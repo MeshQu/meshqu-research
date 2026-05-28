@@ -403,10 +403,23 @@ SMOKE_TO_DRY_RUN_ACCURACY_TOLERANCE = 0.15
 # would surface if populated.
 # ---------------------------------------------------------------------------
 
-DRY_RUN_PROMPT_TOKENS_PER_RECORD_BASELINE: dict[str, float] = {}
-"""Per-arm dry-run mean prompt-tokens per record. Empty until pinned
-from a trusted dry-run summary (see ``--scale phase-2`` summary
-rendering)."""
+# lifted from dry-run-20260528T164807-Z (the post-fix dry-run;
+# readiness-report-cited; commit 9852c07).
+DRY_RUN_PROMPT_TOKENS_PER_RECORD_BASELINE: dict[str, float] = {
+    "arm_a": 1843.0,
+    "arm_b": 1443.2,
+    "arm_c": 1626.4,
+    "l4_without_nudge": 2577.4,
+    "diagnostic_primary": 2599.5,
+    "diagnostic_claude": 3943.6,
+}
+"""Per-arm dry-run mean prompt-tokens per record. Pinned from the
+post-fix dry-run ``dry-run-20260528T164807-Z`` (citation comment
+above). Consumed by the Phase-2 summary's dry-run → Phase-2 accuracy
+table — actual Phase-2 prompt-tokens-per-record per arm are compared
+against these baselines, ±15% band per
+``DRY_RUN_TO_PHASE_2_ACCURACY_TOLERANCE``. Same gate language as
+smoke→dry-run."""
 
 DRY_RUN_TO_PHASE_2_ACCURACY_TOLERANCE = 0.15
 """Same ±15% band as the smoke→dry-run check."""
