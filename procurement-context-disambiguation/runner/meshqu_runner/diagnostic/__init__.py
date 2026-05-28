@@ -59,6 +59,13 @@ from .rubric_io import (
     VALID_CATEGORIES,
     parse_p5_bands,
 )
+from .scaled import (
+    DIAGNOSTIC_SUBSET_RELATIVE_PATH,
+    INVERTED_OPERATOR_SPEC_FILENAME,
+    build_inverted_operator_spec_payload,
+    emit_inverted_operator_spec,
+    load_diagnostic_subset,
+)
 
 
 # Names re-exported lazily from `.runner`. Listed here so static
@@ -99,8 +106,10 @@ __all__ = [
     "CodedEntry",
     "DIAGNOSTIC_LEVEL",
     "DIAGNOSTIC_SUBDIR",
+    "DIAGNOSTIC_SUBSET_RELATIVE_PATH",
     "DiagnosticBundle",
     "DiagnosticSummary",
+    "INVERTED_OPERATOR_SPEC_FILENAME",
     "InvertedSpec",
     "LOCKED_PERMUTATION_SEED",
     "P5Bands",
@@ -111,8 +120,11 @@ __all__ = [
     "RubricSchemaError",
     "VALID_ARMS",
     "VALID_CATEGORIES",
+    "build_inverted_operator_spec_payload",
     "diagnostic_handlers",
+    "emit_inverted_operator_spec",
     "is_in_permuted_subset",
+    "load_diagnostic_subset",
     "parse_p5_bands",
     "permute_policy",
     "pick_permuted_subset",

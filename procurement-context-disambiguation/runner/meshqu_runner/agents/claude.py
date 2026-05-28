@@ -56,6 +56,8 @@ from anthropic import (
     PermissionDeniedError,
 )
 
+from ..agent import AgentResponse, sha256_reasoning, sha256_system_prompt
+
 
 # ---------------------------------------------------------------------------
 # Locked pin — bound by v0.3-predictions-locked
@@ -281,11 +283,184 @@ def call(
     }
 
 
+# ---------------------------------------------------------------------------
+# Runner-protocol wrapper — ``ClaudeAgent``
+# ---------------------------------------------------------------------------
+#
+# E3-008 contract resolution (Path A, see decision_log "Wave 2 close-out"
+# lesson + E3-006 entry): wrap the dict-returning ``call()`` adapter in
+# a small class that conforms to the same surface the runner's existing
+# ``Agent`` class exposes (``.evaluate(user_message) -> AgentResponse``
+# plus ``.model_id`` / ``.temperature`` / ``.system_prompt_sha256``
+# attributes consumed by ``run_arm`` and ``inject_agent_fields``).
+#
+# Path A was chosen over a parallel dict-consuming orchestration path
+# (Path B) because:
+#
+# 1. ``run_arm`` is one of the load-bearing Wave-2 modules — adding a
+#    second orchestration code path through it would double the
+#    surface that future maintainers (E3-010 smoke, E3-011 dry-run,
+#    Phase 2 full-run, the writeup analysis notebook) need to
+#    understand.
+# 2. The dict→AgentResponse mapping is purely mechanical — Claude's
+#    ``call()`` already returns every field ``AgentResponse`` needs
+#    (verdict, reasoning, raw, usage tokens, latency_ms) under a
+#    slightly different shape. Coercing the shape at the wrapper layer
+#    keeps the conversion local and testable.
+# 3. The wrapper does not modify ``call()``'s signature — the spec
+#    explicitly lists "Claude adapter signature changes" as out of
+#    scope for E3-008. The adapter contract is preserved verbatim;
+#    only the runner-side adapter shape is added.
+
+
+def _hash_user_message_for_reasoning_fallback(user_message: str) -> str:
+    """Used when the Claude response carries no reasoning text (parse
+    failure / empty payload). Keeps the integrity-hash chain consistent
+    — every receipt still binds a reasoning SHA, just over the
+    placeholder text. Mirrors ``StubAgent``'s pattern."""
+    return sha256_reasoning(f"[claude:no-reasoning] user_message_sha256_placeholder")
+
+
+class ClaudeAgent:
+    """Runner-protocol wrapper around ``claude.call()``.
+
+    Conforms to the same surface ``meshqu_runner.agent.Agent`` exposes:
+
+    - ``model_id``: ``"claude-opus-4-7"`` (locked pin).
+    - ``temperature``: ``None`` — Opus 4.7 removed the parameter
+      (sending ``temperature=0`` returns HTTP 400 per the feasibility
+      spike). Stored as ``None`` and surfaced into the receipt's
+      ``agent_temperature`` field via the standard ``inject_agent_fields``
+      path. The Claude arm's *sampling block* (with ``"effort": "low"``)
+      is bound separately via ``ArmProfile.model_sampling`` →
+      ``inject_arm_fields``.
+    - ``system_prompt_sha256``: hash of the verbatim E2 system prompt
+      passed at construction (mirrors ``Agent.system_prompt_sha256``).
+    - ``evaluate(user_message)``: returns an ``AgentResponse`` built
+      from ``call()``'s dict.
+
+    The orchestrator (``run_arm``) drives ``agent.evaluate(user_message)``
+    uniformly across the primary OpenAI path and this Claude path —
+    same control flow, same receipt-write atomicity, same anomaly
+    surface.
+
+    ## Verdict-shape note (per the E3-006 entry)
+
+    ``call()``'s adapter contract returns ``verdict ∈ {"allow",
+    "review", "deny", None}`` (lowercase). The primary path normalises
+    to uppercase verdicts (``"ALLOW"`` / ``"REVIEW"`` / ``"DENY"``) at
+    the ``AgentResponse.verdict`` level for compatibility with the
+    eval-loop's downstream consumers. ``ClaudeAgent.evaluate``
+    up-cases the lowercase verdict here so both adapters present a
+    uniform ``AgentResponse`` shape to ``run_arm``.
+    """
+
+    # Class-level: exposed for inspection (``getattr(agent, "model_id", ...)``
+    # patterns in ``run_arm`` + ``_process_record``).
+    model_id: str = MODEL_ID
+    temperature: float | None = None  # Opus 4.7 cannot accept temperature
+    sampling: dict[str, Any] = OUTPUT_CONFIG
+
+    def __init__(
+        self,
+        *,
+        system_prompt: str,
+        client: anthropic.Anthropic | None = None,
+    ) -> None:
+        """Construct a ClaudeAgent with the verbatim E2 system prompt.
+
+        ``client`` is optional — when omitted, the SDK constructs one
+        from ``ANTHROPIC_API_KEY``. Tests inject a mock client.
+
+        The system prompt SHA is computed once at construction (same
+        contract as ``Agent``); a prompt change mid-run is invalid.
+        """
+        self.system_prompt = system_prompt
+        self.system_prompt_sha256 = sha256_system_prompt(system_prompt)
+        self.client = client  # may be None — call() will lazily build one
+
+    def evaluate(self, user_message: str) -> AgentResponse:
+        """Run one Claude evaluation. Returns an ``AgentResponse``
+        compatible with the runner's existing orchestration.
+
+        Catches ``ClaudeAdapterError`` and surfaces a parse-failure
+        ``AgentResponse`` (verdict=None, parse_status reflects the
+        failure mode) — same posture as the primary path's
+        json_object → plain_text fallback. The eval loop sees a
+        well-formed response object and continues with the next
+        record."""
+        t0 = time.monotonic()
+        try:
+            payload = call(
+                system_prompt=self.system_prompt,
+                user_message=user_message,
+                client=self.client,
+            )
+        except ClaudeAdapterError as err:
+            # Map adapter error to a parse-failure AgentResponse so
+            # the orchestrator's "record reasoning hash, continue"
+            # path stays uniform. The error.kind drives parse_status.
+            latency_ms = int((time.monotonic() - t0) * 1000)
+            parse_status = (
+                "invalid_json" if err.kind == "parse" else "wrong_shape"
+            )
+            reasoning = ""
+            return AgentResponse(
+                verdict=None,
+                reasoning=reasoning,
+                reasoning_sha256=_hash_user_message_for_reasoning_fallback(user_message),
+                recommended_action=None,
+                raw_response=str(err),
+                latency_ms=latency_ms,
+                output_mode="unknown",
+                parse_status=parse_status,
+                parse_detail=err.detail,
+                retry_count=0,
+                cached_tokens=None,
+                prompt_tokens=None,
+            )
+
+        verdict_lower = payload.get("verdict")
+        verdict: str | None
+        if isinstance(verdict_lower, str):
+            verdict = verdict_lower.upper()
+            if verdict not in {"ALLOW", "REVIEW", "DENY"}:
+                # Out-of-vocab — call() already normalised to None, but
+                # belt-and-braces if the dict was hand-built in a test.
+                verdict = None
+        else:
+            verdict = None
+
+        reasoning = payload.get("reasoning") or ""
+        raw = payload.get("raw", "")
+        recommended_action = payload.get("recommended_action")
+        usage = payload.get("usage") or {}
+        latency_ms = int(payload.get("latency_ms") or 0)
+
+        parse_status: str = "ok" if verdict is not None else "invalid_verdict"
+
+        return AgentResponse(
+            verdict=verdict,  # type: ignore[arg-type]  # Literal["ALLOW","REVIEW","DENY"]
+            reasoning=reasoning,
+            reasoning_sha256=sha256_reasoning(reasoning),
+            recommended_action=recommended_action,
+            raw_response=raw,
+            latency_ms=latency_ms,
+            output_mode="plain_text",
+            parse_status=parse_status,  # type: ignore[arg-type]
+            parse_detail="",
+            retry_count=0,
+            cached_tokens=None,
+            prompt_tokens=usage.get("input_tokens"),
+        )
+
+
 __all__ = [
     "MODEL_ID",
     "MAX_TOKENS",
     "OUTPUT_CONFIG",
     "ClaudeAdapterError",
+    "ClaudeAgent",
     "call",
     "make_client",
     "parse_verdict_json",
