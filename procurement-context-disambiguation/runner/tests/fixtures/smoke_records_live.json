@@ -1,0 +1,266 @@
+{
+  "__comment__": "Live smoke fixture for E2-007 (Stage C smoke run).\nThree deterministic real-corpus records pulled from the frozen E1 archive at procurement-decisions/results/runs/dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d/.\n\nSelection criteria (per planning/build_packages/e2-007-smoke-run.md \u00a71):\n  1. Worked-example multi-rule DENY: decision_id ca19e737-defb-4e5f-b216-ec97d2fe5859.\n     OCID ocds-b5fd17-282a00c5-...  The \u00a357M case; MeshQu DENY driven by      PROC-001-S53 + PROC-002-AUTHORITY + PROC-005-OPEN-TENDER. Required for \u00a73g\n     integrity-hash-distinctness check (main L4 vs L4_PERMUTED on this OCID).\n  2. Clean ALLOW: first OCID in OCID-ascending order where E1 MeshQu verdict was\n     ALLOW with zero violations.\n  3. Single-rule DENY: first OCID in OCID-ascending order where E1 MeshQu verdict\n     was DENY driven by exactly one rule.\n\nEach record carries (ocid, decision_type, fields, substrate_notes, metadata) in the\nshape multi_pass.run_multi_pass expects, plus an `e1_reference` block with the E1\narchive verdicts so the live smoke can be cross-checked against E1 without re-reading\nthe archive. The orchestrator ignores `e1_reference`.\n\nThis file is NEW (not edited from the older synthetic smoke_records.json which is\nkept for E2-005 cache tests).",
+  "records": [
+    {
+      "decision_type": "procurement_decision",
+      "e1_reference": {
+        "agent_verdict": "REVIEW",
+        "decision_id": "ca19e737-defb-4e5f-b216-ec97d2fe5859",
+        "integrity_hash": "e42a292d3557ca2e925a0ddc48f6aad1872f093e45ad25b7bd05d160aadb9880",
+        "meshqu_verdict": "DENY",
+        "violations": [
+          "PROC-001-S53",
+          "PROC-002-AUTHORITY",
+          "PROC-005-OPEN-TENDER"
+        ]
+      },
+      "fields": {
+        "above_threshold": "true",
+        "contract_value": 57000000.0,
+        "direct_award_justification_present": "false",
+        "governed_by_pa23": "true",
+        "is_modification": "false",
+        "publication_delay_days": 33,
+        "supplier_id": "GB-CFS-334137"
+      },
+      "metadata": {
+        "adapter_version": "0.1.0-cached",
+        "e1_archive_run_id": "dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d",
+        "experiment_substrate": "uk_contracts_finder_ocds",
+        "ocid": "ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f"
+      },
+      "ocid": "ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f",
+      "substrate_notes": {
+        "above_threshold": {
+          "confidence": "medium",
+          "detail": "awards[0].value.amount (tender value absent)=57000000 > \u00a3139,000 (PA23 Schedule 1 sub-central services threshold, conservative default)",
+          "status": "proxy",
+          "value": "true"
+        },
+        "conflict_of_interest_declaration": {
+          "confidence": "high",
+          "detail": "not in OCDS schema for this substrate \u2014 PROC-004 (COI presence) cannot fire on UK Contracts Finder data. A richer substrate would be needed to evaluate this rule empirically.",
+          "status": "absent"
+        },
+        "contract_value": {
+          "confidence": "high",
+          "detail": "awards[0].value.amount = 57000000",
+          "status": "direct_ocds",
+          "value": 57000000.0
+        },
+        "direct_award_justification_present": {
+          "confidence": "low",
+          "detail": "no transparency/direct-award relatedProcess link found (known false-negative mode \u2014 notice may exist but not be linked)",
+          "status": "derived",
+          "value": "false"
+        },
+        "governed_by_pa23": {
+          "confidence": "medium",
+          "detail": "awards[0].date=2026-03-27 > PA23 commencement 2025-02-24",
+          "status": "proxy",
+          "value": "true"
+        },
+        "is_modification": {
+          "confidence": "high",
+          "detail": "tag=['award'] contains no modification marker",
+          "status": "derived",
+          "value": "false"
+        },
+        "modification_value_ratio": {
+          "confidence": "high",
+          "detail": "no amendments[] in record (PROC-006 doesn't fire on non-modifications)",
+          "status": "absent"
+        },
+        "procurement_method_open_flag": {
+          "confidence": "high",
+          "detail": "tender.procurementMethod == 'selective' (not 'open') \u2192 flag deliberately omitted so PROC-005's presence check can fire if the when clause matches",
+          "status": "absent"
+        },
+        "publication_delay_days": {
+          "confidence": "medium",
+          "detail": "(awards[0].datePublished \u2212 awards[0].date) = (2026-04-29 \u2212 2026-03-27) = 33 days [award date as signature-date proxy per substrate-honesty disclosure]",
+          "status": "proxy",
+          "value": 33
+        },
+        "supplier_id": {
+          "confidence": "high",
+          "detail": "awards[0].suppliers[0].id = 'GB-CFS-334137' (trimmed; case preserved)",
+          "status": "direct_ocds",
+          "value": "GB-CFS-334137"
+        }
+      }
+    },
+    {
+      "decision_type": "procurement_decision",
+      "e1_reference": {
+        "agent_verdict": "REVIEW",
+        "decision_id": "7adc6b52-20b7-46e4-8262-b1131608a2dc",
+        "integrity_hash": "5ea82c83ae8d3f8f922ae1aee84ad5357e852702f50c922b4f909335c39b7719",
+        "meshqu_verdict": "ALLOW",
+        "violations": []
+      },
+      "fields": {
+        "above_threshold": "false",
+        "contract_value": 133103.95,
+        "direct_award_justification_present": "false",
+        "governed_by_pa23": "true",
+        "is_modification": "false",
+        "publication_delay_days": 29,
+        "supplier_id": "GB-COH-03659970"
+      },
+      "metadata": {
+        "adapter_version": "0.1.0-cached",
+        "e1_archive_run_id": "dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d",
+        "experiment_substrate": "uk_contracts_finder_ocds",
+        "ocid": "ocds-b5fd17-001cf81b-5232-4d78-a0c7-4b8ab05f7658"
+      },
+      "ocid": "ocds-b5fd17-001cf81b-5232-4d78-a0c7-4b8ab05f7658",
+      "substrate_notes": {
+        "above_threshold": {
+          "confidence": "medium",
+          "detail": "tender.value.amount=133103.95 \u2264 \u00a3139,000 (PA23 Schedule 1 sub-central services threshold, conservative default)",
+          "status": "proxy",
+          "value": "false"
+        },
+        "conflict_of_interest_declaration": {
+          "confidence": "high",
+          "detail": "not in OCDS schema for this substrate \u2014 PROC-004 (COI presence) cannot fire on UK Contracts Finder data. A richer substrate would be needed to evaluate this rule empirically.",
+          "status": "absent"
+        },
+        "contract_value": {
+          "confidence": "high",
+          "detail": "awards[0].value.amount = 133103.95",
+          "status": "direct_ocds",
+          "value": 133103.95
+        },
+        "direct_award_justification_present": {
+          "confidence": "low",
+          "detail": "no transparency/direct-award relatedProcess link found (known false-negative mode \u2014 notice may exist but not be linked)",
+          "status": "derived",
+          "value": "false"
+        },
+        "governed_by_pa23": {
+          "confidence": "medium",
+          "detail": "awards[0].date=2026-03-31 > PA23 commencement 2025-02-24",
+          "status": "proxy",
+          "value": "true"
+        },
+        "is_modification": {
+          "confidence": "high",
+          "detail": "tag=['award'] contains no modification marker",
+          "status": "derived",
+          "value": "false"
+        },
+        "modification_value_ratio": {
+          "confidence": "high",
+          "detail": "no amendments[] in record (PROC-006 doesn't fire on non-modifications)",
+          "status": "absent"
+        },
+        "procurement_method_open_flag": {
+          "confidence": "high",
+          "detail": "tender.procurementMethod == 'selective' (not 'open') \u2192 flag deliberately omitted so PROC-005's presence check can fire if the when clause matches",
+          "status": "absent"
+        },
+        "publication_delay_days": {
+          "confidence": "medium",
+          "detail": "(awards[0].datePublished \u2212 awards[0].date) = (2026-04-29 \u2212 2026-03-31) = 29 days [award date as signature-date proxy per substrate-honesty disclosure]",
+          "status": "proxy",
+          "value": 29
+        },
+        "supplier_id": {
+          "confidence": "high",
+          "detail": "awards[0].suppliers[0].id = 'GB-COH-03659970' (trimmed; case preserved)",
+          "status": "direct_ocds",
+          "value": "GB-COH-03659970"
+        }
+      }
+    },
+    {
+      "decision_type": "procurement_decision",
+      "e1_reference": {
+        "agent_verdict": "REVIEW",
+        "decision_id": "90c8d504-f01a-4abd-81ff-7dfb3ad88c39",
+        "integrity_hash": "88118f59a3a28777174637e2a87a78f24c6358b9be65f609ec19223fb4682240",
+        "meshqu_verdict": "DENY",
+        "violations": [
+          "PROC-005-OPEN-TENDER"
+        ]
+      },
+      "fields": {
+        "above_threshold": "true",
+        "contract_value": 410050.59,
+        "direct_award_justification_present": "false",
+        "governed_by_pa23": "true",
+        "is_modification": "false",
+        "publication_delay_days": 1,
+        "supplier_id": "GB-CFS-334123"
+      },
+      "metadata": {
+        "adapter_version": "0.1.0-cached",
+        "e1_archive_run_id": "dry-run-7ddf7274-695f-4b1b-a335-b8ed006cc26d",
+        "experiment_substrate": "uk_contracts_finder_ocds",
+        "ocid": "ocds-b5fd17-0786919f-4875-42c3-99ac-7db01e366670"
+      },
+      "ocid": "ocds-b5fd17-0786919f-4875-42c3-99ac-7db01e366670",
+      "substrate_notes": {
+        "above_threshold": {
+          "confidence": "medium",
+          "detail": "tender.value.amount=410050.59 > \u00a3139,000 (PA23 Schedule 1 sub-central services threshold, conservative default)",
+          "status": "proxy",
+          "value": "true"
+        },
+        "conflict_of_interest_declaration": {
+          "confidence": "high",
+          "detail": "not in OCDS schema for this substrate \u2014 PROC-004 (COI presence) cannot fire on UK Contracts Finder data. A richer substrate would be needed to evaluate this rule empirically.",
+          "status": "absent"
+        },
+        "contract_value": {
+          "confidence": "high",
+          "detail": "awards[0].value.amount = 410050.59",
+          "status": "direct_ocds",
+          "value": 410050.59
+        },
+        "direct_award_justification_present": {
+          "confidence": "low",
+          "detail": "no transparency/direct-award relatedProcess link found (known false-negative mode \u2014 notice may exist but not be linked)",
+          "status": "derived",
+          "value": "false"
+        },
+        "governed_by_pa23": {
+          "confidence": "medium",
+          "detail": "awards[0].date=2026-04-27 > PA23 commencement 2025-02-24",
+          "status": "proxy",
+          "value": "true"
+        },
+        "is_modification": {
+          "confidence": "high",
+          "detail": "tag=['award'] contains no modification marker",
+          "status": "derived",
+          "value": "false"
+        },
+        "modification_value_ratio": {
+          "confidence": "high",
+          "detail": "no amendments[] in record (PROC-006 doesn't fire on non-modifications)",
+          "status": "absent"
+        },
+        "procurement_method_open_flag": {
+          "confidence": "high",
+          "detail": "tender.procurementMethod == 'selective' (not 'open') \u2192 flag deliberately omitted so PROC-005's presence check can fire if the when clause matches",
+          "status": "absent"
+        },
+        "publication_delay_days": {
+          "confidence": "medium",
+          "detail": "(awards[0].datePublished \u2212 awards[0].date) = (2026-04-28 \u2212 2026-04-27) = 1 days [award date as signature-date proxy per substrate-honesty disclosure]",
+          "status": "proxy",
+          "value": 1
+        },
+        "supplier_id": {
+          "confidence": "high",
+          "detail": "awards[0].suppliers[0].id = 'GB-CFS-334123' (trimmed; case preserved)",
+          "status": "direct_ocds",
+          "value": "GB-CFS-334123"
+        }
+      }
+    }
+  ]
+}
