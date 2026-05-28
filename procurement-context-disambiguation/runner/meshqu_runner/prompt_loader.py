@@ -21,6 +21,7 @@ contents are TODO stubs).
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -78,6 +79,70 @@ class LoadedPrompts:
 
 def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Leading-HTML-comment strip — renderer-level utility
+# ---------------------------------------------------------------------------
+#
+# Some locked prompt files (notably E3's ``L4_without_nudge.md``)
+# carry a multi-line HTML comment at the very top of the file as a
+# methodological header — what was excised, why, which other file the
+# variant is a surgical fork of. The comment is documentation only:
+# when the file is sent to an LLM as part of a rendered user message,
+# the LLM should not see this header (it would either bias the model
+# by telling it which nudge was removed, or — worse — re-introduce the
+# excised text verbatim via the body of the comment).
+#
+# Sam's 2026-05-28 resolution (PR #85 redispatch of E3-005): keep the
+# locked file bytes intact on disk (so the v0.3-predictions-locked SHA
+# binding stays valid), and have the renderer strip leading HTML
+# comments before passing the prompt to the LLM. This utility lives
+# at the prompt-loader level so any arm whose locked content carries
+# a leading methodological comment can reuse it.
+#
+# Scope. The strip applies to **leading** comments only — a contiguous
+# run of ``<!-- ... -->`` blocks at the very start of the text, plus
+# any whitespace separating them from the first non-comment content.
+# Comments later in the document (e.g. inline annotations beside a
+# rule definition) are preserved verbatim. This is deliberate: the
+# locked envelopes' interpolation tokens and section structure must
+# survive intact.
+
+_LEADING_HTML_COMMENT_RE = re.compile(
+    # One <!-- ... --> block (non-greedy across newlines), then any
+    # trailing whitespace before the next character. The ``+`` lets us
+    # absorb multiple stacked leading comments in one pass — defensive
+    # against future locked files that author the methodological
+    # header as two paragraphs of comments rather than one.
+    r"\A(?:<!--.*?-->[ \t]*\n?\s*)+",
+    re.DOTALL,
+)
+
+
+def strip_leading_html_comments(text: str) -> str:
+    """Remove leading ``<!-- ... -->`` blocks (plus trailing whitespace)
+    from a prompt body.
+
+    Idempotent — running the strip on already-stripped text returns
+    the same text. Non-leading comments (anywhere after the first
+    non-comment character) are left untouched.
+
+    Used by the L4-without-nudge handler to honour the locked file's
+    methodological header without polluting the rendered LLM prompt.
+    See module docstring for the Sam 2026-05-28 resolution context.
+
+    Edge cases tested in ``tests/test_prompt_loader.py``:
+
+    - input with no leading comment → returned unchanged
+    - single-line comment at the start → stripped (comment + trailing
+      newline)
+    - multi-line comment at the start → stripped (whole block)
+    - comment followed by blank lines → stripped together
+    - comment NOT at the start (e.g. inline mid-document) → preserved
+    - text consisting of only a leading comment → empty string returned
+    """
+    return _LEADING_HTML_COMMENT_RE.sub("", text)
 
 
 def load_level_prompts(prompts_dir: Path) -> LoadedPrompts:
