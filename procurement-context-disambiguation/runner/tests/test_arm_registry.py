@@ -82,10 +82,18 @@ def test_arm_handlers_callable_with_just_a_record():
     baseline alone when no archive is supplied — and is exercised below.
     Arm C (E3-004) is likewise promoted and callable with just a record;
     its rendered prompt does not embed the literal token ``arm_c``, so it
-    is excluded from the placeholder-content assertion as well.
+    is excluded from the placeholder-content assertion as well. L4
+    variants (E3-005) — both ``l4_with_nudge`` and ``l4_without_nudge``
+    render the policy envelope (with or without the nudge clause); their
+    rendered prompts do not embed the placeholder marker, so they are
+    excluded from the placeholder-content assertion as well.
     """
     record = {"ocid": "stub-ocid-test", "decision_type": "procurement_decision"}
-    placeholder_arms = tuple(arm for arm in ARM_NAMES if arm not in ("arm_a", "arm_b", "arm_c"))
+    placeholder_arms = tuple(
+        arm
+        for arm in ARM_NAMES
+        if arm not in ("arm_a", "arm_b", "arm_c", "l4_with_nudge", "l4_without_nudge")
+    )
     for arm in ARM_NAMES:
         prompt = HANDLERS[arm](record)
         assert isinstance(prompt, str), f"handler for {arm!r} returned non-str"

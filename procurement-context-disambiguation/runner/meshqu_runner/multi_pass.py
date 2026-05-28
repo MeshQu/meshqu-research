@@ -74,6 +74,14 @@ from .arms import (
     get_profile as arm_profile,
     inject_arm_fields,
 )
+# Eager-load the per-arm handler package so each handler's @register
+# decorator runs and overwrites the foundation's placeholder. Without
+# this import the orchestrator dispatches against the placeholder
+# handlers laid down in ``arms.py`` and silently mis-renders. Parallel
+# build packages (E3-002..E3-006) each contribute one sub-module to
+# ``arm_handlers/__init__.py`` — see that file's docstring for the
+# convention.
+from . import arm_handlers  # noqa: F401 -- import side-effects only
 from .audit import AuditWriter
 from .eval_loop import build_user_message
 from .meshqu_client import (
