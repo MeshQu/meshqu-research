@@ -1,5 +1,7 @@
 # Experiment 3 (E3) — experiment design
 
+**Working title**: *Precedents, policy, and commitment — a disambiguation study of governance-context effects in AI decision agents.* (Committed 2026-05-27. The analytic factoring of E2's *"When precedents commit AI and policy pulls it back"* — three load-bearing nouns isolated in the order the design slices them: precedents via the L3 arm decomposition, policy via L4-without-nudge, commitment via what holds or releases at L3→L4.)
+
 **Status**: Phase 0 — design draft. **Not locked.** Predictions are not drafted until this design is reviewed; pre-registration lock is a separate gated step (see checklist at the end).
 
 E3 is the **disambiguation experiment**. E2 surfaced two structural findings it could not mechanistically isolate — the L3 commitment break and the L4_PERMUTED inversion-blindness — and left explicit open readings. E3's job is to slice those confounds. It reuses E1/E2's substrate, corpus, policy snapshot, and primary agent unchanged, and adds targeted variants. No new substrate, no investigative-agent format shift (that is E4).
@@ -109,7 +111,7 @@ Not started — gated behind design review. When ready:
 - [ ] Hand-coded rubric protocol written (coder instructions, the three categories, inter-coder check if more than one coder)
 - [ ] Second model + version pinned
 - [ ] Scaled-diagnostic n committed (full corpus or pre-registered subset)
-- [ ] Working title committed (or placeholder with intent)
+- [x] Working title committed (or placeholder with intent) — *Precedents, policy, and commitment* (see top of file)
 - [ ] Git tag created: `v0.X-predictions-locked`
 
 ## Decisions resolved (2026-05-27)
@@ -118,5 +120,19 @@ Not started — gated behind design review. When ready:
 2. **Second model: Claude** (key available). Diagnostic-only cross-model arm.
 3. **Scaled-diagnostic n: pre-registered subset, target 100** — same 100 records on both models (record-matched); deterministic selection rule fixed at lock. Expandable later if the subset signal warrants.
 4. **L4-without-nudge: in scope.**
+
+## Locked parameters (authored 2026-05-27; SHA-bound at the tag)
+
+- **Diagnostic subset selection rule** — the 100 records whose `sha256(ocid)` hex digests sort lowest, over the frozen 283-corpus. Deterministic, reproducible, no selection bias, and independent of any verdict. The *same* 100 run on both the primary model and Claude (record-matched).
+- **Second model** — **`claude-opus-4-7`**, temperature 0 (matched to the primary agent's temp-0 setting for comparability). *Confirm this is the tier you hold a key for — if it's Sonnet (`claude-sonnet-4-6`), say so and we pin that instead.*
+- **Primary model** — unchanged from E1/E2: `gpt-5.4-2026-03-05`, temperature 0.
+- **Locked content authored** (in `runner/prompts/` + `planning/`), SHA-bound at the tag:
+  - `armC_density_control.md` — the dry/neutral 4-block density control **(needs Sam's neutrality review before tag)**
+  - `armB_precedent_no_verdict_format.md` — E2's L3 block with verdict/violations/E1-reasoning redacted
+  - `L4_without_nudge.md` — E2's L4 envelope minus the nudge clause
+  - `diagnostic_rubric.md` — the 3-category hand-coding protocol
+  - Arm A reuses E2's `L3_precedent_block_format.md` unchanged.
+
+Checklist items above now satisfied except: Arm C neutrality review (Sam); working title; the tag itself.
 
 Design is resolved. Next: draft segment-level predictions (`predictions.md`), then pre-registration lock.
