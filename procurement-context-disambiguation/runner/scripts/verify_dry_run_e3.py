@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""E3-011 — Dry-run validator.
+"""E3-011 / E3-013 — Dry-run + Phase-2 validator.
 
-Walks a dry-run directory (the output of ``dry_run_e3.py``) and, for
-every bundle:
+Walks a run directory (output of ``dry_run_e3.py`` at either scale)
+and, for every bundle:
 
   1. Asserts the per-arm integrity markers in the canonical-JSON
      ``context_fields_canonical_json`` blob match the locked matrix
@@ -19,26 +19,42 @@ every bundle:
      but still asserts the integrity markers (same posture as the
      smoke verifier).
 
-  4. **Aggregate completeness** (the dry-run-specific addition over
-     the smoke verifier): asserts every OCID at positions 0..29 of
-     ``planning/diagnostic_subset.json`` appears in every main-arm
-     subdir, and every OCID at positions 0..9 appears in both
-     diagnostic arm subdirs. A single missing OCID → FAIL. Stops on
-     first failure (same decision rule as the smoke verifier, scaled
-     here).
+  4. **Aggregate completeness** — the dry-run-specific addition (also
+     applies in Phase-2 mode). Asserts every OCID expected for the
+     active scale appears in every applicable arm subdir. A single
+     missing OCID → FAIL. Stops on first failure (same decision rule
+     as the smoke verifier, scaled here).
 
-## Decision rules (per E3-011 package spec + inherited from E3-010)
+## Per-scale matrix
+
+The verifier accepts a ``--scale`` flag mirroring the driver:
+
+  - ``--scale dry-run`` (default): 4 main arms × 30 + 2 diag arms × 10
+    = 140 receipts. Main-arm OCIDs read from positions 0..29 of
+    ``planning/diagnostic_subset.json``; diag-arm OCIDs from positions
+    0..9.
+  - ``--scale phase-2``: 4 main arms × 283 + 2 diag arms × 100 = 1,332
+    receipts. Main-arm expected-OCID set is the full E1 frozen corpus
+    (loaded via ``substrate_cache.load_cached_records``); diag-arm
+    expected-OCID set is the full 100-OCID locked subset.
+
+The verifier infers the scale from the summary JSON in the run dir
+if ``--scale`` is not passed and a summary file is present, falling
+back to ``dry-run`` otherwise. Explicit ``--scale`` always wins.
+
+## Decision rules (per E3-011 / E3-013 package spec + inherited from E3-010)
 
 - **Stop on first verifier failure** (unless ``--no-stop``).
-- **All 140 must pass.** The matrix is fixed: 4 main arms × 30 + 2
-  diagnostic arms × 10.
+- **All N must pass** where N is per-scale (140 for dry-run, 1,332 for
+  phase-2).
 
 ## Usage
 
     python3 scripts/verify_dry_run_e3.py results/runs/dry-run-<timestamp>-Z/
-    python3 scripts/verify_dry_run_e3.py results/runs/dry-run-<timestamp>-Z/ --json
-    python3 scripts/verify_dry_run_e3.py results/runs/dry-run-<timestamp>-Z/ --allow-stub
-    python3 scripts/verify_dry_run_e3.py results/runs/dry-run-<timestamp>-Z/ --no-stop
+    python3 scripts/verify_dry_run_e3.py results/runs/phase-2-<timestamp>-Z/ --scale phase-2
+    python3 scripts/verify_dry_run_e3.py <run-dir>/ --json
+    python3 scripts/verify_dry_run_e3.py <run-dir>/ --allow-stub
+    python3 scripts/verify_dry_run_e3.py <run-dir>/ --no-stop
 
 The ``--allow-stub`` flag is implicit when every bundle in the run dir
 is a stub (a ``--dry`` driver run). Explicit otherwise.
@@ -48,10 +64,11 @@ is a stub (a ``--dry`` driver run). Explicit otherwise.
 The smoke verifier hard-codes ``EXPECTED_RECEIPT_COUNTS`` at the smoke
 matrix (3 / 3 / 3 / 3 / 1 / 1). Trying to make a single verifier serve
 both runs adds an inferred-count argument and a count-mode-switch
-branch that would obscure the contract. The dry-run verifier reuses
-every primitive that doesn't depend on the matrix (markers,
-signature, envelope, trusted keys) but reimplements the run-dir
-walker for clarity.
+branch that would obscure the contract. This verifier reuses every
+primitive that doesn't depend on the matrix (markers, signature,
+envelope, trusted keys) but reimplements the run-dir walker — and now
+the matrix shape is itself parametrized on ``--scale`` so dry-run and
+phase-2 share a single binary.
 """
 from __future__ import annotations
 
@@ -96,25 +113,64 @@ from verify_smoke_e3 import (  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
-# Dry-run matrix counts — independent from the smoke verifier's table.
+# Per-scale matrix counts — independent from the smoke verifier's table.
 # ---------------------------------------------------------------------------
 
-EXPECTED_RECEIPT_COUNTS: dict[str, int] = {
-    "arm_a": 30,
-    "arm_b": 30,
-    "arm_c": 30,
-    "l4_without_nudge": 30,
-    "diagnostic_primary": 10,
-    "diagnostic_claude": 10,
-}
-
-EXPECTED_TOTAL_RECEIPTS = sum(EXPECTED_RECEIPT_COUNTS.values())  # 140
+SCALE_DRY_RUN = "dry-run"
+SCALE_PHASE_2 = "phase-2"
+SUPPORTED_SCALES: tuple[str, ...] = (SCALE_DRY_RUN, SCALE_PHASE_2)
 
 MAIN_ARMS: tuple[str, ...] = ("arm_a", "arm_b", "arm_c", "l4_without_nudge")
 DIAGNOSTIC_ARMS: tuple[str, ...] = ("diagnostic_primary", "diagnostic_claude")
 
+# Per-scale expected receipt counts. The dry-run table preserves the
+# E3-011 contract (30 per main / 10 per diag); phase-2 mirrors the
+# driver's RECORDS_PER_*_BY_SCALE table.
+EXPECTED_RECEIPT_COUNTS_BY_SCALE: dict[str, dict[str, int]] = {
+    SCALE_DRY_RUN: {
+        "arm_a": 30,
+        "arm_b": 30,
+        "arm_c": 30,
+        "l4_without_nudge": 30,
+        "diagnostic_primary": 10,
+        "diagnostic_claude": 10,
+    },
+    SCALE_PHASE_2: {
+        "arm_a": 283,
+        "arm_b": 283,
+        "arm_c": 283,
+        "l4_without_nudge": 283,
+        "diagnostic_primary": 100,
+        "diagnostic_claude": 100,
+    },
+}
+
+EXPECTED_TOTAL_BY_SCALE: dict[str, int] = {
+    scale: sum(counts.values())
+    for scale, counts in EXPECTED_RECEIPT_COUNTS_BY_SCALE.items()
+}
+
+# Back-compat aliases — preserve the dry-run constants the existing
+# test surface (and any external readers) pull off the module. The
+# phase-2 path reads via the scale-keyed dicts above.
+EXPECTED_RECEIPT_COUNTS = EXPECTED_RECEIPT_COUNTS_BY_SCALE[SCALE_DRY_RUN]
+EXPECTED_TOTAL_RECEIPTS = EXPECTED_TOTAL_BY_SCALE[SCALE_DRY_RUN]  # 140
+
 DRY_RUN_MAIN_OCID_COUNT = 30
 DRY_RUN_DIAGNOSTIC_OCID_COUNT = 10
+
+PHASE_2_MAIN_RECORD_COUNT = 283
+PHASE_2_DIAGNOSTIC_OCID_COUNT = 100
+
+
+def expected_total_for(scale: str) -> int:
+    """Per-scale receipt-count total (140 for dry-run, 1,332 for phase-2)."""
+    return EXPECTED_TOTAL_BY_SCALE[scale]
+
+
+def expected_counts_for(scale: str) -> dict[str, int]:
+    """Per-scale per-arm receipt-count expectations."""
+    return dict(EXPECTED_RECEIPT_COUNTS_BY_SCALE[scale])
 
 
 # ---------------------------------------------------------------------------
@@ -145,10 +201,10 @@ def iter_arm_bundles(run_dir: Path) -> list[tuple[str, Path]]:
 def _load_locked_subset_ocids() -> list[str]:
     """Load the locked diagnostic subset from
     ``planning/diagnostic_subset.json``. The verifier's completeness
-    check reads positions 0..29 (main arms) and 0..9 (diagnostic arms)
-    of this list, so the verifier is decoupled from the driver's
-    runtime subset selection — even if a future driver mis-slices,
-    the verifier catches the drift."""
+    check reads positions 0..29 (main arms, dry-run) / 0..9 (diag arms,
+    dry-run) / 0..99 (diag arms, phase-2) of this list, so the verifier
+    is decoupled from the driver's runtime subset selection — even if a
+    future driver mis-slices, the verifier catches the drift."""
     # The subset file lives at procurement-context-disambiguation/
     # planning/diagnostic_subset.json. _RUNNER_DIR.parent is the E3
     # subproject root.
@@ -164,6 +220,43 @@ def _load_locked_subset_ocids() -> list[str]:
             f"got {type(ocids).__name__}"
         )
     return list(ocids)
+
+
+def _load_full_corpus_ocids() -> list[str]:
+    """Load the full 283-OCID E1 frozen corpus list (OCID-ascending)
+    for the ``--scale phase-2`` main-arm completeness check.
+
+    Delegates to ``meshqu_runner.substrate_cache.load_cached_records``
+    so the verifier sees the same record set the driver dispatched
+    against. If the archive is missing the verifier raises a clear
+    error — matching the driver's posture."""
+    # Lazy import — the substrate cache walker pulls in the E1 archive
+    # and we want this verifier to remain useful for dry-run runs even
+    # when the archive is absent.
+    from meshqu_runner.substrate_cache import load_cached_records  # noqa: WPS433
+
+    repo_dir = _RUNNER_DIR.parents[1]
+    return [cr.ocid for cr in load_cached_records(repo_dir)]
+
+
+def _infer_scale_from_run_dir(run_dir: Path) -> str:
+    """Look for a scale-keyed summary file in the run dir and read the
+    ``scale`` field. Falls back to ``dry-run`` when no summary is
+    present (preserves the original verifier's posture: an unknown run
+    dir was always treated as dry-run)."""
+    for candidate in ("phase-2-summary.json", "dry-run-summary.json"):
+        summary_path = run_dir / candidate
+        if not summary_path.exists():
+            continue
+        try:
+            with summary_path.open("r", encoding="utf-8") as fp:
+                payload = json.load(fp)
+        except (OSError, json.JSONDecodeError):
+            continue
+        scale = payload.get("scale")
+        if scale in SUPPORTED_SCALES:
+            return scale  # type: ignore[no-any-return]
+    return SCALE_DRY_RUN
 
 
 def assert_completeness(
@@ -244,6 +337,7 @@ class RunVerification:
     first_failure: BundleReport | None = None
     expected_main_ocids: list[str] = field(default_factory=list)
     expected_diagnostic_ocids: list[str] = field(default_factory=list)
+    scale: str = SCALE_DRY_RUN
 
     def update_from_report(self, report: BundleReport, stop_on_failure: bool) -> bool:
         """Add report; return True if we should stop iterating."""
@@ -260,21 +354,40 @@ class RunVerification:
 def verify_run(
     run_dir: Path,
     *,
+    scale: str | None = None,
     allow_stub: bool = False,
     stop_on_first_failure: bool = True,
 ) -> RunVerification:
-    """Verify every bundle under ``run_dir`` against the dry-run matrix.
+    """Verify every bundle under ``run_dir`` against the per-scale matrix.
+
+    ``scale`` defaults to ``None`` → inferred from the run-dir summary
+    JSON (``phase-2-summary.json`` → phase-2, otherwise dry-run). Pass
+    an explicit scale string to override.
 
     Pre-scans bundles to decide the implicit-stub-allow + collect per-
     arm bundle lists for the completeness check. Per-bundle verifier
     re-reads the bundle (same posture as the smoke verifier — keeps
     each report independent and the file open scoped tight).
     """
-    result = RunVerification(run_dir=run_dir)
+    if scale is None:
+        scale = _infer_scale_from_run_dir(run_dir)
+    if scale not in SUPPORTED_SCALES:
+        raise ValueError(
+            f"unsupported verifier scale {scale!r}; choose from "
+            f"{', '.join(SUPPORTED_SCALES)}"
+        )
 
-    # Load the locked subset's OCID positions 0..29 / 0..9 — the
-    # verifier's completeness expectation. Decoupled from the driver:
-    # the driver could mis-slice and the verifier still catches it.
+    result = RunVerification(run_dir=run_dir, scale=scale)
+
+    # Load the OCID expectation sets per scale.
+    #
+    #   dry-run:   main = positions 0..29 of the locked subset
+    #              diag = positions 0..9 of the locked subset
+    #   phase-2:   main = the full 283-record E1 corpus (substrate_cache)
+    #              diag = the full 100-OCID locked subset
+    #
+    # Decoupled from the driver: the driver could mis-slice and the
+    # verifier still catches it.
     try:
         all_locked_ocids = _load_locked_subset_ocids()
     except Exception as exc:
@@ -285,19 +398,51 @@ def verify_run(
         result.update_from_report(fake, stop_on_failure=True)
         return result
 
-    if len(all_locked_ocids) < DRY_RUN_MAIN_OCID_COUNT:
-        fake = BundleReport(arm_name="(none)", bundle_path=run_dir)
-        fake.errors.append(
-            f"locked subset has {len(all_locked_ocids)} OCIDs; "
-            f"dry-run verifier requires ≥ {DRY_RUN_MAIN_OCID_COUNT}"
-        )
-        result.update_from_report(fake, stop_on_failure=True)
-        return result
-
-    result.expected_main_ocids = all_locked_ocids[:DRY_RUN_MAIN_OCID_COUNT]
-    result.expected_diagnostic_ocids = all_locked_ocids[
-        :DRY_RUN_DIAGNOSTIC_OCID_COUNT
-    ]
+    expected_counts = expected_counts_for(scale)
+    if scale == SCALE_PHASE_2:
+        if len(all_locked_ocids) < PHASE_2_DIAGNOSTIC_OCID_COUNT:
+            fake = BundleReport(arm_name="(none)", bundle_path=run_dir)
+            fake.errors.append(
+                f"locked subset has {len(all_locked_ocids)} OCIDs; "
+                f"phase-2 verifier requires ≥ {PHASE_2_DIAGNOSTIC_OCID_COUNT}"
+            )
+            result.update_from_report(fake, stop_on_failure=True)
+            return result
+        result.expected_diagnostic_ocids = all_locked_ocids[
+            :PHASE_2_DIAGNOSTIC_OCID_COUNT
+        ]
+        try:
+            result.expected_main_ocids = _load_full_corpus_ocids()
+        except Exception as exc:
+            fake = BundleReport(arm_name="(none)", bundle_path=run_dir)
+            fake.errors.append(
+                f"failed to load full corpus from substrate_cache for "
+                f"phase-2 completeness check: {exc}"
+            )
+            result.update_from_report(fake, stop_on_failure=True)
+            return result
+        if len(result.expected_main_ocids) != PHASE_2_MAIN_RECORD_COUNT:
+            fake = BundleReport(arm_name="(none)", bundle_path=run_dir)
+            fake.errors.append(
+                f"substrate_cache returned {len(result.expected_main_ocids)} "
+                f"records; phase-2 verifier requires "
+                f"{PHASE_2_MAIN_RECORD_COUNT}"
+            )
+            result.update_from_report(fake, stop_on_failure=True)
+            return result
+    else:
+        if len(all_locked_ocids) < DRY_RUN_MAIN_OCID_COUNT:
+            fake = BundleReport(arm_name="(none)", bundle_path=run_dir)
+            fake.errors.append(
+                f"locked subset has {len(all_locked_ocids)} OCIDs; "
+                f"dry-run verifier requires ≥ {DRY_RUN_MAIN_OCID_COUNT}"
+            )
+            result.update_from_report(fake, stop_on_failure=True)
+            return result
+        result.expected_main_ocids = all_locked_ocids[:DRY_RUN_MAIN_OCID_COUNT]
+        result.expected_diagnostic_ocids = all_locked_ocids[
+            :DRY_RUN_DIAGNOSTIC_OCID_COUNT
+        ]
 
     pairs = iter_arm_bundles(run_dir)
     if not pairs:
@@ -334,20 +479,20 @@ def verify_run(
             return result
 
     # Per-arm count assertion.
-    for arm_name, expected in EXPECTED_RECEIPT_COUNTS.items():
+    for arm_name, expected in expected_counts.items():
         actual = counts_by_arm.get(arm_name, 0)
         if actual != expected:
             fake = BundleReport(arm_name=arm_name, bundle_path=run_dir / arm_name)
             fake.errors.append(
                 f"arm {arm_name!r} produced {actual} receipts; "
-                f"expected {expected} (per the dry-run matrix)"
+                f"expected {expected} (per the {scale} matrix)"
             )
             result.update_from_report(fake, stop_on_failure=stop_on_first_failure)
             if stop_on_first_failure:
                 return result
 
-    # Aggregate completeness — every locked OCID present in every
-    # applicable arm. This is the dry-run-specific addition.
+    # Aggregate completeness — every expected OCID present in every
+    # applicable arm.
     completeness_failures = assert_completeness(
         bundles_by_arm=bundles_by_arm,
         expected_main_ocids=result.expected_main_ocids,
@@ -370,6 +515,7 @@ def _print_run_summary(result: RunVerification, *, as_json: bool) -> None:
     if as_json:
         payload = {
             "run_dir": str(result.run_dir),
+            "scale": result.scale,
             "total": total,
             "passed": result.passed_count,
             "failed": result.failed_count,
@@ -435,19 +581,30 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="verify_dry_run_e3.py",
         description=(
-            "Verify every bundle under an E3-011 dry-run dir: assert "
-            "per-arm integrity markers, the Ed25519 signature (live "
-            "bundles), the per-arm receipt count, and aggregate "
-            "OCID completeness against the locked subset."
+            "Verify every bundle under an E3 dry-run / Phase-2 run dir: "
+            "assert per-arm integrity markers, the Ed25519 signature "
+            "(live bundles), the per-arm receipt count, and aggregate "
+            "OCID completeness against the locked subset (dry-run) or "
+            "the full E1 corpus (phase-2)."
         ),
     )
     parser.add_argument(
         "run_dir",
         type=Path,
         help=(
-            "Dry-run directory. Either an absolute path or a path "
+            "Run directory. Either an absolute path or a path "
             "relative to <runner>/results/runs/. Must contain the six "
             "arm subdirs."
+        ),
+    )
+    parser.add_argument(
+        "--scale",
+        choices=SUPPORTED_SCALES,
+        default=None,
+        help=(
+            "Override the matrix scale to assert against. When omitted, "
+            "the verifier infers the scale from the run-dir summary "
+            "file (phase-2-summary.json → phase-2; otherwise dry-run)."
         ),
     )
     parser.add_argument(
@@ -471,7 +628,8 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "Continue past the first failing bundle. Default is to "
-            "stop on first failure (per E3-010 / E3-011 decision rule)."
+            "stop on first failure (per E3-010 / E3-011 / E3-013 "
+            "decision rule)."
         ),
     )
     return parser
@@ -490,6 +648,7 @@ def main(argv: list[str] | None = None) -> int:
 
     result = verify_run(
         run_dir,
+        scale=args.scale,
         allow_stub=args.allow_stub,
         stop_on_first_failure=not args.no_stop,
     )

@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
-"""E3-011 — Dry-run driver.
+"""E3-011 / E3-013 — Dry-run + Phase-2 driver.
 
-Mid-scale live exercise of every E3 arm on 30 corpus records (main
-arms) + 10 corpus records (diagnostic arms). Validates the cost
-projection from the smoke run (E3-010), surfaces any scale-dependent
-issues, and proves the runner is ready for the full Phase 2 run.
+A single driver that runs every E3 arm at one of two scales:
+
+  - ``--scale dry-run``   (default, the E3-011 contract): 30 main-arm
+                          OCIDs + 10 diagnostic-arm OCIDs → 140 receipts.
+  - ``--scale phase-2``   (E3-013): the full corpus → 1,332 receipts.
+                          283 main-arm records × 4 main arms +
+                          100 diagnostic-arm OCIDs × 2 diagnostic arms.
 
 Structurally a scaled-up ``smoke_e3.py``. The live-mode wiring helpers
 (``_build_live_primary_agent`` / ``_build_live_claude_agent`` /
 ``_build_live_meshqu_client``) are imported from ``smoke_e3`` rather
 than duplicated, so the live-construction contracts PR #96 + #97 wrote
 are honoured byte-identically. Only the matrix scale, the per-record
-progress UX, and the dry-run-specific summary additions differ.
+progress UX, and the summary-emission specifics differ.
 
-## The dry-run matrix
+## The matrices
+
+### ``--scale dry-run`` (140 receipts; default)
 
 For the first **30 OCIDs** of ``planning/diagnostic_subset.json``
 (positions 0..29), the driver dispatches:
@@ -29,6 +34,26 @@ For the first **10 OCIDs** (positions 0..9):
   - ``diagnostic_claude``  → 10 receipts
 
 Total: **140 receipts**. (4 main arms × 30) + (2 diag arms × 10) = 140.
+
+### ``--scale phase-2`` (1,332 receipts)
+
+Main arms iterate the **full 283-record E1 frozen corpus** sourced from
+``substrate_cache.load_cached_records(repo_dir)`` — NOT the locked
+diagnostic subset. The diagnostic-subset filter is dropped for main
+arms.
+
+  - ``arm_a``             → 283 receipts
+  - ``arm_b``             → 283 receipts
+  - ``arm_c``             → 283 receipts
+  - ``l4_without_nudge``  → 283 receipts
+
+Diagnostic arms iterate the **full 100-OCID locked subset** (positions
+0..99 of ``planning/diagnostic_subset.json``).
+
+  - ``diagnostic_primary`` → 100 receipts
+  - ``diagnostic_claude``  → 100 receipts
+
+Total: **1,332 receipts** = (4 × 283) + (2 × 100).
 
 ## Modes
 
@@ -66,15 +91,38 @@ run surfaces a tighter limit; Sam can dial it up without a code edit.
 
 ## Output
 
-Writes the run dir at ``<results>/runs/dry-run-<UTC-timestamp>-Z/``:
+Writes the run dir at ``<results>/runs/<run-id>/``. The run-id default
+is scale-keyed: ``dry-run-<UTC>-Z`` for ``--scale dry-run`` and
+``phase-2-<UTC>-Z`` for ``--scale phase-2``. The summary filenames are
+likewise scale-keyed so a paste-back artefact never lies about its
+provenance:
 
   - ``manifests/<arm_name>.manifest.json`` — per-arm run manifest
+                                              (NOT scale-keyed; the
+                                              manifest is the same kind
+                                              of artefact either way)
   - ``<arm_name>/<decision_id>.bundle.json`` — one bundle per receipt
-  - ``dry-run-summary.md`` — per-arm receipt count, latency p50/p95,
-                              total tokens, $ cost, smoke→dry-run
-                              extrapolation accuracy check (±15%),
-                              dry-run→Phase-2 extrapolation
-  - ``dry-run-summary.json`` — same data, machine-readable
+  - ``dry-run-summary.md`` / ``phase-2-summary.md`` — per-arm receipt
+                                              count, latency p50/p95,
+                                              total tokens, $ cost,
+                                              accuracy + extrapolation
+                                              tables (per scale; see
+                                              "Summary accuracy tables"
+                                              below)
+  - ``dry-run-summary.json`` / ``phase-2-summary.json`` — same data,
+                                              machine-readable
+
+## Summary accuracy tables
+
+``--scale dry-run`` emits:
+  - a smoke → dry-run accuracy table (±15% band); and
+  - a dry-run → Phase-2 extrapolation table (forecast).
+
+``--scale phase-2`` emits:
+  - a dry-run → Phase-2 accuracy table (if a dry-run baseline is pinned
+    in ``DRY_RUN_PROMPT_TOKENS_PER_RECORD_BASELINE`` — "n/a (no
+    baseline)" rows otherwise); and
+  - the final Phase-2 per-arm totals (no further extrapolation).
 
 ## Cost rate constants
 
@@ -97,27 +145,51 @@ error during dispatch), invoke it post-flight:
 
     python3 scripts/recover_orphans.py results/runs/dry-run-<…>-Z/
 
-## Live-run invocation (Sam's shell)
+## Live-run invocations (Sam's shell)
+
+Dry-run (E3-011 — already shipped and re-runnable):
 
     set -a && source procurement-context-disambiguation/runner/.env.live && set +a
     cd procurement-context-disambiguation/runner
-    python3 scripts/dry_run_e3.py
+    python3 scripts/dry_run_e3.py --scale dry-run     # or just no flag
 
 Expected: 140 receipts under ``results/runs/dry-run-<timestamp>-Z/``
-with no errors. Wall-clock: ~15-20 minutes at the default pacing
-(140 receipts × ~6s average call + 0.5s pause ≈ 15 min). Verify next:
+with no errors. Wall-clock: ~15-20 minutes at the default pacing.
+Verify next: ``python3 scripts/verify_dry_run_e3.py results/runs/dry-run-<timestamp>-Z/``.
 
-    python3 scripts/verify_dry_run_e3.py results/runs/dry-run-<timestamp>-Z/
+Phase-2 (E3-013 — the full corpus, 1,332 receipts):
+
+    set -a && source procurement-context-disambiguation/runner/.env.live && set +a
+    cd procurement-context-disambiguation/runner
+    python3 scripts/dry_run_e3.py --scale phase-2
+
+Expected: 1,332 receipts under ``results/runs/phase-2-<timestamp>-Z/``
+with no errors. Wall-clock at 0.50s pacing: ~90 minutes of agent time
+(per the dry-run-derived projection). Verify next:
+``python3 scripts/verify_dry_run_e3.py results/runs/phase-2-<timestamp>-Z/ --scale phase-2``.
+
+## Filename caveat
+
+The script is still named ``dry_run_e3.py`` even though ``--scale phase-2``
+makes it a Phase-2 driver too. The rename was deliberately deferred to
+a docs-cleanup batch — chasing imports across tests + docs + the
+decision_log to flip a name in one PR was deemed not worth the churn
+right at the Phase-2 readiness boundary. See the PR body's "Decisions
+recorded" section.
 
 ## What this script does NOT do
 
 - It does NOT make any live API call when ``--dry`` is passed.
 - It does NOT verify receipts itself — that's ``verify_dry_run_e3.py``.
-- It does NOT regenerate the locked subset; reads positions 0..29
-  (main arms) and 0..9 (diagnostic arms) of the committed
-  ``planning/diagnostic_subset.json``.
+- For ``--scale dry-run``: it does NOT regenerate the locked subset;
+  reads positions 0..29 (main arms) and 0..9 (diagnostic arms) of the
+  committed ``planning/diagnostic_subset.json``.
+- For ``--scale phase-2``: main arms iterate the full E1 frozen corpus
+  via ``substrate_cache.load_cached_records``; diagnostic arms read
+  positions 0..99 of ``planning/diagnostic_subset.json``.
 - It does NOT modify the live-mode construction helpers in
   ``smoke_e3.py``. Those contracts are inherited verbatim.
+- It does NOT modify ``smoke_e3.py`` — that's its own driver.
 """
 from __future__ import annotations
 
@@ -176,26 +248,62 @@ from smoke_e3 import (  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
-# The dry-run matrix — locked in code, mirrored verbatim in the PR body.
+# The matrix — locked in code per scale, mirrored verbatim in the PR body.
 # ---------------------------------------------------------------------------
 
+SCALE_DRY_RUN = "dry-run"
+SCALE_PHASE_2 = "phase-2"
+SUPPORTED_SCALES: tuple[str, ...] = (SCALE_DRY_RUN, SCALE_PHASE_2)
+"""The two operating scales this driver supports.
+
+``dry-run`` (E3-011 default) preserves the 140-receipt mid-scale matrix.
+``phase-2`` (E3-013) fires the full 1,332-receipt corpus.
+"""
+
 DRY_RUN_MAIN_OCID_COUNT = 30
-"""Number of OCIDs the four main arms run against (positions 0..29)."""
+"""Number of OCIDs the four main arms run against in ``--scale dry-run``
+(positions 0..29 of the locked diagnostic subset)."""
 
 DRY_RUN_DIAGNOSTIC_OCID_COUNT = 10
-"""Number of OCIDs the two diagnostic arms run against (positions 0..9)."""
+"""Number of OCIDs the two diagnostic arms run against in
+``--scale dry-run`` (positions 0..9)."""
 
 MAIN_ARMS: tuple[str, ...] = ("arm_a", "arm_b", "arm_c", "l4_without_nudge")
-"""The four arms that run against every dry-run main OCID."""
+"""The four main arms that run against every main-arm OCID."""
 
 DIAGNOSTIC_ARMS: tuple[str, ...] = ("diagnostic_primary", "diagnostic_claude")
-"""The two diagnostic arms — 10 records each."""
+"""The two diagnostic arms."""
 
-EXPECTED_TOTAL_RECEIPTS = (
-    DRY_RUN_MAIN_OCID_COUNT * len(MAIN_ARMS)
-    + DRY_RUN_DIAGNOSTIC_OCID_COUNT * len(DIAGNOSTIC_ARMS)
-)
-"""140 — assertion target."""
+# Per-scale matrix counts — the assertion targets the driver uses in
+# both the runtime summary and the test surface.
+RECORDS_PER_MAIN_ARM_BY_SCALE: dict[str, int] = {
+    SCALE_DRY_RUN: DRY_RUN_MAIN_OCID_COUNT,
+    SCALE_PHASE_2: 283,  # smoke_e3.FULL_RUN_RECEIPTS_PER_MAIN_ARM
+}
+RECORDS_PER_DIAGNOSTIC_ARM_BY_SCALE: dict[str, int] = {
+    SCALE_DRY_RUN: DRY_RUN_DIAGNOSTIC_OCID_COUNT,
+    SCALE_PHASE_2: 100,  # smoke_e3.FULL_RUN_RECEIPTS_PER_DIAGNOSTIC_ARM
+}
+
+
+def expected_total_receipts(scale: str) -> int:
+    """Per-scale receipt-count assertion target.
+
+    Returns 140 for ``dry-run`` (30×4 + 10×2) and 1,332 for ``phase-2``
+    (283×4 + 100×2)."""
+    return (
+        RECORDS_PER_MAIN_ARM_BY_SCALE[scale] * len(MAIN_ARMS)
+        + RECORDS_PER_DIAGNOSTIC_ARM_BY_SCALE[scale] * len(DIAGNOSTIC_ARMS)
+    )
+
+
+# Back-compat alias: existing test_dry_run_e3 + verify_dry_run_e3 read
+# ``EXPECTED_TOTAL_RECEIPTS``. Keep it at the dry-run value to avoid
+# breaking those call sites; the phase-2 path uses
+# ``expected_total_receipts(SCALE_PHASE_2)``.
+EXPECTED_TOTAL_RECEIPTS = expected_total_receipts(SCALE_DRY_RUN)
+"""140 — the dry-run assertion target. Phase-2 uses
+``expected_total_receipts(SCALE_PHASE_2)`` (= 1,332) instead."""
 
 
 # ---------------------------------------------------------------------------
@@ -277,6 +385,44 @@ SMOKE_PROMPT_TOKENS_PER_RECORD_BASELINE: dict[str, float] = {
 # ±15% per the spec §5: within band → smoke extrapolation trustworthy;
 # outside band → flag and update Phase 2 projection.
 SMOKE_TO_DRY_RUN_ACCURACY_TOLERANCE = 0.15
+
+
+# ---------------------------------------------------------------------------
+# Dry-run baseline — for the dry-run → Phase-2 accuracy check used by
+# ``--scale phase-2``. Same shape as ``SMOKE_PROMPT_TOKENS_PER_RECORD_BASELINE``,
+# same ±15% band. Pin per-arm mean prompt-tokens here once a trusted
+# dry-run is in hand; the summary will then surface the
+# dry-run→phase-2 accuracy table for the operator.
+#
+# Empty by default — the most recent dry-run results aren't committed,
+# so the phase-2 accuracy table renders "n/a (no baseline)" rows until
+# this dict is populated in a follow-up. The cost-projection forecast
+# is already trusted at the dry-run level (per the phase 1 readiness
+# report's $25.21 envelope); this table would only catch a regression
+# that materialised between dry-run and phase-2, which the band check
+# would surface if populated.
+# ---------------------------------------------------------------------------
+
+# lifted from dry-run-20260528T164807-Z (the post-fix dry-run;
+# readiness-report-cited; commit 9852c07).
+DRY_RUN_PROMPT_TOKENS_PER_RECORD_BASELINE: dict[str, float] = {
+    "arm_a": 1843.0,
+    "arm_b": 1443.2,
+    "arm_c": 1626.4,
+    "l4_without_nudge": 2577.4,
+    "diagnostic_primary": 2599.5,
+    "diagnostic_claude": 3943.6,
+}
+"""Per-arm dry-run mean prompt-tokens per record. Pinned from the
+post-fix dry-run ``dry-run-20260528T164807-Z`` (citation comment
+above). Consumed by the Phase-2 summary's dry-run → Phase-2 accuracy
+table — actual Phase-2 prompt-tokens-per-record per arm are compared
+against these baselines, ±15% band per
+``DRY_RUN_TO_PHASE_2_ACCURACY_TOLERANCE``. Same gate language as
+smoke→dry-run."""
+
+DRY_RUN_TO_PHASE_2_ACCURACY_TOLERANCE = 0.15
+"""Same ±15% band as the smoke→dry-run check."""
 
 
 # ---------------------------------------------------------------------------
@@ -435,6 +581,59 @@ def compute_smoke_accuracy_row(
     }
 
 
+def compute_dry_run_accuracy_row(
+    *,
+    arm_name: str,
+    phase_2_mean_tokens: float,
+) -> dict[str, Any]:
+    """Compute the per-arm dry-run → Phase-2 accuracy check for the
+    ``--scale phase-2`` summary.
+
+    Mirrors ``compute_smoke_accuracy_row`` shape so the renderer can
+    share its formatting path. The baseline comes from
+    ``DRY_RUN_PROMPT_TOKENS_PER_RECORD_BASELINE``; if that dict is
+    empty (no dry-run baseline pinned yet) the row is emitted with
+    ``within_band=None`` and ``stub_mode=False`` — the renderer
+    interprets a missing baseline as "n/a (no baseline)" rather than
+    "n/a (stub)"."""
+    dry_run_baseline = DRY_RUN_PROMPT_TOKENS_PER_RECORD_BASELINE.get(arm_name)
+    if dry_run_baseline is None or dry_run_baseline <= 0.0:
+        return {
+            "arm": arm_name,
+            "dry_run_mean": dry_run_baseline,
+            "phase_2_mean": phase_2_mean_tokens,
+            "ratio": None,
+            "within_band": None,
+            "stub_mode": phase_2_mean_tokens == 0.0,
+            "no_baseline": True,
+        }
+    if phase_2_mean_tokens <= 0.0:
+        return {
+            "arm": arm_name,
+            "dry_run_mean": dry_run_baseline,
+            "phase_2_mean": phase_2_mean_tokens,
+            "ratio": None,
+            "within_band": None,
+            "stub_mode": True,
+            "no_baseline": False,
+        }
+    ratio = phase_2_mean_tokens / dry_run_baseline
+    within = (
+        (1.0 - DRY_RUN_TO_PHASE_2_ACCURACY_TOLERANCE)
+        <= ratio
+        <= (1.0 + DRY_RUN_TO_PHASE_2_ACCURACY_TOLERANCE)
+    )
+    return {
+        "arm": arm_name,
+        "dry_run_mean": dry_run_baseline,
+        "phase_2_mean": phase_2_mean_tokens,
+        "ratio": ratio,
+        "within_band": within,
+        "stub_mode": False,
+        "no_baseline": False,
+    }
+
+
 def build_phase_2_extrapolation_table(
     accountings: dict[str, "ArmAccounting"],
 ) -> list[dict[str, Any]]:
@@ -572,11 +771,39 @@ def _records_for_arm(
     main_records: list[dict[str, Any]],
     diagnostic_records: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    """Slice the record set per the dry-run matrix. Main arms get all
-    30 records; diagnostic arms get the first 10."""
+    """Slice the pre-built record set per arm.
+
+    Main arms (``arm_a``, ``arm_b``, ``arm_c``, ``l4_without_nudge``)
+    get ``main_records``; diagnostic arms get ``diagnostic_records``.
+    The caller constructs both lists per the active scale:
+
+      - ``--scale dry-run``: main_records = positions 0..29 of the
+        locked diagnostic subset (30 records); diagnostic_records =
+        positions 0..9 (10 records).
+      - ``--scale phase-2``: main_records = all 283 records from
+        ``substrate_cache.load_cached_records`` (the full E1 frozen
+        corpus); diagnostic_records = the full 100-OCID locked subset.
+    """
     if arm_name in DIAGNOSTIC_ARMS:
         return diagnostic_records
     return main_records
+
+
+def _build_main_arm_records_phase_2(repo_dir: Path) -> list[dict[str, Any]]:
+    """Materialise the full 283-record main-arm corpus for
+    ``--scale phase-2``. Loads every cached record from the E1 frozen
+    archive via ``substrate_cache.load_cached_records`` and returns the
+    plain dict shape the orchestrator consumes (via ``as_record()``).
+
+    Order is OCID-ascending — the substrate cache itself guarantees
+    that. We don't reshuffle.
+    """
+    # Lazy import — matches the smoke driver's pattern. Keeps --dry-mode
+    # imports of stale archive code paths off the critical path.
+    from meshqu_runner.substrate_cache import load_cached_records
+
+    cached_records = load_cached_records(repo_dir)
+    return [cr.as_record() for cr in cached_records]
 
 
 # ---------------------------------------------------------------------------
@@ -592,10 +819,27 @@ def _format_latency_block(acc: ArmAccounting) -> str:
     return f"  p50={p50:.0f}ms  p95={(p95 or 0.0):.0f}ms"
 
 
+def _summary_filename_stem(scale: str) -> str:
+    """``dry-run-summary`` or ``phase-2-summary`` — the stem the .md/.json
+    artefacts share. Centralised so callers never invent a divergent
+    name."""
+    if scale == SCALE_PHASE_2:
+        return "phase-2-summary"
+    return "dry-run-summary"
+
+
+def _summary_h1_title(scale: str, run_id: str) -> str:
+    """Scale-keyed H1 title for the summary Markdown."""
+    if scale == SCALE_PHASE_2:
+        return f"# E3 Phase 2 — `{run_id}`"
+    return f"# E3 dry-run — `{run_id}`"
+
+
 def write_summary(
     *,
     run_dir: Path,
     run_id: str,
+    scale: str,
     started_at: str,
     finished_at: str,
     main_ocids: list[str],
@@ -604,45 +848,79 @@ def write_summary(
     accountings: dict[str, ArmAccounting],
     phase_2_extrapolation: list[dict[str, Any]],
     smoke_accuracy: list[dict[str, Any]],
+    dry_run_accuracy: list[dict[str, Any]],
     completeness_violations: list[str],
     inter_request_pause_seconds: float,
 ) -> tuple[Path, Path]:
-    """Emit ``dry-run-summary.md`` and ``dry-run-summary.json``. Returns
-    both paths so the caller can echo them."""
+    """Emit ``<stem>.md`` and ``<stem>.json`` where ``<stem>`` is
+    ``dry-run-summary`` (``--scale dry-run``) or ``phase-2-summary``
+    (``--scale phase-2``). Returns both paths so the caller can echo
+    them.
 
+    ``smoke_accuracy`` / ``phase_2_extrapolation`` are only rendered in
+    dry-run mode; ``dry_run_accuracy`` is only rendered in phase-2 mode.
+    The JSON payload always carries every list (per-scale absent ones
+    are empty) so a downstream consumer can read either summary with
+    one schema."""
+
+    expected_total = expected_total_receipts(scale)
     total_receipts = sum(a.receipts_written for a in accountings.values())
     total_errors = sum(len(a.errors) for a in accountings.values())
 
     md_lines: list[str] = []
-    md_lines.append(f"# E3 dry-run — `{run_id}`")
+    md_lines.append(_summary_h1_title(scale, run_id))
     md_lines.append("")
     md_lines.append(f"- **Started:** {started_at}")
     md_lines.append(f"- **Finished:** {finished_at}")
+    md_lines.append(f"- **Scale:** `{scale}`")
     md_lines.append(f"- **Mode:** {'--dry (stubs)' if is_dry else 'live'}")
     md_lines.append(f"- **Pre-registration tag:** `{PREREG_TAG}`")
     md_lines.append(
         f"- **Pacing:** {inter_request_pause_seconds:.2f}s between live calls"
     )
     md_lines.append(
-        f"- **Receipts written:** {total_receipts} / {EXPECTED_TOTAL_RECEIPTS} expected"
+        f"- **Receipts written:** {total_receipts} / {expected_total} expected"
     )
     md_lines.append(f"- **Errors:** {total_errors}")
     md_lines.append("")
 
-    md_lines.append("## Dry-run matrix")
-    md_lines.append("")
-    md_lines.append(
-        f"- **Main-arm OCIDs (positions 0..{DRY_RUN_MAIN_OCID_COUNT - 1} from "
-        f"`planning/diagnostic_subset.json`):** {len(main_ocids)}"
-    )
-    for i, ocid in enumerate(main_ocids):
-        md_lines.append(f"  {i}. `{ocid}`")
-    md_lines.append("")
-    md_lines.append(
-        f"- **Diagnostic-arm OCIDs (positions 0..{DRY_RUN_DIAGNOSTIC_OCID_COUNT - 1}):** "
-        f"{len(diagnostic_ocids)} (subset of the main-arm OCIDs)"
-    )
-    md_lines.append("")
+    # Matrix section. In dry-run mode we list all 30 main OCIDs inline
+    # (preserves the original artefact's contents); in phase-2 mode the
+    # 283-line dump is too noisy, so we report counts only and let the
+    # operator cross-reference the substrate-cache file if needed.
+    if scale == SCALE_PHASE_2:
+        md_lines.append("## Phase-2 matrix")
+        md_lines.append("")
+        md_lines.append(
+            f"- **Main-arm records:** {len(main_ocids)} "
+            "(full E1 frozen corpus from "
+            "`meshqu_runner.substrate_cache.load_cached_records`)"
+        )
+        md_lines.append(
+            f"- **Diagnostic-arm OCIDs (positions 0..{len(diagnostic_ocids) - 1} "
+            f"of `planning/diagnostic_subset.json`):** {len(diagnostic_ocids)}"
+        )
+        md_lines.append(
+            f"- **Total receipts target:** {expected_total} "
+            f"(4 main arms × {RECORDS_PER_MAIN_ARM_BY_SCALE[scale]} + "
+            f"2 diag arms × {RECORDS_PER_DIAGNOSTIC_ARM_BY_SCALE[scale]})"
+        )
+        md_lines.append("")
+    else:
+        md_lines.append("## Dry-run matrix")
+        md_lines.append("")
+        md_lines.append(
+            f"- **Main-arm OCIDs (positions 0..{DRY_RUN_MAIN_OCID_COUNT - 1} from "
+            f"`planning/diagnostic_subset.json`):** {len(main_ocids)}"
+        )
+        for i, ocid in enumerate(main_ocids):
+            md_lines.append(f"  {i}. `{ocid}`")
+        md_lines.append("")
+        md_lines.append(
+            f"- **Diagnostic-arm OCIDs (positions 0..{DRY_RUN_DIAGNOSTIC_OCID_COUNT - 1}):** "
+            f"{len(diagnostic_ocids)} (subset of the main-arm OCIDs)"
+        )
+        md_lines.append("")
 
     md_lines.append("## Per-arm latency + token + cost")
     md_lines.append("")
@@ -675,65 +953,150 @@ def write_summary(
     )
     md_lines.append("")
 
-    md_lines.append("## Smoke → dry-run accuracy (±15% band)")
-    md_lines.append("")
-    md_lines.append(
-        "Per the package spec §5: if observed dry-run mean prompt-tokens "
-        f"per record is within ±{int(SMOKE_TO_DRY_RUN_ACCURACY_TOLERANCE * 100)}% "
-        "of the smoke baseline, the smoke→Phase-2 extrapolation is "
-        "trustworthy. Outside ±15% → update the Phase-2 projection."
-    )
-    md_lines.append("")
-    md_lines.append(
-        "| Arm | Smoke mean (tok/rec) | Dry-run mean (tok/rec) | Ratio | Within ±15%? |"
-    )
-    md_lines.append("|---|---:|---:|---:|:---:|")
-    for row in smoke_accuracy:
-        ratio = row["ratio"]
-        ratio_str = f"{ratio:.3f}" if ratio is not None else "—"
-        if row["stub_mode"]:
-            within_str = "n/a (stub)"
-        elif row["within_band"] is True:
-            within_str = "yes"
-        elif row["within_band"] is False:
-            within_str = "**no**"
-        else:
-            within_str = "n/a"
-        smoke_mean = row["smoke_mean"]
-        smoke_str = f"{smoke_mean:.1f}" if smoke_mean is not None else "—"
+    if scale == SCALE_DRY_RUN:
+        # Dry-run mode: smoke→dry-run accuracy (±15%) + dry-run→Phase-2
+        # extrapolation forecast.
+        md_lines.append("## Smoke → dry-run accuracy (±15% band)")
+        md_lines.append("")
         md_lines.append(
-            f"| `{row['arm']}` | {smoke_str} | "
-            f"{row['dry_run_mean']:.1f} | {ratio_str} | {within_str} |"
+            "Per the package spec §5: if observed dry-run mean prompt-tokens "
+            f"per record is within ±{int(SMOKE_TO_DRY_RUN_ACCURACY_TOLERANCE * 100)}% "
+            "of the smoke baseline, the smoke→Phase-2 extrapolation is "
+            "trustworthy. Outside ±15% → update the Phase-2 projection."
         )
-    md_lines.append("")
+        md_lines.append("")
+        md_lines.append(
+            "| Arm | Smoke mean (tok/rec) | Dry-run mean (tok/rec) | Ratio | Within ±15%? |"
+        )
+        md_lines.append("|---|---:|---:|---:|:---:|")
+        for row in smoke_accuracy:
+            ratio = row["ratio"]
+            ratio_str = f"{ratio:.3f}" if ratio is not None else "—"
+            if row["stub_mode"]:
+                within_str = "n/a (stub)"
+            elif row["within_band"] is True:
+                within_str = "yes"
+            elif row["within_band"] is False:
+                within_str = "**no**"
+            else:
+                within_str = "n/a"
+            smoke_mean = row["smoke_mean"]
+            smoke_str = f"{smoke_mean:.1f}" if smoke_mean is not None else "—"
+            md_lines.append(
+                f"| `{row['arm']}` | {smoke_str} | "
+                f"{row['dry_run_mean']:.1f} | {ratio_str} | {within_str} |"
+            )
+        md_lines.append("")
 
-    md_lines.append("## Dry-run → Phase 2 extrapolation")
-    md_lines.append("")
-    md_lines.append(
-        "Linear extrapolation of observed dry-run mean prompt-tokens "
-        "per record to the full Phase-2 receipt counts "
-        f"({FULL_RUN_RECEIPTS_PER_MAIN_ARM} per main arm, "
-        f"{FULL_RUN_RECEIPTS_PER_DIAGNOSTIC_ARM} per diagnostic arm). "
-        "Stub-mode numbers are zero by design."
-    )
-    md_lines.append("")
-    md_lines.append(
-        "| Arm | Dry-run receipts | Dry-run prompt-tok | $ cost | Phase-2 receipts | Phase-2 prompt-tok | Phase-2 $ cost |"
-    )
-    md_lines.append("|---|---:|---:|---:|---:|---:|---:|")
-    total_full_cost = 0.0
-    for row in phase_2_extrapolation:
+        md_lines.append("## Dry-run → Phase 2 extrapolation")
+        md_lines.append("")
         md_lines.append(
-            f"| `{row['arm']}` | {row['dry_run_receipts']} | "
-            f"{row['dry_run_prompt_tokens_total']} | "
-            f"${row['dry_run_usd_cost']:.4f} | "
-            f"{row['full_run_receipts']} | "
-            f"{row['full_run_prompt_tokens_projected']} | "
-            f"${row['full_run_usd_cost_projected']:.2f} |"
+            "Linear extrapolation of observed dry-run mean prompt-tokens "
+            "per record to the full Phase-2 receipt counts "
+            f"({FULL_RUN_RECEIPTS_PER_MAIN_ARM} per main arm, "
+            f"{FULL_RUN_RECEIPTS_PER_DIAGNOSTIC_ARM} per diagnostic arm). "
+            "Stub-mode numbers are zero by design."
         )
-        total_full_cost += row["full_run_usd_cost_projected"]
-    md_lines.append(f"| **TOTAL** | | | | | | **${total_full_cost:.2f}** |")
-    md_lines.append("")
+        md_lines.append("")
+        md_lines.append(
+            "| Arm | Dry-run receipts | Dry-run prompt-tok | $ cost | Phase-2 receipts | Phase-2 prompt-tok | Phase-2 $ cost |"
+        )
+        md_lines.append("|---|---:|---:|---:|---:|---:|---:|")
+        total_full_cost = 0.0
+        for row in phase_2_extrapolation:
+            md_lines.append(
+                f"| `{row['arm']}` | {row['dry_run_receipts']} | "
+                f"{row['dry_run_prompt_tokens_total']} | "
+                f"${row['dry_run_usd_cost']:.4f} | "
+                f"{row['full_run_receipts']} | "
+                f"{row['full_run_prompt_tokens_projected']} | "
+                f"${row['full_run_usd_cost_projected']:.2f} |"
+            )
+            total_full_cost += row["full_run_usd_cost_projected"]
+        md_lines.append(f"| **TOTAL** | | | | | | **${total_full_cost:.2f}** |")
+        md_lines.append("")
+    else:
+        # Phase-2 mode: dry-run→Phase-2 accuracy (±15%; "n/a (no
+        # baseline)" until DRY_RUN_PROMPT_TOKENS_PER_RECORD_BASELINE is
+        # pinned) + final per-arm Phase-2 totals (no further
+        # extrapolation; the receipts are the receipts).
+        md_lines.append("## Dry-run → Phase 2 accuracy (±15% band)")
+        md_lines.append("")
+        if DRY_RUN_PROMPT_TOKENS_PER_RECORD_BASELINE:
+            md_lines.append(
+                "If observed Phase-2 mean prompt-tokens per record is within "
+                f"±{int(DRY_RUN_TO_PHASE_2_ACCURACY_TOLERANCE * 100)}% of the "
+                "pinned dry-run baseline, the dry-run-derived cost envelope "
+                "($25.21 per the Phase-1 readiness report) held. Outside the "
+                "band → record the drift in the Phase-2 writeup."
+            )
+        else:
+            md_lines.append(
+                "**No dry-run baseline pinned.** Rows render as "
+                "`n/a (no baseline)`. Populate "
+                "`DRY_RUN_PROMPT_TOKENS_PER_RECORD_BASELINE` from a trusted "
+                "dry-run summary to enable the band check in a follow-up PR."
+            )
+        md_lines.append("")
+        md_lines.append(
+            "| Arm | Dry-run mean (tok/rec) | Phase-2 mean (tok/rec) | Ratio | Within ±15%? |"
+        )
+        md_lines.append("|---|---:|---:|---:|:---:|")
+        for row in dry_run_accuracy:
+            ratio = row["ratio"]
+            ratio_str = f"{ratio:.3f}" if ratio is not None else "—"
+            if row.get("no_baseline"):
+                within_str = "n/a (no baseline)"
+            elif row["stub_mode"]:
+                within_str = "n/a (stub)"
+            elif row["within_band"] is True:
+                within_str = "yes"
+            elif row["within_band"] is False:
+                within_str = "**no**"
+            else:
+                within_str = "n/a"
+            dry_run_mean = row["dry_run_mean"]
+            dry_run_str = (
+                f"{dry_run_mean:.1f}" if dry_run_mean is not None else "—"
+            )
+            md_lines.append(
+                f"| `{row['arm']}` | {dry_run_str} | "
+                f"{row['phase_2_mean']:.1f} | {ratio_str} | {within_str} |"
+            )
+        md_lines.append("")
+
+        md_lines.append("## Phase 2 totals")
+        md_lines.append("")
+        md_lines.append(
+            "Final per-arm receipts + observed tokens + observed $ cost for "
+            "the full 1,332-receipt Phase-2 corpus. No further extrapolation "
+            "— these are the receipts."
+        )
+        md_lines.append("")
+        md_lines.append(
+            "| Arm | Receipts | Prompt-tok total | Mean (tok/rec) | $ cost |"
+        )
+        md_lines.append("|---|---:|---:|---:|---:|")
+        total_observed_cost = 0.0
+        for arm_name in MAIN_ARMS + DIAGNOSTIC_ARMS:
+            acc = accountings.get(arm_name)
+            if acc is None:
+                md_lines.append(f"| `{arm_name}` | 0 | 0 | — | — |")
+                continue
+            cost = estimate_arm_cost_usd(
+                arm_name=arm_name,
+                prompt_tokens_total=acc.prompt_tokens_total(),
+            )
+            md_lines.append(
+                f"| `{arm_name}` | {acc.receipts_written} | "
+                f"{acc.prompt_tokens_total()} | "
+                f"{acc.prompt_tokens_mean_per_record():.1f} | ${cost:.2f} |"
+            )
+            total_observed_cost += cost
+        md_lines.append(
+            f"| **TOTAL** | {total_receipts} | | | **${total_observed_cost:.2f}** |"
+        )
+        md_lines.append("")
 
     md_lines.append("## Aggregate completeness")
     md_lines.append("")
@@ -770,24 +1133,33 @@ def write_summary(
 
     md_lines.append("## Next step")
     md_lines.append("")
-    md_lines.append(f"    python3 scripts/verify_dry_run_e3.py {run_dir.name}/")
+    if scale == SCALE_PHASE_2:
+        md_lines.append(
+            f"    python3 scripts/verify_dry_run_e3.py {run_dir.name}/ --scale phase-2"
+        )
+    else:
+        md_lines.append(
+            f"    python3 scripts/verify_dry_run_e3.py {run_dir.name}/"
+        )
     md_lines.append("")
     md_lines.append(
         "(run from inside `procurement-context-disambiguation/runner/` "
         "with the run dir resolved relative to `results/runs/`.)"
     )
 
-    md_path = run_dir / "dry-run-summary.md"
+    stem = _summary_filename_stem(scale)
+    md_path = run_dir / f"{stem}.md"
     md_path.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
 
     json_payload = {
         "run_id": run_id,
+        "scale": scale,
         "started_at": started_at,
         "finished_at": finished_at,
         "is_dry": is_dry,
         "main_ocids": main_ocids,
         "diagnostic_ocids": diagnostic_ocids,
-        "expected_total_receipts": EXPECTED_TOTAL_RECEIPTS,
+        "expected_total_receipts": expected_total,
         "total_receipts_written": total_receipts,
         "total_errors": total_errors,
         "prereg_tag": PREREG_TAG,
@@ -817,6 +1189,7 @@ def write_summary(
         },
         "smoke_to_dry_run_accuracy": smoke_accuracy,
         "phase_2_extrapolation": phase_2_extrapolation,
+        "dry_run_to_phase_2_accuracy": dry_run_accuracy,
         "completeness_violations": completeness_violations,
         "cost_rates": {
             "gpt_5_4": {
@@ -830,7 +1203,7 @@ def write_summary(
             "completion_token_ratio_of_prompt": COMPLETION_TOKEN_RATIO_OF_PROMPT,
         },
     }
-    json_path = run_dir / "dry-run-summary.json"
+    json_path = run_dir / f"{stem}.json"
     json_path.write_text(
         json.dumps(json_payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -865,11 +1238,25 @@ def _print_tick(
     )
 
 
+def _run_phase_for_scale(scale: str) -> str:
+    """Map the driver's ``--scale`` to the ``RunPhase`` literal recorded
+    in the per-arm RunConfig + manifest.
+
+    ``dry-run`` → ``"dry-run"`` (the existing E3-011 phase).
+    ``phase-2`` → ``"full-run"`` (the established literal for the full
+                  corpus run; see ``meshqu_runner.run_manifest.RunPhase``).
+    """
+    if scale == SCALE_PHASE_2:
+        return "full-run"
+    return "dry-run"
+
+
 def _run_one_arm(
     *,
     arm_name: str,
     records: list[dict[str, Any]],
     run_id: str,
+    run_phase: str,
     run_dir: Path,
     repo_dir: Path,
     is_dry: bool,
@@ -909,7 +1296,7 @@ def _run_one_arm(
 
     config = RunConfig(
         run_id=run_id,
-        run_phase="dry-run",
+        run_phase=run_phase,  # "dry-run" or "full-run" per scale
         repo_dir=repo_dir,
         run_dir=run_dir,
         arm_name=arm_name,
@@ -994,9 +1381,21 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dry_run_e3.py",
         description=(
-            "E3-011 dry-run driver. Runs 140 receipts across all six E3 "
-            "arms — 30 main-arm OCIDs (positions 0..29 of the locked "
-            "subset) + 10 diagnostic-arm OCIDs (positions 0..9)."
+            "E3 dry-run / Phase-2 driver. Runs every E3 arm at the "
+            "configured scale: 140 receipts in --scale dry-run (default), "
+            "1,332 receipts in --scale phase-2 (the full E1 corpus)."
+        ),
+    )
+    parser.add_argument(
+        "--scale",
+        choices=SUPPORTED_SCALES,
+        default=SCALE_DRY_RUN,
+        help=(
+            "Matrix scale. 'dry-run' (default) fires the 140-receipt "
+            "mid-scale matrix (30 main-arm OCIDs + 10 diagnostic-arm "
+            "OCIDs from the locked subset). 'phase-2' fires the full "
+            "1,332-receipt corpus (283 main-arm records from the E1 "
+            "frozen archive + 100 diagnostic-arm OCIDs)."
         ),
     )
     parser.add_argument(
@@ -1022,7 +1421,8 @@ def _build_parser() -> argparse.ArgumentParser:
         "--run-id",
         default=None,
         help=(
-            "Override run_id; defaults to 'dry-run-<UTC-timestamp>-Z'."
+            "Override run_id; defaults to '<scale>-<UTC-timestamp>-Z' "
+            "(i.e. 'dry-run-…' or 'phase-2-…' per --scale)."
         ),
     )
     parser.add_argument(
@@ -1032,8 +1432,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help=(
             "Pace between live calls. Defaults to "
             f"{smoke_e3.INTER_REQUEST_PAUSE_SECONDS_LIVE}s in live mode "
-            "(140 receipts × 0.5s = ~70s of pause across the run — "
-            "comfortably below OpenAI tier-1's 500 RPM cap), 0s in --dry."
+            "for both scales (140 receipts × 0.5s = ~70s pause across "
+            "the dry-run; 1,332 receipts × 0.5s = ~11 minutes pause "
+            "across phase-2 — comfortably below OpenAI tier-1's 500 RPM "
+            "cap and the experiment-account Anthropic ceilings), 0s in "
+            "--dry."
         ),
     )
     return parser
@@ -1042,6 +1445,13 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
 
+    scale: str = args.scale
+    if scale not in SUPPORTED_SCALES:  # pragma: no cover — argparse pre-filters
+        raise SystemExit(
+            f"FAIL: unsupported --scale {scale!r}; choose from "
+            f"{', '.join(SUPPORTED_SCALES)}."
+        )
+
     is_dry = bool(args.dry)
     env: dict[str, str] | None
     if is_dry:
@@ -1049,26 +1459,58 @@ def main(argv: list[str] | None = None) -> int:
     else:
         env = _check_env()
 
-    # Load locked subset → positions 0..29 for main arms, 0..9 for diag arms.
-    all_ocids = load_diagnostic_subset()
-    if len(all_ocids) < DRY_RUN_MAIN_OCID_COUNT:
-        raise SystemExit(
-            f"FAIL: locked diagnostic subset has {len(all_ocids)} OCIDs; "
-            f"dry-run requires ≥ {DRY_RUN_MAIN_OCID_COUNT}. Re-check "
-            "planning/diagnostic_subset.json."
-        )
-
-    main_ocids = all_ocids[:DRY_RUN_MAIN_OCID_COUNT]
-    diagnostic_ocids = all_ocids[:DRY_RUN_DIAGNOSTIC_OCID_COUNT]
-
-    main_records = _build_records(main_ocids)
-    diagnostic_records = _build_records(diagnostic_ocids)
+    expected_total = expected_total_receipts(scale)
+    main_count = RECORDS_PER_MAIN_ARM_BY_SCALE[scale]
+    diag_count = RECORDS_PER_DIAGNOSTIC_ARM_BY_SCALE[scale]
+    run_phase = _run_phase_for_scale(scale)
 
     runner_dir = _RUNNER_DIR
     e3_dir = runner_dir.parent  # procurement-context-disambiguation/
     repo_dir = e3_dir.parent  # repo root
+
+    # Record-set construction is scale-specific.
+    #
+    # Main arms:
+    #   - dry-run: first 30 OCIDs of the locked diagnostic subset.
+    #   - phase-2: the full 283-record E1 frozen corpus (via
+    #     substrate_cache.load_cached_records). The diagnostic-subset
+    #     filter is dropped — main arms see the WHOLE corpus.
+    #
+    # Diagnostic arms:
+    #   - dry-run: first 10 OCIDs of the locked subset.
+    #   - phase-2: the full 100-OCID locked subset.
+    all_locked_ocids = load_diagnostic_subset()
+    if len(all_locked_ocids) < diag_count:
+        raise SystemExit(
+            f"FAIL: locked diagnostic subset has {len(all_locked_ocids)} OCIDs; "
+            f"--scale {scale} requires ≥ {diag_count}. Re-check "
+            "planning/diagnostic_subset.json."
+        )
+    diagnostic_ocids = all_locked_ocids[:diag_count]
+    diagnostic_records = _build_records(diagnostic_ocids)
+
+    if scale == SCALE_PHASE_2:
+        main_records = _build_main_arm_records_phase_2(repo_dir)
+        if len(main_records) != main_count:
+            raise SystemExit(
+                f"FAIL: --scale phase-2 expected {main_count} main-arm "
+                f"records from substrate_cache.load_cached_records; got "
+                f"{len(main_records)}. The E1 frozen archive may have "
+                "drifted from the 283-record contract."
+            )
+        main_ocids = [r["ocid"] for r in main_records]
+    else:
+        if len(all_locked_ocids) < main_count:
+            raise SystemExit(
+                f"FAIL: locked diagnostic subset has {len(all_locked_ocids)} "
+                f"OCIDs; --scale {scale} requires ≥ {main_count}. Re-check "
+                "planning/diagnostic_subset.json."
+            )
+        main_ocids = all_locked_ocids[:main_count]
+        main_records = _build_records(main_ocids)
+
     results_dir = args.results_dir if args.results_dir else e3_dir / "results"
-    run_id = args.run_id or f"dry-run-{_utc_timestamp_slug()}"
+    run_id = args.run_id or f"{scale}-{_utc_timestamp_slug()}"
     run_dir = results_dir / "runs" / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1081,20 +1523,29 @@ def main(argv: list[str] | None = None) -> int:
     archive = _load_precedent_archive_or_empty()
 
     print(f"==> Run id: {run_id}")
+    print(f"    Scale:          {scale}")
     print(f"    Mode:           {'--dry (stubs)' if is_dry else 'LIVE'}")
     print(f"    Run dir:        {run_dir}")
+    if scale == SCALE_PHASE_2:
+        print(
+            f"    Main records:   {len(main_ocids)} (full E1 frozen corpus)"
+        )
+        print(
+            f"    Diag OCIDs:     {len(diagnostic_ocids)} "
+            f"(positions 0..{diag_count - 1} of locked subset)"
+        )
+    else:
+        print(
+            f"    Main OCIDs:     {len(main_ocids)} "
+            f"(positions 0..{main_count - 1} of locked subset)"
+        )
+        print(
+            f"    Diag OCIDs:     {len(diagnostic_ocids)} "
+            f"(positions 0..{diag_count - 1})"
+        )
     print(
-        f"    Main OCIDs:     {len(main_ocids)} "
-        f"(positions 0..{DRY_RUN_MAIN_OCID_COUNT - 1})"
-    )
-    print(
-        f"    Diag OCIDs:     {len(diagnostic_ocids)} "
-        f"(positions 0..{DRY_RUN_DIAGNOSTIC_OCID_COUNT - 1})"
-    )
-    print(
-        f"    Receipts target: {EXPECTED_TOTAL_RECEIPTS} "
-        f"(4 main arms × {DRY_RUN_MAIN_OCID_COUNT} + 2 diag arms × "
-        f"{DRY_RUN_DIAGNOSTIC_OCID_COUNT})"
+        f"    Receipts target: {expected_total} "
+        f"(4 main arms × {main_count} + 2 diag arms × {diag_count})"
     )
     print(f"    Pacing:         {inter_request_pause:.2f}s between calls")
     if archive:
@@ -1111,7 +1562,7 @@ def main(argv: list[str] | None = None) -> int:
     error_detail: str | None = None
 
     try:
-        # Main arms: every dry-run main OCID
+        # Main arms: every main OCID
         for arm_name in MAIN_ARMS:
             arm_records = _records_for_arm(arm_name, main_records, diagnostic_records)
             print(f"==> {arm_name} — {len(arm_records)} records")
@@ -1119,6 +1570,7 @@ def main(argv: list[str] | None = None) -> int:
                 arm_name=arm_name,
                 records=arm_records,
                 run_id=run_id,
+                run_phase=run_phase,
                 run_dir=run_dir,
                 repo_dir=repo_dir,
                 is_dry=is_dry,
@@ -1132,7 +1584,7 @@ def main(argv: list[str] | None = None) -> int:
                 + (f"  errors={len(acc.errors)}" if acc.errors else "")
             )
 
-        # Diagnostic arms: every dry-run diag OCID
+        # Diagnostic arms: every diag OCID
         for arm_name in DIAGNOSTIC_ARMS:
             arm_records = _records_for_arm(arm_name, main_records, diagnostic_records)
             print(f"==> {arm_name} — {len(arm_records)} records")
@@ -1140,6 +1592,7 @@ def main(argv: list[str] | None = None) -> int:
                 arm_name=arm_name,
                 records=arm_records,
                 run_id=run_id,
+                run_phase=run_phase,
                 run_dir=run_dir,
                 repo_dir=repo_dir,
                 is_dry=is_dry,
@@ -1173,21 +1626,36 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     smoke_accuracy: list[dict[str, Any]] = []
+    dry_run_accuracy: list[dict[str, Any]] = []
     for arm_name in MAIN_ARMS + DIAGNOSTIC_ARMS:
         acc = accountings.get(arm_name)
         if acc is None:
             continue
-        smoke_accuracy.append(
-            compute_smoke_accuracy_row(
-                arm_name=arm_name,
-                dry_run_mean_tokens=acc.prompt_tokens_mean_per_record(),
+        if scale == SCALE_DRY_RUN:
+            smoke_accuracy.append(
+                compute_smoke_accuracy_row(
+                    arm_name=arm_name,
+                    dry_run_mean_tokens=acc.prompt_tokens_mean_per_record(),
+                )
             )
-        )
+        else:
+            dry_run_accuracy.append(
+                compute_dry_run_accuracy_row(
+                    arm_name=arm_name,
+                    phase_2_mean_tokens=acc.prompt_tokens_mean_per_record(),
+                )
+            )
 
-    phase_2_extrapolation = build_phase_2_extrapolation_table(accountings)
+    # Forecast extrapolation only meaningful in dry-run mode (phase-2 IS
+    # the full run; nothing left to extrapolate to).
+    phase_2_extrapolation: list[dict[str, Any]] = []
+    if scale == SCALE_DRY_RUN:
+        phase_2_extrapolation = build_phase_2_extrapolation_table(accountings)
+
     md_path, json_path = write_summary(
         run_dir=run_dir,
         run_id=run_id,
+        scale=scale,
         started_at=started_at,
         finished_at=finished_at,
         main_ocids=main_ocids,
@@ -1196,6 +1664,7 @@ def main(argv: list[str] | None = None) -> int:
         accountings=accountings,
         phase_2_extrapolation=phase_2_extrapolation,
         smoke_accuracy=smoke_accuracy,
+        dry_run_accuracy=dry_run_accuracy,
         completeness_violations=completeness_violations,
         inter_request_pause_seconds=inter_request_pause,
     )
@@ -1211,9 +1680,10 @@ def main(argv: list[str] | None = None) -> int:
             error_detail=error_detail or "",
         )
 
+    summary_basename = md_path.name
     print()
     print(
-        f"==> wrote {total_receipts}/{EXPECTED_TOTAL_RECEIPTS} "
+        f"==> wrote {total_receipts}/{expected_total} "
         f"receipts in {elapsed:.1f}s"
     )
     print(f"    summary (md):   {md_path}")
@@ -1221,14 +1691,14 @@ def main(argv: list[str] | None = None) -> int:
     print()
     if completeness_violations:
         print(
-            "WARN: aggregate completeness violations detected — see "
-            "dry-run-summary.md §'Aggregate completeness'.",
+            f"WARN: aggregate completeness violations detected — see "
+            f"{summary_basename} §'Aggregate completeness'.",
             file=sys.stderr,
         )
     if total_errors:
         print(
             f"WARN: {total_errors} per-arm errors recorded. "
-            "Inspect dry-run-summary.md.",
+            f"Inspect {summary_basename}.",
             file=sys.stderr,
         )
     if error_arm is not None:
@@ -1238,18 +1708,19 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
-    if total_receipts != EXPECTED_TOTAL_RECEIPTS:
+    if total_receipts != expected_total:
         print(
-            f"WARN: expected {EXPECTED_TOTAL_RECEIPTS} receipts, "
+            f"WARN: expected {expected_total} receipts, "
             f"wrote {total_receipts}.",
             file=sys.stderr,
         )
         return 1
     if completeness_violations:
         return 1
+    verifier_scale_flag = " --scale phase-2" if scale == SCALE_PHASE_2 else ""
     print(
         "==> SUCCESS. Verify with:\n"
-        f"    python3 scripts/verify_dry_run_e3.py {run_dir}"
+        f"    python3 scripts/verify_dry_run_e3.py {run_dir}{verifier_scale_flag}"
     )
     return 0
 
