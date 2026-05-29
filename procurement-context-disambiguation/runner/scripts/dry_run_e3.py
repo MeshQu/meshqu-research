@@ -66,6 +66,55 @@ Total: **1,332 receipts** = (4 × 283) + (2 × 100).
                     ``REQUIRED_LIVE_ENV_VARS`` (inherited from
                     ``smoke_e3``) to be populated.
 
+## OBS-205 / OBS-206 observability capture
+
+The driver mirrors E2's ``phase_2_live.py`` pattern: a ``RunController``
+is constructed around the arm loop so the locked Grafana dashboard is
+mirrored + captured at run-start / run-end / on-error. Artefacts land
+under ``<run_dir>/observability/`` (screenshots/ + audit/ + dashboards
+mirror) so curating for the writeup is a single ``cp -r <run_dir>/``.
+
+Gating behaviour:
+
+  - ``--scale phase-2``:    capture ON by default (writeup-anchor run).
+  - ``--scale dry-run``:    capture OFF by default (iterable validation).
+  - ``--no-observability``: hard opt-out, even in phase-2 mode.
+  - ``--observability``:    opt-in for dry-run mode (parity-testing).
+
+Required env vars when capture is enabled:
+
+  - ``MESHQU_RUNNER_GRAFANA_URL``       (e.g. https://grafana.staging.…)
+  - ``MESHQU_RUNNER_GRAFANA_PASSWORD``  (renderer-allowed password)
+
+Optional (defaults inherited from ``RunnerConfig.from_env``):
+
+  - ``MESHQU_RUNNER_GRAFANA_USER``      (default: admin)
+  - ``MESHQU_RUNNER_DASHBOARD_UID``     (default: experiment-tenant-observability)
+  - ``MESHQU_RUNNER_TENANT``            (default: experiment-procurement)
+
+Precondition-vs-runtime contract (different failure policies):
+
+  - **Precondition (missing required env)**: under ``--scale phase-2``,
+    missing ``MESHQU_RUNNER_GRAFANA_*`` raises ``SystemExit`` at
+    run-start. Phase-2 receipts are signed under the experiment
+    kid; a "successful" Phase-2 that silently dropped captures
+    would be the structural twin of the record-composition bug
+    (cryptographic success masking a methodological drop). Fail
+    at the gate. ``--no-observability`` is the documented opt-out
+    if the operator knows the gap and accepts it.
+
+  - **Precondition under ``--scale dry-run --observability``** (rare
+    opt-in for parity testing): missing env soft-fails (WARN + skip
+    capture). Dry-run is iterable validation, not the writeup-anchor
+    run.
+
+  - **Runtime (drift, unreachable Grafana)**: under both scales, a
+    runtime Grafana issue mid-run logs a WARN and disables capture
+    for the remainder. Receipts are NEVER blocked on a runtime
+    Grafana issue — they are the load-bearing artefact; captures
+    are writeup-anchors. A Grafana outage at minute 47 of a 90-minute
+    Phase 2 must not lose the receipts that already landed.
+
 ## Required environment variables (live mode only)
 
 Same as the smoke driver — see ``smoke_e3.REQUIRED_LIVE_ENV_VARS``:
@@ -218,6 +267,7 @@ from meshqu_runner.arms import ARM_PROFILES, PREREG_TAG  # noqa: E402
 from meshqu_runner.arms.diagnostic import (  # noqa: E402
     DEFAULT_POLICY_SNAPSHOT_PATH,
 )
+from meshqu_runner.config import RunnerConfig  # noqa: E402
 from meshqu_runner.diagnostic.permute_policy import (  # noqa: E402
     LOCKED_PERMUTATION_SEED,
 )
@@ -231,6 +281,7 @@ from meshqu_runner.multi_pass import (  # noqa: E402
     StubMeshQuClient,
     run_arm,
 )
+from meshqu_runner.runner import RunController, RunPhase  # noqa: E402
 
 # Reuse smoke_e3's live-mode construction helpers + env contract. The
 # contracts in smoke_e3 are frozen by PR #96 + PR #97; the dry-run
@@ -434,6 +485,266 @@ FULL_RUN_RECEIPTS_PER_MAIN_ARM = smoke_e3.FULL_RUN_RECEIPTS_PER_MAIN_ARM  # 283
 FULL_RUN_RECEIPTS_PER_DIAGNOSTIC_ARM = (
     smoke_e3.FULL_RUN_RECEIPTS_PER_DIAGNOSTIC_ARM
 )  # 100
+
+
+# ---------------------------------------------------------------------------
+# OBS-205 / OBS-206 observability wiring — gap-fill mirroring E2's
+# ``phase_2_live.py``.
+#
+# Phase-2 runs are the Phase-2 writeup-anchor; the locked dashboard
+# captures at run-start / run-end / on-error make the receipts legible
+# alongside the operational state Grafana shows. Dry-run mode keeps
+# observability OFF by default (preserves the 140-receipt hermetic path
+# exactly — no behavioural change to the existing 43 tests).
+#
+# Soft-fail contract: a missing ``MESHQU_RUNNER_GRAFANA_*`` env var or
+# an unreachable Grafana endpoint must NOT halt the run. The receipts
+# are the load-bearing artefact; captures are writeup-anchors. Each
+# failure logs a WARN to stderr and the run continues. A Grafana outage
+# at minute 47 of a 90-minute Phase 2 must not lose the receipts.
+# ---------------------------------------------------------------------------
+
+# Grafana env vars the renderer + mirror need. Same names E2's driver
+# uses. Soft-checked at run start; missing → WARN + skip capture, not
+# raise. RunnerConfig.from_env() supplies defaults for everything not
+# set, so the controller still constructs cleanly.
+REQUIRED_GRAFANA_ENV_VARS: tuple[str, ...] = (
+    "MESHQU_RUNNER_GRAFANA_URL",
+    "MESHQU_RUNNER_GRAFANA_PASSWORD",
+)
+
+
+def _check_grafana_env() -> list[str]:
+    """Return the list of missing required Grafana env vars. Empty
+    list = all present. Soft-fail — the caller emits a WARN and
+    continues even on a non-empty result (matches the soft-fail
+    contract; see module-level note above)."""
+    return [name for name in REQUIRED_GRAFANA_ENV_VARS if not os.environ.get(name)]
+
+
+def _resolve_observability_enabled(
+    *,
+    scale: str,
+    no_observability: bool,
+    observability: bool,
+) -> bool:
+    """Resolve whether observability capture is on for this run.
+
+    Gating contract:
+      - ``--scale phase-2``: ON by default; ``--no-observability`` opts out.
+      - ``--scale dry-run``: OFF by default; ``--observability`` opts in.
+
+    ``--no-observability`` wins if both are passed (defensive — argparse
+    can't make them mutually exclusive across a single boolean toggle on
+    each side without making the on/off semantics confusing)."""
+    if no_observability:
+        return False
+    if observability:
+        return True
+    return scale == SCALE_PHASE_2
+
+
+def _build_observability_runner_config(
+    *,
+    run_dir: Path,
+    repo_dir: Path,
+) -> RunnerConfig:
+    """Construct ``RunnerConfig`` for observability capture. Reads
+    Grafana settings from ``MESHQU_RUNNER_*`` env (with the local-stack
+    defaults from ``RunnerConfig.from_env``), then routes audit +
+    screenshots under the run dir so all artefacts stay co-located.
+    Matches the override pattern in ``phase_2_live.py``."""
+    base = RunnerConfig.from_env()
+    # Default monorepo path: the committed dashboard JSON lives at
+    # ``procurement-decisions/results/observability/dashboards/<uid>.json``
+    # (the shared mirror) — same as E2. ``RunnerConfig.from_env`` already
+    # points ``results_dir`` at that tree by default, so the mirror's
+    # ``committed_dashboard_path`` resolves correctly without override.
+    return RunnerConfig(
+        grafana_url=base.grafana_url,
+        grafana_user=base.grafana_user,
+        grafana_password=base.grafana_password,
+        dashboard_uid=base.dashboard_uid,
+        tenant=base.tenant,
+        monorepo_dashboard_path=base.monorepo_dashboard_path,
+        results_dir=base.results_dir,
+        render_timeout_seconds=base.render_timeout_seconds,
+        audit_dir_override=run_dir / "observability" / "audit",
+        screenshots_dir_override=run_dir / "observability" / "screenshots",
+    )
+
+
+def _build_observability_controller(
+    *,
+    run_dir: Path,
+    repo_dir: Path,
+    scale: str,
+    run_id: str,
+    total_records: int,
+) -> "RunController | None":
+    """Construct and run-start the observability controller for this run.
+
+    Precondition vs. runtime contract — different failure policies:
+
+    - **Precondition (missing required env)**: under ``--scale phase-2``,
+      missing ``MESHQU_RUNNER_GRAFANA_*`` vars raise ``SystemExit`` at
+      run-start. Phase-2 receipts are signed under the experiment kid;
+      a "successful" Phase-2 that silently drops captures is the
+      structural twin of the record-composition bug (cryptographic
+      success masking a methodological drop). Fail-loud at the gate is
+      the lock-in for this concern. Under ``--scale dry-run
+      --observability`` (rare opt-in for parity testing), the same
+      condition WARNs and skips — dry-run is iterable, not the
+      writeup-anchor run.
+    - **Runtime (Grafana outage, drift)**: WARN + skip capture, return
+      ``None``, let the run continue. Receipts are load-bearing; a
+      Grafana outage at minute 47 of a 90-minute Phase 2 must not lose
+      the receipts that already landed.
+
+    Returns the controller on success; ``None`` on any runtime failure.
+    The caller drives captures only when the return is non-None.
+
+    Order of operations matches E2's ``phase_2_live.py``:
+      1. ``_check_grafana_env`` — precondition gate (fail-loud on
+         phase-2, soft on dry-run).
+      2. Build ``RunnerConfig`` overriding audit + screenshots to
+         ``<run_dir>/observability/``.
+      3. ``RunController(...)`` — capture dir gets created here.
+      4. ``controller.run_start()`` — mirror + run-start screenshot.
+         Wrapped in try/except so a Grafana outage logs WARN + returns
+         ``None`` instead of bubbling up.
+    """
+    missing = _check_grafana_env()
+    if missing:
+        msg_body = (
+            "Grafana env vars not set: "
+            + ", ".join(missing)
+            + ". Source .env.live with MESHQU_RUNNER_GRAFANA_URL + "
+            "…_PASSWORD set."
+        )
+        if scale == SCALE_PHASE_2:
+            # Phase-2 precondition lock-in. Receipts get signed under the
+            # experiment kid; if observability captures don't fire on a
+            # writeup-anchor run, that's the same shape as the record-
+            # composition bug (success with silent methodological drop).
+            # Refuse to start rather than emit signed receipts without
+            # the methodological evidence the readiness checklist
+            # claimed.
+            raise SystemExit(
+                "FAIL: --scale phase-2 requires Grafana env vars for "
+                "OBS-205/206 capture (writeup-anchor parity with E1/E2). "
+                + msg_body
+                + " To run phase-2 without observability (rare; e.g. "
+                "local debugging on a corrupted Grafana endpoint), pass "
+                "--no-observability explicitly to opt out."
+            )
+        # Dry-run with --observability opt-in: soft-fail. The dry-run is
+        # iterable validation, not the writeup-anchor run.
+        print(
+            "WARN: " + msg_body + " OBS-205/206 capture disabled for "
+            "this run. Receipts still land normally.",
+            file=sys.stderr,
+        )
+        return None
+
+    runner_config = _build_observability_runner_config(
+        run_dir=run_dir, repo_dir=repo_dir
+    )
+
+    # Scale → RunPhase. ``--scale phase-2`` uses the "full-run" cadence
+    # (capture every 10 records); ``--scale dry-run`` opt-in uses the
+    # "dry-run" cadence (every 2 records). The E3 driver currently does
+    # NOT thread per-record checkpoints (run_arm's loop doesn't expose a
+    # sleep_fn the way multi_pass.run_multi_pass does), so in practice
+    # only run-start / run-end / on-error fire. The RunPhase literal
+    # still drives the screenshot filename's <run-phase> field.
+    controller_run_phase: RunPhase = (
+        "full-run" if scale == SCALE_PHASE_2 else "dry-run"
+    )
+
+    try:
+        controller = RunController(
+            config=runner_config,
+            run_phase=controller_run_phase,
+            run_id=run_id,
+            total_records=total_records,
+        )
+    except Exception as exc:  # noqa: BLE001 — capture is supporting evidence
+        print(
+            f"WARN: RunController construction failed: {type(exc).__name__}: "
+            f"{exc}. OBS-205/206 capture disabled for this run; receipts "
+            "still land normally.",
+            file=sys.stderr,
+        )
+        return None
+
+    try:
+        mirror_result, start_capture = controller.run_start()
+    except Exception as exc:  # noqa: BLE001 — receipts are load-bearing, captures are anchors
+        print(
+            f"WARN: controller.run_start() failed: {type(exc).__name__}: "
+            f"{exc}. OBS-205/206 capture disabled for this run; receipts "
+            "still land normally.",
+            file=sys.stderr,
+        )
+        return None
+
+    print(
+        f"==> Observability run_start OK. "
+        f"mirror sha256={mirror_result.canonical_sha256[:12]}…, "
+        f"capture ok={start_capture.ok}"
+        + (f" path={start_capture.path.name}" if start_capture.path else "")
+    )
+    return controller
+
+
+def _safe_run_end(controller: "RunController | None") -> None:
+    """Fire the run-end capture if observability is enabled. Soft-fails
+    on any exception (same contract as run-start)."""
+    if controller is None:
+        return
+    try:
+        end_capture = controller.run_end()
+    except Exception as exc:  # noqa: BLE001 — never fail the run on a final capture
+        print(
+            f"WARN: controller.run_end() raised {type(exc).__name__}: "
+            f"{exc}. Run-end capture missing; receipts still landed.",
+            file=sys.stderr,
+        )
+        return
+    print(
+        f"==> Observability run_end OK. capture ok={end_capture.ok}"
+        + (f" path={end_capture.path.name}" if end_capture.path else "")
+    )
+
+
+def _safe_run_anomaly_capture(
+    controller: "RunController | None",
+    *,
+    category: str,
+    summary: str,
+    detail: str,
+) -> None:
+    """Fire an on-error / on-halt capture if observability is enabled.
+
+    Uses ``controller.on_anomaly`` so the failure is recorded in the
+    audit log AND a final dashboard PNG lands — preserves the partial
+    operational state for the writeup. Soft-fails on any exception."""
+    if controller is None:
+        return
+    try:
+        controller.on_anomaly(
+            category=category,
+            summary=summary,
+            detail=detail,
+            severity="error",
+        )
+    except Exception as exc:  # noqa: BLE001 — never fail an already-failing run on a capture
+        print(
+            f"WARN: controller.on_anomaly({category!r}) raised "
+            f"{type(exc).__name__}: {exc}. Anomaly capture missing.",
+            file=sys.stderr,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1439,6 +1750,39 @@ def _build_parser() -> argparse.ArgumentParser:
             "--dry."
         ),
     )
+    # OBS-205 / OBS-206 observability capture gating.
+    #
+    # Gating contract (see ``_resolve_observability_enabled``):
+    #   - ``--scale phase-2``: default ON. The Phase-2 writeup needs
+    #     Grafana captures alongside the receipts; that's the whole
+    #     reason this wiring exists.
+    #   - ``--scale dry-run``: default OFF. The 140-receipt dry-run is
+    #     iterable validation; captures would burn GPU and the existing
+    #     test suite stays green by construction with no capture by
+    #     default.
+    #   - ``--no-observability``: hard opt-out (even in phase-2 mode).
+    #     Local debugging / cost-free re-runs.
+    #   - ``--observability``: opt-in for dry-run mode. Rare; used to
+    #     parity-test the wiring against a known-good Grafana before
+    #     a real Phase-2 fire.
+    parser.add_argument(
+        "--observability",
+        action="store_true",
+        help=(
+            "Force OBS-205/206 capture ON. In --scale phase-2 this is "
+            "the default; in --scale dry-run this opts in (rare — used "
+            "to parity-test the wiring without firing the full corpus)."
+        ),
+    )
+    parser.add_argument(
+        "--no-observability",
+        action="store_true",
+        help=(
+            "Force OBS-205/206 capture OFF even in --scale phase-2. "
+            "Receipts still land normally. Use for local debugging or "
+            "cost-free re-runs."
+        ),
+    )
     return parser
 
 
@@ -1520,6 +1864,13 @@ def main(argv: list[str] | None = None) -> int:
             0.0 if is_dry else smoke_e3.INTER_REQUEST_PAUSE_SECONDS_LIVE
         )
 
+    # Resolve observability gating — per-scale defaults + opt-out / opt-in.
+    observability_enabled = _resolve_observability_enabled(
+        scale=scale,
+        no_observability=bool(args.no_observability),
+        observability=bool(args.observability),
+    )
+
     archive = _load_precedent_archive_or_empty()
 
     print(f"==> Run id: {run_id}")
@@ -1552,7 +1903,24 @@ def main(argv: list[str] | None = None) -> int:
         print(f"    Frozen archive: {len(archive)} precedents loaded")
     else:
         print("    Frozen archive: NOT loaded (Arm A/B will render no-precedents)")
+    print(
+        f"    Observability: {'ON (OBS-205/206 capture)' if observability_enabled else 'OFF'}"
+    )
     print()
+
+    # OBS-205 / OBS-206 — run-start mirror + capture. Soft-fails on any
+    # Grafana issue (missing env, drift, unreachable endpoint) → returns
+    # ``None`` + WARN to stderr; subsequent capture sites no-op. Total
+    # records for the cadence gate = expected_total (Phase-2: 1,332).
+    observability_controller: RunController | None = None
+    if observability_enabled:
+        observability_controller = _build_observability_controller(
+            run_dir=run_dir,
+            repo_dir=repo_dir,
+            scale=scale,
+            run_id=run_id,
+            total_records=expected_total,
+        )
 
     started_at = _utc_iso_now()
     t0 = time.monotonic()
@@ -1608,6 +1976,14 @@ def main(argv: list[str] | None = None) -> int:
     except KeyboardInterrupt:
         error_arm = "(interrupted)"
         error_detail = "KeyboardInterrupt"
+        # OBS-205 — on-halt capture so the partial operational state is
+        # visible in the writeup.
+        _safe_run_anomaly_capture(
+            observability_controller,
+            category="run_halted",
+            summary="Run interrupted (KeyboardInterrupt)",
+            detail=f"completed_arms={list(accountings)}",
+        )
     except Exception as exc:  # pragma: no cover — defensive
         # Bubble the arm name from accountings (last one added) if any.
         if accountings:
@@ -1615,6 +1991,14 @@ def main(argv: list[str] | None = None) -> int:
         else:
             error_arm = "(none)"
         error_detail = f"{type(exc).__name__}: {exc}"
+        # OBS-205 — on-error capture so the partial operational state is
+        # visible in the writeup.
+        _safe_run_anomaly_capture(
+            observability_controller,
+            category="run_errored",
+            summary=f"Run errored in arm {error_arm}",
+            detail=error_detail,
+        )
 
     finished_at = _utc_iso_now()
     elapsed = time.monotonic() - t0
@@ -1668,6 +2052,13 @@ def main(argv: list[str] | None = None) -> int:
         completeness_violations=completeness_violations,
         inter_request_pause_seconds=inter_request_pause,
     )
+
+    # OBS-205 — run-end capture lands after the summary is written so
+    # the dashboard snapshot reflects the end-of-run state inclusive of
+    # the final receipts. Only fires on the success path; the
+    # error / interrupt paths already fired an on-error capture above.
+    if error_arm is None:
+        _safe_run_end(observability_controller)
 
     total_receipts = sum(a.receipts_written for a in accountings.values())
     total_errors = sum(len(a.errors) for a in accountings.values())
