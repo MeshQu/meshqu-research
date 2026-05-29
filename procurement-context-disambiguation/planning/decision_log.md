@@ -4,6 +4,102 @@ Reverse-chronological. Most recent decision at the top. Each entry: date, decisi
 
 ---
 
+## 2026-05-29 — Phase 2 complete: 1,332 receipts, all five gates PASS, $25.23
+
+**Decision**: E3 Phase 2 fired and completed cleanly. Canonical run at `results/runs/phase-2-20260529T092611-Z` (committed to git in PR #104 alongside three SUPERSEDED- audit-trail runs from the abort-and-recover arc). All five operational gates passed; substantive verdict distributions across the locked corpus available for Phase 2.5 rubric coding and Phase 3 analysis.
+
+**Wall-clock**: 09:26:18 → 10:46:51 UTC = **80 min 33 sec** (faster than the 90–110 min pre-fire estimate). Pacing held at 0.5s/call throughout; no 429 recovery events; no errors.
+
+### Five-gate sign-off
+
+| Gate | Result |
+|---|---|
+| Cost ±15% accuracy | **Within 0.4% on all six arms** (worst arm_a ratio 1.004; best arm_c ratio 1.000). Total actual $25.23 vs $25.21 projection — two cents off on a $25 run. Extrapolation as accurate as the underlying data permits. |
+| Verifier integrity | **1,332 / 1,332 PASS, exit 0**. All Ed25519 signatures, all per-arm integrity markers, aggregate completeness — all pass. Kid `meshqu-experiment-procurement-2026-05` confirmed. |
+| Unrecovered 429s | **Zero**. Pacing at 0.5s held both providers comfortably; no retry events visible in tick stream. |
+| Orphan-recovery scan | **Empty** (`orphans: 0  recovered: 0  failed: 0`). Every server-side signed receipt matched a local bundle. |
+| Observability captures | **run-start + run-end PNGs both present** under `observability/screenshots/`, matching E2's `full-run_<UTC-timestamp>_<dashboard>_<event>.png` filename pattern. Cross-trilogy artefact parity confirmed. PR #103's gap-fill verified working at scale. |
+
+### Substantive verdict distributions
+
+**Piece 1 — L3 decomposition (arms A/B/C, n=283 each)** — points to *"verdict exemplars load-bearing"* (the sharpest row of the design's 4-outcome interpretation table):
+
+| | agent commits (ALLOW + DENY) | hedges to REVIEW |
+|---|---:|---:|
+| arm_a (precedents-only) | 44 (**15.5%**) | 239 (84.5%) |
+| arm_b (precedents-no-verdict) | 9 (3.2%) | 274 (96.8%) |
+| arm_c (density-control) | 13 (4.6%) | 270 (95.4%) |
+
+Arm A commits ~3.4× more than Arms B/C; arms B and C are near-identical in commit rate. **Qualified by the documented Arm C asymmetric-control caveat** (-16.43% token parity from PR #93): a critic can argue *"Arm C didn't commit because it had less volume, not because verdicts/concreteness matter."* The writeup methods section needs to disclose this asymmetry; the verdict-exemplars-load-bearing reading cannot be presented as sharp on this evidence alone.
+
+**Piece 2 — L4 decomposition (l4_without_nudge, n=283)** — direction-of-signal evidence that the nudge wasn't load-bearing:
+
+| | count | % |
+|---|---:|---:|
+| agent commits (DENY) | 77 | **27.2%** |
+| hedges to REVIEW | 206 | 72.8% |
+
+l4_without_nudge commits MORE often than arm_a (27.2% vs 15.5%). The L3→L4 backoff E2 observed appears to have NOT re-emerged here without the nudge. **Final read requires the E2 L4-with-nudge baseline** from the published artefact at `procurement-context-gradient/` — the comparison answers Framing A.1 vs A.2 cleanly. This data is half the comparison; the other half is in E2's published corpus.
+
+**Piece 3 — Inversion-blindness at scale (diagnostic_primary + diagnostic_claude, n=100 each)** — robust P5 verdict-axis evidence:
+
+| arm | engine=ALLOW (52 records) | engine=DENY (48 records) |
+|---|---|---|
+| diagnostic_primary | REVIEW=52, ALLOW=0, DENY=0 | REVIEW=25, ALLOW=0, DENY=23 |
+| diagnostic_claude | ALLOW=35, REVIEW=17, DENY=0 | DENY=44, REVIEW=3, ALLOW=1 |
+
+Cross-model + cross-evaluator directional alignment at n=100:
+- **Engine-ALLOW records**: 100% LLM-non-DENY (52/52 GPT-5.4, 52/52 Opus)
+- **Engine-DENY records**: 99.0% LLM-non-ALLOW (GPT-5.4 0/48 ALLOW, Opus 1/48 ALLOW)
+
+The dry-run's 10/10 finding holds at 10× scale. Single exception: one OCID where Opus said ALLOW but engine said DENY — worth examining as a worked-example outlier in the writeup. **Verdict-axis P5 evidence is now robust at scale.** Rubric-axis confirmation comes via Phase 2.5 hand-coding (200 reasoning texts × locked 3-category rubric).
+
+**Cross-model verdict-style divergence — definitive at n=100**:
+
+| arm | ALLOW | REVIEW | DENY | decisive rate |
+|---|---:|---:|---:|---:|
+| diagnostic_primary (GPT-5.4) | 0 | 77 | 23 | **23%** |
+| diagnostic_claude (Opus 4.7) | 35 | 20 | 45 | **80%** |
+
+Opus uses ALLOW/DENY 80% of the time; GPT-5.4 uses ALLOW/DENY 23%. The dry-run's n=10 finding (8/10 vs 2/10) now has 10× the evidence at n=100. Methods caveat empirically locked: verdict distributions and rubric distributions must be analysed independently for the cross-model arm; pooling would conflate model output-style preferences with substantive policy engagement. Belongs alongside the locked "no temperature on Opus 4.7" sampling caveat as documented cross-model arm disclosure.
+
+### Process texture — three honest items for future-Sam
+
+**(a) Buffering / `python -u` operational lesson.** First two Phase-2 fires from the orchestrator session appeared to "hang" after the urllib3 import warning — no banner, no ticks visible in `/tmp/phase-2-stdout.log` after 60–90 seconds. Halted both for investigation. The hang was 100% **stdout block-buffering when piped through `tee`**: Python's stdout buffers to 8KB when output goes to a pipe vs. line-buffering to a TTY. The dry-run's 9-minute, 140-tick run accumulated enough output to flush the buffer multiple times; Phase 2 at minute 1 hadn't. **Fix**: `python3 -u` forces unbuffered output regardless of pipe destination — used on the successful third fire. Worth a one-line docs-cleanup note in the smoke + dry-run + phase-2 invocation briefs: "when piping through `tee` for live monitoring, use `python3 -u` to defeat block-buffering."
+
+**(b) Honest sunk-cost correction.** I told Sam *"zero spend on the aborts"* twice during the buffering investigation. Wrong twice. The two aborted Phase 2 fires actually signed **77 + 41 = 118 receipts** before halt — stdout buffering masked file I/O state from my log peeks, not just the tick output. Actual sunk cost on the aborts: ~118 receipts × ~$0.006 = **~$0.70 OpenAI**, $0 staging MeshQu (free), $0 Anthropic (both aborts halted within arm_a; no Claude calls fired). Small in absolute terms but: those receipts exist server-side in the staging tenant's signed-receipts log regardless of whether the orchestrator session noticed them. Committed as SUPERSEDED- runs in PR #104 to preserve the audit chain — anyone reading the kid + tenant log later can match each signed receipt to a committed bundle, including the aborted ones.
+
+**(c) Readiness-item-14 caveat (PR #100 ↔ PR #103 ↔ PR #104).** The readiness checklist's item 14 ("Monitoring dashboards configured (reuse the Grafana captures from E2)") was marked PASS on availability grounds — the dashboards exist, per E2's setup. The user-caught gap (*"will the Grafana screen grabs work as exp 1 and 2 did?"*) revealed that PR #101's `--scale phase-2` extension hadn't inherited E2's `phase_2_live.py` observability wiring. PR #103 closed the gap; the Phase 2 fire that produced the canonical run had captured-at-runtime parity confirmed. **Item 14's claim is now strongly true** (dashboards configured AND captured at runtime), not just availability-inferred. The lesson for future readiness audits: "configured" and "captured at runtime" are separate claims; the readiness checklist should distinguish them at item-level granularity.
+
+### Auto-mode classifier authorisation history (process texture)
+
+For trilogy methods-note material: the orchestrator session's authorisation pattern for live calls evolved over E3-010, E3-011, and Phase 2.
+
+- E3-010 (smoke) — Sam fired in own shell per the original "I hold the keys" rule
+- E3-011 (dry-run) — Sam authorised orchestrator-fires; orchestrator fired in background; classifier denied initially but allowed after explicit grant
+- Phase 2 — orchestrator fires (with explicit go) became the default after Sam asked *"in exp 1 and 2 the agent ran the experiment, why can't we do that?"* — surfacing that the "Sam fires" model was an inherited assumption rather than a structural constraint. Phase 2 authorisation stood through the OBS gap halt, the buffering halt, and the successful third fire.
+
+The pattern: each step expanded the orchestrator's authorised action surface as the trust-and-tooling alignment proved out. Same shape as the classic CI/CD progression from "human presses deploy" → "human approves PR which deploys" → "tests pass which deploys." The chain-of-custody concern (receipts get signed under the experiment kid regardless of who triggered the python script) was the key methodological observation that unlocked the shift.
+
+### What's next
+
+**Phase 2.5** — 200 reasoning texts × locked 3-category rubric (100 from `diagnostic_primary` + 100 from `diagnostic_claude`). Run via PR #91's `code_rubric.py`. Estimated 3–4 hours of human-judgment work; can be one sitting or paced. Substrate for the rubric-axis P5 confirmation; the verdict-axis evidence (above) is already strong.
+
+**Phase 3** — analysis notebook + writeup. The Methods section will lift: the record-composition fix arc (PR #97), the dispatch-architecture lesson (Wave 2 worktree isolation), the cross-model verdict-style divergence as documented disclosure, the Arm C asymmetric-control caveat, the OBS-gap halt-and-fix arc (PR #103), and the buffering / `python -u` operational lesson. The Results section is anchored by the verdict distributions above plus the rubric distributions from Phase 2.5.
+
+**Phase 4** — methodology extraction to the trilogy capstone. Receipt-Anchored Evaluation as a discipline across three experiments. The cross-trilogy artefact parity (now confirmed via PR #103 + #104) is what makes this writeable as one coherent methods note rather than three separate ones.
+
+### Post-Phase-2 cleanup todo (folds into the single docs-cleanup PR after Phase 3 starts)
+
+Adds two items to the existing batch:
+
+- `python3 -u` recommended invocation note in the smoke / dry-run / phase-2 briefs (the buffering lesson)
+- Readiness-item-14 caveat addendum: claim was PASS-on-availability-grounds at PR #100 authoring time; strongly-true after PR #103 + #104 confirmed captured-at-runtime parity. Worth a one-line footnote in the readiness report so future readers see the lineage.
+
+Plus the items from the earlier batch (stale docstring refs, `$RUN_DIR` UX trap, Py3.14 dataclass error in `test_claude_adapter.py`, conftest fixture pattern extension, driver rename if Sam wants it).
+
+---
+
 ## 2026-05-28 — Phase 1 close-out: 12 build packages + the methodologically meaningful arcs
 
 **Decision**: Phase 1 of the E3 (Experiment 3 — *Precedents, policy, and commitment*) build complete. Pre-Phase-2 readiness signed off at PR #100 (`9852c07`); driver-extension follow-up (`--scale phase-2` flag) at PR #101 (`3254cca`) is the final piece between readiness and Phase-2 launch. The runner now fires either the 140-receipt dry-run matrix or the 1,332-receipt full corpus matrix from the same driver, with scale-keyed summary artefacts and a parametrized matrix-shape lock-in test. Phase 2 is fireable from Sam's shell whenever his energy permits.
