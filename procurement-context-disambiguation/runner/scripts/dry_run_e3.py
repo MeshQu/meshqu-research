@@ -268,10 +268,16 @@ from meshqu_runner.arms.diagnostic import (  # noqa: E402
     DEFAULT_POLICY_SNAPSHOT_PATH,
 )
 from meshqu_runner.config import RunnerConfig  # noqa: E402
+from meshqu_runner.context_levels.level_l4 import (  # noqa: E402
+    load_policy_snapshot,
+)
 from meshqu_runner.diagnostic.permute_policy import (  # noqa: E402
     LOCKED_PERMUTATION_SEED,
+    PERMUTATION_LOG_KEY,
+    permute_policy,
 )
 from meshqu_runner.diagnostic.scaled import (  # noqa: E402
+    emit_inverted_operator_spec,
     load_diagnostic_subset,
 )
 from meshqu_runner.multi_pass import (  # noqa: E402
@@ -1647,6 +1653,83 @@ def _run_one_arm(
     return acc
 
 
+# ---------------------------------------------------------------------------
+# Inverted-operator-spec sidecar emission (sibling-driver contract)
+#
+# Closes the contract-drift bug between sibling drivers:
+#   - PR #95 (run_scaled_diagnostic.py) emitted the sidecar via
+#     emit_inverted_operator_spec(...) after the diagnostic arms completed.
+#   - PR #91 (rubric tool) requires the sidecar at the run-dir root.
+#   - PR #96 (smoke_e3.py) forked the driver pattern without emission.
+#   - PR #99 (dry_run_e3.py) extended smoke_e3 — still no emission.
+#
+# Phase 2 fired 2026-05-29 via dry_run_e3.py --scale phase-2 and produced
+# 1,332 cryptographically-verified bundles but no inverted-operator-spec
+# sidecar. The user caught the drift when trying to start Phase 2.5
+# hand-coding via the rubric tool's --inverted-spec flag.
+#
+# Lands at <run_dir>/inverted_operator_spec.json — same path the rubric
+# tool's CLI documents (meshqu_runner.diagnostic.code_rubric module
+# docstring). The producer at meshqu_runner.diagnostic.scaled is byte-
+# identical-from-PR-#95; this driver consumes it without modification.
+# ---------------------------------------------------------------------------
+
+
+def _emit_inverted_operator_spec_sidecar(
+    *,
+    run_dir: Path,
+    diagnostic_ocids: list[str],
+    policy_snapshot_path: Path,
+    seed: int,
+) -> Path:
+    """Emit the inverted-operator-spec sidecar at the run-dir root.
+
+    Sibling-driver contract — written ONCE per run after the diagnostic
+    arms complete, regardless of scale. The rubric tool (E3-009) reads
+    from ``<run_dir>/inverted_operator_spec.json`` to display "what was
+    inverted" alongside each reasoning text. Without this artefact
+    Phase 2.5 hand-coding cannot start.
+
+    Precondition: locked policy snapshot must be readable. The sidecar
+    is methodologically required for Phase 2.5; soft-failing here would
+    repeat the structural twin of the record-composition bug (PR #97)
+    and the observability silent-drop bug (PR #103's fail-loud follow-
+    up). Fail-loud at the gate — raise ``SystemExit`` with a clear
+    message that names the missing input.
+
+    Determinism: same policy snapshot + same seed → byte-identical
+    output (the producer at ``emit_inverted_operator_spec`` uses
+    sort_keys=True + atomic write). The sidecar is metadata about the
+    policy permutation, not part of the signed receipt bundle, so the
+    receipts themselves are unaffected.
+    """
+    try:
+        policy = load_policy_snapshot(policy_snapshot_path)
+    except (FileNotFoundError, json.JSONDecodeError) as exc:
+        raise SystemExit(
+            f"FAIL: cannot emit inverted-operator-spec sidecar — "
+            f"locked policy snapshot at {policy_snapshot_path} is "
+            f"missing or malformed ({type(exc).__name__}: {exc}). The "
+            f"sidecar is methodologically required for Phase 2.5 "
+            f"hand-coding (rubric tool's --inverted-spec input); "
+            f"soft-failing would repeat the structural twin of the "
+            f"record-composition bug. Check the v0.3-predictions-locked "
+            f"tag is checked out cleanly."
+        ) from exc
+
+    permuted = permute_policy(policy, seed=seed)
+    log = permuted.get(PERMUTATION_LOG_KEY) or {"entries": []}
+    permutation_log_entries = list(log.get("entries", []))
+
+    sidecar_path = emit_inverted_operator_spec(
+        diagnostic_dir=run_dir,
+        ocids=diagnostic_ocids,
+        seed=seed,
+        permutation_log_entries=permutation_log_entries,
+    )
+    return sidecar_path
+
+
 def _persist_partial_manifest(
     *,
     run_dir: Path,
@@ -2008,6 +2091,31 @@ def main(argv: list[str] | None = None) -> int:
         diagnostic_ocids=diagnostic_ocids,
         accountings=accountings,
     )
+
+    # Sibling-driver contract — emit the inverted-operator-spec sidecar
+    # after the diagnostic arms complete. Mirrors the call site at
+    # ``run_scaled_diagnostic.py`` (PR #95). Lands at
+    # ``<run_dir>/inverted_operator_spec.json`` — same path the rubric
+    # tool's CLI documents. Fail-loud if the locked policy snapshot is
+    # unreadable; soft-failing would repeat the structural twin of the
+    # record-composition bug (PR #97).
+    #
+    # Only fires on the success path. If the run already failed mid-arm
+    # (``error_arm is not None``) we skip the sidecar — the partial
+    # manifest is the load-bearing artefact for the operator's post-
+    # mortem; the sidecar would land alongside a partial corpus where
+    # half the diagnostic OCIDs are missing bundles anyway.
+    if error_arm is None:
+        sidecar_path = _emit_inverted_operator_spec_sidecar(
+            run_dir=run_dir,
+            diagnostic_ocids=diagnostic_ocids,
+            policy_snapshot_path=DEFAULT_POLICY_SNAPSHOT_PATH,
+            seed=LOCKED_PERMUTATION_SEED,
+        )
+        print(
+            f"==> Inverted-operator-spec sidecar: {sidecar_path} "
+            f"({len(diagnostic_ocids)} OCIDs)"
+        )
 
     smoke_accuracy: list[dict[str, Any]] = []
     dry_run_accuracy: list[dict[str, Any]] = []
