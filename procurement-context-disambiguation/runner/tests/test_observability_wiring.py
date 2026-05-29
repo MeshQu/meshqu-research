@@ -23,12 +23,37 @@ Gating contract this file locks:
   - ``--scale phase-2 --no-observability``       → capture OFF.
   - ``--scale dry-run`` (default)                → capture OFF.
   - ``--scale dry-run --observability``          → capture ON.
-  - missing ``MESHQU_RUNNER_GRAFANA_URL``        → soft-fail (WARN, run
-                                                    continues, no
-                                                    capture lands).
-  - Grafana endpoint raises ``ConnectionError``  → soft-fail (WARN, run
-                                                    continues, no
-                                                    capture lands).
+  - missing ``MESHQU_RUNNER_GRAFANA_*`` under ``--scale phase-2``
+                                                  → **fail-loud**
+                                                    (``SystemExit``) at
+                                                    run-start. Phase-2
+                                                    receipts get signed
+                                                    under the
+                                                    experiment kid; a
+                                                    "successful"
+                                                    phase-2 that
+                                                    silently drops
+                                                    captures is the
+                                                    structural twin of
+                                                    the record-
+                                                    composition bug
+                                                    (cryptographic
+                                                    success masking
+                                                    methodological
+                                                    drop). Fail at the
+                                                    gate, not the
+                                                    audit.
+  - missing ``MESHQU_RUNNER_GRAFANA_*`` under ``--scale dry-run
+    --observability`` (rare opt-in) → soft-fail (WARN, run continues,
+                                       no capture). Dry-run is
+                                       iterable validation, not the
+                                       writeup-anchor run.
+  - Grafana endpoint raises ``ConnectionError``  → soft-fail under
+                                                    both scales. Runtime
+                                                    transient errors
+                                                    must not lose
+                                                    receipts that
+                                                    already landed.
 
 No live Grafana calls. ``meshqu_runner.dashboard_mirror.fetch_live_dashboard``
 + ``meshqu_runner.screenshots.requests`` are monkey-patched per the
@@ -376,49 +401,105 @@ def test_dry_run_with_observability_flag_fires_captures(
 
 
 # ---------------------------------------------------------------------------
-# Soft-fail — missing MESHQU_RUNNER_GRAFANA_URL
+# Precondition lock-in — missing MESHQU_RUNNER_GRAFANA_* under --scale phase-2
 # ---------------------------------------------------------------------------
 
 
-def test_missing_grafana_url_emits_warning_but_does_not_halt(
+def test_phase_2_missing_grafana_env_fails_loud_at_gate(
     tmp_path: Path, monkeypatch, capsys: pytest.CaptureFixture[str]
 ):
-    """The brief calls this out explicitly: a missing
-    ``MESHQU_RUNNER_GRAFANA_URL`` must produce a WARN to stderr and
-    continue the run. Receipts are load-bearing; captures are anchors.
+    """Sam's 2026-05-28 policy-split: precondition vs runtime.
 
-    With ``MESHQU_RUNNER_GRAFANA_PASSWORD`` also unset, the soft-check
-    sees BOTH required vars missing and refuses to construct the
-    controller — observability tree never lands, but the receipts do."""
-    # Belt-and-braces: ensure the required Grafana env vars are not set
-    # in the test process (Sam's local env will have them; CI won't).
+    Phase-2 receipts get signed under the experiment-tenant kid. A
+    Phase-2 run that "succeeds" (1,332 cryptographically-verified
+    receipts) while silently dropping observability captures is the
+    structural twin of the record-composition bug — cryptographic
+    success masking a methodological drop. The fix is to fail-loud at
+    the gate before any receipts get signed, not to discover the gap
+    in audit.
+
+    Under ``--scale phase-2`` with required Grafana env vars missing,
+    the driver MUST raise ``SystemExit`` with a clear FAIL message
+    before any arm fires. Zero receipts written. The ``--no-
+    observability`` opt-out lets the operator say "I know, do it
+    anyway" (covered by ``test_phase_2_no_observability_skips_capture``)
+    — but the silent path is removed."""
+    monkeypatch.delenv("MESHQU_RUNNER_GRAFANA_URL", raising=False)
+    monkeypatch.delenv("MESHQU_RUNNER_GRAFANA_PASSWORD", raising=False)
+
+    argv = [
+        "--scale", "phase-2",
+        "--dry",
+        "--results-dir", str(tmp_path),
+        "--run-id", "obs-phase-2-fail-loud",
+        "--inter-request-pause-seconds", "0.0",
+    ]
+    with pytest.raises(SystemExit) as exc_info:
+        dry_run_e3.main(argv)
+
+    msg = str(exc_info.value)
+    assert "FAIL" in msg, (
+        f"phase-2 missing-env exit must use FAIL prefix; got: {msg!r}"
+    )
+    assert "--scale phase-2" in msg and "MESHQU_RUNNER_GRAFANA" in msg, (
+        f"FAIL message must name the gate (--scale phase-2) + the missing "
+        f"env class; got: {msg!r}"
+    )
+    assert "--no-observability" in msg, (
+        "FAIL message must surface the documented opt-out so the operator "
+        "knows how to proceed if Grafana is genuinely unavailable"
+    )
+
+    # No receipts landed — fail-loud fires before any arm dispatches.
+    candidates = list(tmp_path.glob("**/arm_a/*.bundle.json"))
+    assert candidates == [], (
+        f"phase-2 fail-loud must not write any receipts; found: {candidates!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Soft-fail — missing MESHQU_RUNNER_GRAFANA_* under --scale dry-run + opt-in
+# ---------------------------------------------------------------------------
+
+
+def test_dry_run_observability_optin_missing_env_soft_fails(
+    tmp_path: Path, monkeypatch, capsys: pytest.CaptureFixture[str]
+):
+    """Under ``--scale dry-run --observability`` (the rare opt-in case
+    for parity-testing the wiring without phase-2's cost), missing env
+    is a WARN-and-continue. Dry-run is iterable validation, not the
+    writeup-anchor run — its receipts don't need the cross-trilogy
+    capture parity that phase-2 does."""
     monkeypatch.delenv("MESHQU_RUNNER_GRAFANA_URL", raising=False)
     monkeypatch.delenv("MESHQU_RUNNER_GRAFANA_PASSWORD", raising=False)
 
     run_dir = _dispatch_dry(
-        tmp_path, scale="phase-2", run_id="obs-soft-fail-missing-env"
+        tmp_path,
+        scale="dry-run",
+        run_id="obs-dry-run-optin-soft-fail",
+        extra_args=["--observability"],
     )
 
     captured = capsys.readouterr()
     assert "MESHQU_RUNNER_GRAFANA_URL" in captured.err, (
-        f"expected WARN about missing MESHQU_RUNNER_GRAFANA_URL on "
-        f"stderr; got: {captured.err!r}"
+        f"dry-run + observability + missing env must emit a WARN naming "
+        f"the missing var; got: {captured.err!r}"
     )
     assert "WARN" in captured.err, (
-        "soft-fail must emit a WARN-prefixed line (operator-visible)"
+        "dry-run + observability + missing env must emit a WARN-prefixed "
+        "line, not a FAIL — dry-run is iterable, not writeup-anchor"
     )
 
-    # Run still succeeded: 1,332 receipts written, no observability tree.
+    # Receipts STILL land — the dry-run matrix shape is preserved.
     assert not (run_dir / "observability").exists(), (
         "observability tree must NOT land when Grafana env is missing — "
         "soft-fail returns None before any capture is attempted"
     )
-    # Sanity — the matrix shape still landed.
     for arm in dry_run_e3.MAIN_ARMS:
         bundles = sorted((run_dir / arm).glob("*.bundle.json"))
-        assert len(bundles) == 283, (
-            f"phase-2 main arm {arm!r} must still produce 283 receipts "
-            f"even with Grafana env missing; got {len(bundles)}"
+        assert len(bundles) == 30, (
+            f"dry-run + observability + missing env must still produce "
+            f"30 receipts per main arm; got {arm!r}={len(bundles)}"
         )
 
 

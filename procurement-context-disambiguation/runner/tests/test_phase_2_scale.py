@@ -61,11 +61,20 @@ def _dispatch_dry(
     tmp_path: Path, *, scale: str, run_id: str
 ) -> Path:
     """Drive the dry_run_e3 driver in --dry mode at the given scale.
-    Returns the run directory."""
+    Returns the run directory.
+
+    ``--no-observability`` is passed unconditionally because these
+    tests assert matrix-shape + summary-naming properties, not the
+    OBS-205/206 wiring (see ``tests/test_observability_wiring.py`` for
+    that). Under the post-2026-05-28 policy split, ``--scale phase-2``
+    without Grafana env vars fail-louds at the gate; these tests run
+    in environments where those vars aren't set, so the opt-out keeps
+    the focus on the shape contract these tests own."""
     rc = dry_run_e3.main(
         [
             "--scale", scale,
             "--dry",
+            "--no-observability",
             "--results-dir", str(tmp_path),
             "--run-id", run_id,
             "--inter-request-pause-seconds", "0.0",
@@ -274,6 +283,7 @@ def test_run_id_default_is_scale_keyed(tmp_path: Path, monkeypatch):
         [
             "--scale", "dry-run",
             "--dry",
+            "--no-observability",
             "--results-dir", str(tmp_path / "dr"),
             "--inter-request-pause-seconds", "0.0",
         ]
@@ -284,10 +294,14 @@ def test_run_id_default_is_scale_keyed(tmp_path: Path, monkeypatch):
     assert dr_runs[0].name == "dry-run-20260601T120000-Z"
 
     # Dispatch phase-2 without --run-id.
+    # --no-observability per the post-2026-05-28 policy split: phase-2
+    # without Grafana env vars fail-louds at the gate; this test asserts
+    # run-id naming, not the OBS wiring.
     rc = dry_run_e3.main(
         [
             "--scale", "phase-2",
             "--dry",
+            "--no-observability",
             "--results-dir", str(tmp_path / "p2"),
             "--inter-request-pause-seconds", "0.0",
         ]

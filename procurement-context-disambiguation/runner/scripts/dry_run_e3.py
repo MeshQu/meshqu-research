@@ -92,12 +92,28 @@ Optional (defaults inherited from ``RunnerConfig.from_env``):
   - ``MESHQU_RUNNER_DASHBOARD_UID``     (default: experiment-tenant-observability)
   - ``MESHQU_RUNNER_TENANT``            (default: experiment-procurement)
 
-Soft-fail contract: a missing required env var, a drift-detected
-dashboard, or an unreachable Grafana endpoint logs a WARN to stderr
-and disables capture for the remainder of the run. Receipts are NEVER
-blocked on a Grafana issue — they are the load-bearing artefact;
-captures are writeup-anchors. A Grafana outage at minute 47 of a
-90-minute Phase 2 must not lose the receipts that already landed.
+Precondition-vs-runtime contract (different failure policies):
+
+  - **Precondition (missing required env)**: under ``--scale phase-2``,
+    missing ``MESHQU_RUNNER_GRAFANA_*`` raises ``SystemExit`` at
+    run-start. Phase-2 receipts are signed under the experiment
+    kid; a "successful" Phase-2 that silently dropped captures
+    would be the structural twin of the record-composition bug
+    (cryptographic success masking a methodological drop). Fail
+    at the gate. ``--no-observability`` is the documented opt-out
+    if the operator knows the gap and accepts it.
+
+  - **Precondition under ``--scale dry-run --observability``** (rare
+    opt-in for parity testing): missing env soft-fails (WARN + skip
+    capture). Dry-run is iterable validation, not the writeup-anchor
+    run.
+
+  - **Runtime (drift, unreachable Grafana)**: under both scales, a
+    runtime Grafana issue mid-run logs a WARN and disables capture
+    for the remainder. Receipts are NEVER blocked on a runtime
+    Grafana issue — they are the load-bearing artefact; captures
+    are writeup-anchors. A Grafana outage at minute 47 of a 90-minute
+    Phase 2 must not lose the receipts that already landed.
 
 ## Required environment variables (live mode only)
 
@@ -568,13 +584,29 @@ def _build_observability_controller(
 ) -> "RunController | None":
     """Construct and run-start the observability controller for this run.
 
-    Returns the controller on success; ``None`` on any failure (missing
-    env, drift, unreachable Grafana, etc.). The caller then drives
-    captures only when the return is non-None — every capture site
-    treats ``None`` as "observability disabled for this run".
+    Precondition vs. runtime contract — different failure policies:
+
+    - **Precondition (missing required env)**: under ``--scale phase-2``,
+      missing ``MESHQU_RUNNER_GRAFANA_*`` vars raise ``SystemExit`` at
+      run-start. Phase-2 receipts are signed under the experiment kid;
+      a "successful" Phase-2 that silently drops captures is the
+      structural twin of the record-composition bug (cryptographic
+      success masking a methodological drop). Fail-loud at the gate is
+      the lock-in for this concern. Under ``--scale dry-run
+      --observability`` (rare opt-in for parity testing), the same
+      condition WARNs and skips — dry-run is iterable, not the
+      writeup-anchor run.
+    - **Runtime (Grafana outage, drift)**: WARN + skip capture, return
+      ``None``, let the run continue. Receipts are load-bearing; a
+      Grafana outage at minute 47 of a 90-minute Phase 2 must not lose
+      the receipts that already landed.
+
+    Returns the controller on success; ``None`` on any runtime failure.
+    The caller drives captures only when the return is non-None.
 
     Order of operations matches E2's ``phase_2_live.py``:
-      1. ``_check_grafana_env`` — soft warn on missing vars.
+      1. ``_check_grafana_env`` — precondition gate (fail-loud on
+         phase-2, soft on dry-run).
       2. Build ``RunnerConfig`` overriding audit + screenshots to
          ``<run_dir>/observability/``.
       3. ``RunController(...)`` — capture dir gets created here.
@@ -584,12 +616,33 @@ def _build_observability_controller(
     """
     missing = _check_grafana_env()
     if missing:
-        print(
-            "WARN: Grafana env vars not set: "
+        msg_body = (
+            "Grafana env vars not set: "
             + ", ".join(missing)
-            + ". OBS-205/206 capture disabled for this run. Receipts "
-            "still land normally. To enable capture, source .env.live "
-            "with MESHQU_RUNNER_GRAFANA_URL + …_PASSWORD set.",
+            + ". Source .env.live with MESHQU_RUNNER_GRAFANA_URL + "
+            "…_PASSWORD set."
+        )
+        if scale == SCALE_PHASE_2:
+            # Phase-2 precondition lock-in. Receipts get signed under the
+            # experiment kid; if observability captures don't fire on a
+            # writeup-anchor run, that's the same shape as the record-
+            # composition bug (success with silent methodological drop).
+            # Refuse to start rather than emit signed receipts without
+            # the methodological evidence the readiness checklist
+            # claimed.
+            raise SystemExit(
+                "FAIL: --scale phase-2 requires Grafana env vars for "
+                "OBS-205/206 capture (writeup-anchor parity with E1/E2). "
+                + msg_body
+                + " To run phase-2 without observability (rare; e.g. "
+                "local debugging on a corrupted Grafana endpoint), pass "
+                "--no-observability explicitly to opt out."
+            )
+        # Dry-run with --observability opt-in: soft-fail. The dry-run is
+        # iterable validation, not the writeup-anchor run.
+        print(
+            "WARN: " + msg_body + " OBS-205/206 capture disabled for "
+            "this run. Receipts still land normally.",
             file=sys.stderr,
         )
         return None
