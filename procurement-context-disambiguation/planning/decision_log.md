@@ -4,6 +4,73 @@ Reverse-chronological. Most recent decision at the top. Each entry: date, decisi
 
 ---
 
+## 2026-05-28 — Phase 1 close-out: 12 build packages + the methodologically meaningful arcs
+
+**Decision**: Phase 1 of the E3 (Experiment 3 — *Precedents, policy, and commitment*) build complete. Pre-Phase-2 readiness signed off at PR #100 (`9852c07`); driver-extension follow-up (`--scale phase-2` flag) at PR #101 (`3254cca`) is the final piece between readiness and Phase-2 launch. The runner now fires either the 140-receipt dry-run matrix or the 1,332-receipt full corpus matrix from the same driver, with scale-keyed summary artefacts and a parametrized matrix-shape lock-in test. Phase 2 is fireable from Sam's shell whenever his energy permits.
+
+**Twelve build packages shipped in a single working session** (2026-05-28):
+
+| Pkg | Title | PR | Merge SHA | Key outcome |
+|---|---|---|---|---|
+| E3-001 | Runner foundation | #85 | `e50030f` | Forked from E2; arm-keyed registry; receipt-payload extended with 7 E3-specific fields |
+| E3-002 | Arm A — precedents-only | #92 | `1c6e1c2` | Byte-identical to E2's L3 renderer verified via cross-tree `importlib` fixture; anchored the `arms/<arm_name>.py` subpackage layout convergence |
+| E3-003 | Arm B — precedents-no-verdict | #89 | `fc1387f` | Defence-in-depth field projection (whitelist before `str.format_map`); contamination check 0 verdict/violation/E1-reasoning substrings across N=3 × 4 precedents |
+| E3-004 | Arm C — density-control | #93 | `e4f32c2` | Token parity -16.43% → accepted as asymmetric-control methods caveat per Decision Point #3 |
+| E3-005 | L4-without-nudge | #90 | `e09f82a` | HTML-comment-strip convention at renderer layer (Sam's resolution); post-strip diff = exactly the nudge sentence |
+| E3-006 | Claude cross-model swap | #88 | `d484892` | `ClaudeAgent` wrapper bridging `dict ↔ Agent` protocol; pin `claude-opus-4-7`, no `temperature`, `effort: "low"` |
+| E3-007 | Diagnostic subset selector | #87 | `2ce306e` | Deterministic `sha256(ocid)` sort; 100 OCIDs locked to v0.3 tag |
+| E3-008 | Scaled Permuted-Policy diagnostic | #95 | `9e5bc65` | `diagnostic_primary` + `diagnostic_claude` arms (initially envelope-only — see PR #97 for the fix) |
+| E3-009 | Rubric-coding tool | #91 | `a40371e` | Offline CLI walker at `diagnostic/code_rubric.py`; P5 bands parsed from `predictions.md` at runtime |
+| E3-010 | Smoke + verifier | #96 | `600d2ac` | 14-receipt smoke; Ed25519 + integrity-marker verification; live MeshQu wiring (additive at driver layer) |
+| E3-011 | Dry-run + verifier + orphan shim | #99 | `7c222cd` | 140-receipt dry-run scripts; smoke→dry-run ±15% accuracy check; orphan-recovery CLI shim |
+| E3-012 | Pre-Phase-2 readiness checklist | #100 | `9852c07` | 15 PASS / 1 FLAGGED / 0 FAIL → READY FOR PHASE 2 |
+
+Plus: **PR #97** (`0c4ce13`) — the bug-discovery + lock-in-test fix arc (record-composition; see prior entry for full detail). **PR #101** (`3254cca`) — driver extension for `--scale phase-2`; the formally-recorded "one piece of build still due between Phase 1 readiness and Phase 2 launch" (filed AFTER the readiness checklist signed off, on purpose; the readiness applied to the corpus-collection infrastructure, the extension is its scale-aware invocation).
+
+### The two methodologically meaningful arcs
+
+**Arc 1 — Wave-2 dispatch-architecture failure → per-agent worktree isolation.** First Wave 2 dispatch had 7 background agents working in a single shared working directory at `/Users/sam/Projects/meshqu-research`. The agents raced on git state, switched branches mid-work, contaminated each other's untracked files. One errored at the end; five were stopped before push; only E3-007 committed cleanly and was salvaged (PR #87). **Resolution**: redispatch with `git worktree add /private/tmp/wt-e3-XXX -b feat/e3-XXX main` per agent — physical isolation prevents cross-agent racing. Six redispatched agents landed cleanly with that discipline. The dispatch-architecture lesson now carries forward as the new primitive for any parallel-dispatch wave.
+
+**Arc 2 — Record-composition bug caught at decision-point #5; lock-in test now a wave-1 expectation.** The first smoke verified cryptographically clean (14/14) but produced "no procurement record provided" refusals across all six arms. Substantive read on the Claude diagnostic verdict shape (DP#5 v1) surfaced a cross-arm pattern. Root cause: three handlers (`l4_without_nudge`, `diagnostic_primary`, `diagnostic_claude`) returned envelope-only; smoke driver fabricated empty-fields records, hiding the handler bug. PR #97 — three commits: test-first lock-in (3 PASS / 3 FAIL pre-fix, locked-in evidence), handler-and-driver fix (6 PASS), `l4_with_nudge` fold-in (7 PASS). Smoke v2 read clean across all six arms; DP#5 v2 captured Opus's worked-example quote ("Open-competition rule does not trigger below threshold" under permuted policy) — locked rubric category 2 ("reasons solely against rule intent") confirmed direction-of-signal at n=1. **Method-note carry-forward**: every arm-handler PR must include the parametrized "record A and record B render to distinct prompts containing their respective markers" assertion at the wave-1 expectation level. The discipline is now in the codebase as `tests/test_handler_record_composition.py` parametrized across 7 arms — including `l4_with_nudge` (off the smoke/dry-run/full-run matrices but registered, held to the same composition contract per Sam's call).
+
+### The verdict-axis inversion-blindness finding (dry-run, 2026-05-28)
+
+10/10 cross-model + cross-evaluator directional verdict alignment under the permuted policy:
+- 4 records where the MeshQu engine reaches ALLOW: both LLM diagnostic arms reach ALLOW or REVIEW (never DENY)
+- 6 records where the engine reaches DENY: both reach DENY or REVIEW (never ALLOW)
+
+This is **P5 evidence at the verdict-axis** complementary to the locked rubric-axis (category 2 reasoning) evidence — and methodologically stronger than expected at n=10. The MeshQu engine isn't checking semantics; it's mechanically applying the rules as-stated. The LLMs aren't checking either. They're both inversion-blind in the same direction. **Worked-example anchor for the writeup**: "the cross-model + cross-evaluator alignment on directional verdict tells you the inversion-blindness pattern isn't model-personality dependent — it's a property of how the prompt is being read across capable models AND mechanical evaluators." (Lifted verbatim from Sam's 2026-05-28 read.) N=10 is direction-of-signal; the locked rubric across n=100 in Phase 2/2.5 is what confirms or falsifies P5.
+
+### Cross-model verdict-style divergence — empirically grounded at n=10
+
+The DP#5 v2 finding (Opus compact-decisive vs GPT-5.4 hedging-toward-REVIEW) reproduces at n=10: Opus is decisive on 8/10 diagnostic records (2 ALLOW + 6 DENY + 2 REVIEW); GPT-5.4 is REVIEW-heavy on 8/10 (2 DENY + 8 REVIEW). Same prompts, same records, same model-keyed personality split. Methods-section caveat empirically grounded: **verdict distributions and rubric distributions must be analysed independently in the writeup, not pooled across the cross-model arm**. Belongs alongside the "no temperature on Opus 4.7" sampling caveat as documented cross-model arm disclosure.
+
+### Process texture worth recording for future-Sam
+
+Two procedural items worth a sentence each:
+
+**(a)** **The auto-mode classifier denied re-firing the offline verifier** during E3-012's read-only audit — the agent's substitution was a **direct marker-matrix scan + signature kid check** across all 154 live bundles' canonical-JSON payloads. This is at least equivalent to running the verifier and arguably stronger: it inspects the bytes that get hashed and signed, bypassing any parser-layer risk. Combined with the kid-locked signature check (which got verified separately), the two layers together cover what the verifier would have done. Sam's read: methodologically interesting process texture; future-Sam-reading-the-log understands what happened.
+
+**(b)** **PR #101 (driver extension) is the formally-recorded "one piece of build still due between Phase 1 readiness and Phase 2 launch"** — not a Phase-1-incomplete signal. The readiness checklist (PR #100) applied to the corpus-collection infrastructure (handlers, signing, verifier, lock-in tests, cost projection). The extension parameterizes the dry-run driver with a `--scale phase-2` flag so the same driver fires either the dry-run (140 receipts) or the Phase-2 full corpus (1,332 receipts). Filed AFTER readiness on purpose; the discipline distinction is "ready" (infrastructure) vs "fire" (invocation). The `dry_run_e3.py` filename is deliberately NOT renamed despite being slightly misleading for Phase 2; honest naming would require chasing imports across tests + docs + decision_log references — deferred to docs-cleanup batch per "do not endlessly edit."
+
+### Cost projection — **no credit top-up required**
+
+Phase 2 projected at **$25.21 base** + buffer (re-runs / orphans / one accidental re-fire) = **realistic ceiling ~$30–40**. Conservative pre-flight estimate ($50–130) hedged against unknown per-call overhead + worst-case prompt-token assumptions; the dry-run nailed the actual rates across all six arms (smoke→dry-run accuracy within 1.2% — extrapolation is exact at this scale). Most of the cost is Claude diagnostic ($13.31 single biggest line item); main grid totals ~$10.60. **Phase 2 fires on current credit; no top-up needed.**
+
+### What's next
+
+Phase 2 fires from Sam's shell at his energy moment of choice — tonight, tomorrow morning, whenever. Same operational pattern as smoke + dry-run (chain-of-custody preserved through Sam's authenticated environment; brief is verbatim-fireable from the orchestrator's drafted form). After Phase 2 returns clean, Phase 2.5 = the 100 × 2 = 200 reasoning-text hand-codings against the locked rubric (PR #91's `code_rubric.py`). Phase 3 = analysis notebook + writeup. Phase 4 = methodology extraction to the trilogy capstone.
+
+**Post-Phase-1 cleanup todo** (single docs-cleanup PR after Phase 2 returns):
+- Stale docstring references to the deleted E2 `diagnostic/runner.py` in `scaled.py` / `level_l4_permuted.py` / `run_scaled_diagnostic.py` / `select_dry_run_records.py` / `validate_smoke_run.py`
+- Smoke / dry-run driver `$RUN_DIR` UX trap (banner doesn't auto-export the run dir as a shell var for the verifier-call convenience)
+- Py3.14 dataclass error in `test_claude_adapter.py`
+- Extend `tests/conftest.py` autouse fixture pattern (from PR #101) to `test_precedent_selector.py` + `test_diagnostic_subset.py` — the longest-standing environmental fragility in the runner, with a worked-example fix shape now in-codebase
+- Driver rename (`dry_run_e3.py` → `run_e3.py` or `run_corpus.py`) if Sam wants the honest filename later
+- Honest summary filename for Phase 2 already handled in PR #101 (`phase-2-summary.md` per scale)
+
+---
+
 ## 2026-05-28 — Smoke read v2 + handler record-composition fix (PR #97, merge `0c4ce13`)
 
 **Decision**: smoke v1 (run `smoke-20260528T152346-Z`) passed cryptographic verification cleanly (14/14, Ed25519 + integrity markers all correct) but the substantive experimental signal was empty — every arm returned a "no procurement record provided" refusal. Decision-point #5 read on the diagnostic shapes surfaced a cross-arm pattern, root-caused to a bug not in the diagnostic alone but in three arm handlers plus the smoke driver. Fixed in PR #97 (`0c4ce13`); smoke re-fired (`smoke-20260528T161121-Z`) reads clean across all six arms.
