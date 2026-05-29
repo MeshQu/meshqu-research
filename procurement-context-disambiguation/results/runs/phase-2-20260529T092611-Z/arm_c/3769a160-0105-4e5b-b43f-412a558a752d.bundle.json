@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 1796,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1628,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"The contract is below threshold (\u00a340,133), but the record shows a selective method and no direct-award justification, with a 58-day publication delay. Because the justification field is a known low-confidence proxy, the audit trail is too incomplete to conclude compliance.\",\"recommended_action\":\"Obtain procedure rationale and publication timeline\"}",
+    "reasoning": "The contract is below threshold (\u00a340,133), but the record shows a selective method and no direct-award justification, with a 58-day publication delay. Because the justification field is a known low-confidence proxy, the audit trail is too incomplete to conclude compliance.",
+    "reasoning_sha256": "5ac06332d2adddbc9678375eda5244fd4cdab07e47ceb21921486a4044710176",
+    "recommended_action": "Obtain procedure rationale and publication timeline",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "arm_c",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"5ac06332d2adddbc9678375eda5244fd4cdab07e47ceb21921486a4044710176\",\"agent_recommended_action\":\"Obtain procedure rationale and publication timeline\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":40133.0,\"diagnostic\":false,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":\"C\",\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":false,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":58,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-COH-02933191\"}",
+  "decision_id": "3769a160-0105-4e5b-b43f-412a558a752d",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-73c372c4-a3f3-4641-b693-21eb497f50bb",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "3769a160-0105-4e5b-b43f-412a558a752d",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "cab74c788db0e565561c186c927daf2947e8554851375acb6387c13c367c278d",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "zvDIvTHAkQUqmIRFv6vnTplarfs4UV_zeUjb2leZx9G_x2rH8kIoNLi3miuveMWmN8qw5ihDIKfuujUdcuLpDA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:06:23.778Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 127,
+  "timestamp": "2026-05-29T10:06:24+00:00"
+}

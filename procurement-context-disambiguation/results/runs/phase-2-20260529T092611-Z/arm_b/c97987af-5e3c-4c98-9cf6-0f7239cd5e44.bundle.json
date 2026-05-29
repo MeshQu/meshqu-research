@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 1961,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1423,
+    "raw_response": "{\"verdict\":\"allow\",\"reasoning\":\"The contract value is \u00a348,971.52, below the stated threshold proxy, and the procurement method is recorded as open rather than direct award. A 30-day publication delay is not ideal, but on these facts no material compliance or prudence concern is apparent.\",\"recommended_action\":null}",
+    "reasoning": "The contract value is \u00a348,971.52, below the stated threshold proxy, and the procurement method is recorded as open rather than direct award. A 30-day publication delay is not ideal, but on these facts no material compliance or prudence concern is apparent.",
+    "reasoning_sha256": "bb5ccaf71bec26fbfa6cfc5fe1ed3ac7bb3dc2954d50d68f0f7866d3ec7788ad",
+    "recommended_action": null,
+    "retry_count": 0,
+    "verdict": "ALLOW"
+  },
+  "arm_name": "arm_b",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"bb5ccaf71bec26fbfa6cfc5fe1ed3ac7bb3dc2954d50d68f0f7866d3ec7788ad\",\"agent_recommended_action\":null,\"agent_recommended_verdict\":\"ALLOW\",\"agent_temperature\":0.0,\"contract_value\":48971.52,\"diagnostic\":false,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":\"B\",\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":false,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"procurement_method_open_flag\":\"true\",\"publication_delay_days\":30,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-334122\"}",
+  "decision_id": "c97987af-5e3c-4c98-9cf6-0f7239cd5e44",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-20cc2c48-63b4-48bb-b8e1-499f640925b9",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "c97987af-5e3c-4c98-9cf6-0f7239cd5e44",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "0fd52d566c6552abbe2d4a67cb3bf0b020838bd6e6854f90d648583ab31c4097",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "WETDYz5Ln-jq5DU-g_ror9XJGOCoiV39uwZZJ7KqOh7fAg4rfBiG0cSrQNzu2IY56xPKOyNHaWO0hqTE0QvYAQ",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T09:44:58.360Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 39,
+  "timestamp": "2026-05-29T09:44:58+00:00"
+}

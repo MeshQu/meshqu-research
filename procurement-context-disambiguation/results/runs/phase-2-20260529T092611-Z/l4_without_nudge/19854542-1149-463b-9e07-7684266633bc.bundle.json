@@ -1,0 +1,61 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 2319,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2569,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"The contract is marked above-threshold and governed by PA23, but publication_delay_days is 210, far exceeding the policy\u2019s 30-day limit under s.53(1). The record also lacks a conflict_of_interest_declaration field, so a required governance control is not evidenced.\",\"recommended_action\":\"Reject and obtain compliant notice and COI record\"}",
+    "reasoning": "The contract is marked above-threshold and governed by PA23, but publication_delay_days is 210, far exceeding the policy\u2019s 30-day limit under s.53(1). The record also lacks a conflict_of_interest_declaration field, so a required governance control is not evidenced.",
+    "reasoning_sha256": "376ec8e4e50aa9c56b5345b330d871acb591200f3498c3b64a70dfbaccd5ce46",
+    "recommended_action": "Reject and obtain compliant notice and COI record",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "arm_name": "l4_without_nudge",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"376ec8e4e50aa9c56b5345b330d871acb591200f3498c3b64a70dfbaccd5ce46\",\"agent_recommended_action\":\"Reject and obtain compliant notice and COI record\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":0.0,\"contract_value\":180000000.0,\"diagnostic\":false,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":true,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"procurement_method_open_flag\":\"true\",\"publication_delay_days\":210,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-329105\"}",
+  "decision_id": "19854542-1149-463b-9e07-7684266633bc",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-065f9c70-cad3-482a-bb39-a160f8f018c9",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "19854542-1149-463b-9e07-7684266633bc",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "6a94f618b7a61150a85278b6766befb01180bec14ddeeb5c552d32e61e929937",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "-SvpLdvtU9IARztJeOsGY9E9FpM8evopkjTUBtheDkEMlZnu_89bAWtUSMlETNU6kSu7TT1yx-SkDSkKt25uAA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:15:41.047Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 210,
+        "expected_value": "<= 30",
+        "field": "publication_delay_days",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'publication_delay_days' value 210 exceeds maximum 30",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-001-S53",
+        "severity": "critical"
+      },
+      {
+        "actual_value": 180000000,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 180000000 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 5,
+  "timestamp": "2026-05-29T10:15:41+00:00"
+}

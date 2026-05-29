@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 1855,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2572,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"The record appears to fail the policy\u2019s COI declaration requirement because that field is absent, but the substrate notes say UK Contracts Finder cannot evidence it, so compliance cannot be determined from this data alone. Other triggered rules do not clearly fail on the provided facts.\",\"recommended_action\":\"Obtain COI declaration evidence\"}",
+    "reasoning": "The record appears to fail the policy\u2019s COI declaration requirement because that field is absent, but the substrate notes say UK Contracts Finder cannot evidence it, so compliance cannot be determined from this data alone. Other triggered rules do not clearly fail on the provided facts.",
+    "reasoning_sha256": "539d457271c68b60f8bcfbda3dfd9161c08f1a37d66bfd1eecb4366e0bb63629",
+    "recommended_action": "Obtain COI declaration evidence",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "l4_without_nudge",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"539d457271c68b60f8bcfbda3dfd9161c08f1a37d66bfd1eecb4366e0bb63629\",\"agent_recommended_action\":\"Obtain COI declaration evidence\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":15231.0,\"diagnostic\":false,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":true,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":31,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-334110\"}",
+  "decision_id": "9f21e6e3-09b3-42d0-b7e0-f1770987c56a",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-1aa65212-8d69-435a-9709-136a24ea862d",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "9f21e6e3-09b3-42d0-b7e0-f1770987c56a",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "ef14eb1bec498c9ab80dbfe9ae8507e5bcd433a4a595a6c4894a57e71d6d1cee",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "zpapGSh24snt_L0GPg_MkuoW2oZlvU-WRoS9x8D_SB6CBhA0jK6A3XZPpzLos4pEOpE7HWdGo5KC3M_NZMaQAw",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:17:20.159Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 33,
+  "timestamp": "2026-05-29T10:17:20+00:00"
+}

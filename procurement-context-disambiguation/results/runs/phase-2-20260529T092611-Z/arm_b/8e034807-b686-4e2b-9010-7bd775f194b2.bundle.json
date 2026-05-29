@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 2160,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 1444,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"The record shows a \u00a3120,000 PA23 award using a selective method, published 92 days after the award date proxy, and no direct-award justification is linked. Because the justification flag is a known low-confidence false-negative and the publication date is proxy-derived, the audit trail is too uncertain to clear.\",\"recommended_action\":\"Obtain procedure and publication evidence\"}",
+    "reasoning": "The record shows a \u00a3120,000 PA23 award using a selective method, published 92 days after the award date proxy, and no direct-award justification is linked. Because the justification flag is a known low-confidence false-negative and the publication date is proxy-derived, the audit trail is too uncertain to clear.",
+    "reasoning_sha256": "3b39e81cea8b8f4df837acce0d071aea6b4598dcd9b3b5fdba9d6fe743555fcd",
+    "recommended_action": "Obtain procedure and publication evidence",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "arm_b",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"3b39e81cea8b8f4df837acce0d071aea6b4598dcd9b3b5fdba9d6fe743555fcd\",\"agent_recommended_action\":\"Obtain procedure and publication evidence\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":120000.0,\"diagnostic\":false,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":\"B\",\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":false,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":92,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-COH-01188070\"}",
+  "decision_id": "8e034807-b686-4e2b-9010-7bd775f194b2",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-56c92bb7-d876-4bbb-90f2-b8b5e090f0df",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "8e034807-b686-4e2b-9010-7bd775f194b2",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "ae45b2079c9eebfbc7cd8051d5bd0220b8303d60fcb95e5b3f00c6d328c3663f",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "w6IZS60AJuE5UthdUajirF5r6tp8IGL_mqWSLMr1GPsuuDpEBgKvqX6GPDCeMFm9r_viLjjnwYNHWlAzUuI6Cw",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T09:48:09.284Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 95,
+  "timestamp": "2026-05-29T09:48:09+00:00"
+}

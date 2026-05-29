@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": null,
+    "latency_ms": 3741,
+    "output_mode": "plain_text",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 3948,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"Below-threshold contract (\u00a3115k) so PA23 s.53 publication and open-competition rules don't strictly bind, and supplier is not on listed sanctions IDs. However, no conflict-of-interest declaration is present in the record and the tender used a selective method, which warrants human review given missing governance evidence.\",\"recommended_action\":\"Obtain COI declaration and selective-method justification\"}",
+    "reasoning": "Below-threshold contract (\u00a3115k) so PA23 s.53 publication and open-competition rules don't strictly bind, and supplier is not on listed sanctions IDs. However, no conflict-of-interest declaration is present in the record and the tender used a selective method, which warrants human review given missing governance evidence.",
+    "reasoning_sha256": "5b4d7d6a5035951ea4326974cdb9055bcac97880c3cafded821a8b9da3fb8be0",
+    "recommended_action": "Obtain COI declaration and selective-method justification",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "diagnostic_claude",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"claude-opus-4-7\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"5b4d7d6a5035951ea4326974cdb9055bcac97880c3cafded821a8b9da3fb8be0\",\"agent_recommended_action\":\"Obtain COI declaration and selective-method justification\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":null,\"contract_value\":115410.8,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"claude-opus-4-7\",\"model_sampling\":{\"effort\":\"low\",\"temperature\":null},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":22,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-245050\"}",
+  "decision_id": "7e037c75-efd2-4308-9524-88467e7b624f",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-756d33dd-56b6-4e6c-890d-7205f87fd8ab",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "7e037c75-efd2-4308-9524-88467e7b624f",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "5dba1ecc1c8531933c1bd0aef98633d02c24e6aec245bd2a65a53402e21db559",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "LJZbNpBSZDaNNEwuCwdln5rYf4wHCr2Jl8dVbSeLo7h1jnOJgrtxD8k33d7KFxdGb3asHmH9vKEO0WQQeZg0Cg",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:42:31.732Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 55,
+  "timestamp": "2026-05-29T10:42:32+00:00"
+}

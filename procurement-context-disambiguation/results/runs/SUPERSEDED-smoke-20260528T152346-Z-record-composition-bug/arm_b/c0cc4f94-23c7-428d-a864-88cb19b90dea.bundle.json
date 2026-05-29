@@ -1,0 +1,59 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 2979,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 926,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"The record provides no buyer, supplier, contract value, award method, dates, or publication metadata for the specific decision, so compliance and prudence cannot be assessed. The listed precedents are comparable examples only and do not evidence this procurement\u2019s audit trail.\",\"recommended_action\":\"Obtain the full procurement record\"}",
+    "reasoning": "The record provides no buyer, supplier, contract value, award method, dates, or publication metadata for the specific decision, so compliance and prudence cannot be assessed. The listed precedents are comparable examples only and do not evidence this procurement\u2019s audit trail.",
+    "reasoning_sha256": "c516776ddb912d08dd3ee46b3558d3d46b2fbd49cd92227dfecfeb2423defb78",
+    "recommended_action": "Obtain the full procurement record",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "arm_b",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"c516776ddb912d08dd3ee46b3558d3d46b2fbd49cd92227dfecfeb2423defb78\",\"agent_recommended_action\":\"Obtain the full procurement record\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"diagnostic\":false,\"l3_arm\":\"B\",\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":false,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"runner_git_commit\":\"600d2aca925ab16470574711f8c26e70355fe35b\"}",
+  "decision_id": "c0cc4f94-23c7-428d-a864-88cb19b90dea",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-00d99d64-a859-460c-9630-7511284e3e29",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "c0cc4f94-23c7-428d-a864-88cb19b90dea",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "89775abca3010e5bc108b974ec8dc152bc7fb92537177ebec398b453fbe8b434",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "ZIr7RMymv-WUOiLSPOBOzwtTVY6K1-8VrcGHL8BYsgL41V5ZnAJ0GWVOuVEbhvSdrzUX7lFfBSum9ybXTLdVCg",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-28T15:24:03.666Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "expected_value": "numeric value",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Threshold field 'contract_value' is missing",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "not one of [SUPPLIER-OFAC-001, SUPPLIER-UK-SANCTIONS-001, SUPPLIER-EU-RESTRICTED-001]",
+        "field": "supplier_id",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "List field 'supplier_id' is missing",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-003-DEBARMENT",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 0,
+  "timestamp": "2026-05-28T15:24:04+00:00"
+}

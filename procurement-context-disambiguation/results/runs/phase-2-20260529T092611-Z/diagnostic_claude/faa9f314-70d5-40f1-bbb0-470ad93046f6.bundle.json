@@ -1,0 +1,49 @@
+{
+  "agent": {
+    "cached_tokens": null,
+    "latency_ms": 3811,
+    "output_mode": "plain_text",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 3941,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"Above-threshold PA23 contract awarded without open competition flag and no direct-award justification present, breaching PROC-005 (PA23 s.19/s.41). Additionally, no conflict-of-interest declaration is recorded. Publication timing and supplier checks appear acceptable.\",\"recommended_action\":\"Reject award; require open-competition evidence or s.41 direct-award justification\"}",
+    "reasoning": "Above-threshold PA23 contract awarded without open competition flag and no direct-award justification present, breaching PROC-005 (PA23 s.19/s.41). Additionally, no conflict-of-interest declaration is recorded. Publication timing and supplier checks appear acceptable.",
+    "reasoning_sha256": "72dadcc6d7605308633b0034c9b6c58bd888fa1f10a0e4f3cb0c9c27384d61e4",
+    "recommended_action": "Reject award; require open-competition evidence or s.41 direct-award justification",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "arm_name": "diagnostic_claude",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"claude-opus-4-7\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"72dadcc6d7605308633b0034c9b6c58bd888fa1f10a0e4f3cb0c9c27384d61e4\",\"agent_recommended_action\":\"Reject award; require open-competition evidence or s.41 direct-award justification\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":null,\"contract_value\":267689.4,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"claude-opus-4-7\",\"model_sampling\":{\"effort\":\"low\",\"temperature\":null},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":6,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-COH-02150688\"}",
+  "decision_id": "faa9f314-70d5-40f1-bbb0-470ad93046f6",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-100f7ed2-f39f-44f2-b848-9a6d8023a089",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "faa9f314-70d5-40f1-bbb0-470ad93046f6",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "26be5100af4b0c0863dd51f54879c8fdda5bff10d729c78eb2c2bfffe4622df4",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "lR6_rpLgOfwO5gIZV-JVcewM1BpZ0cCzBXduU5Z4PTC0pfQMqkX0i62rSDg88oeEfejlpMzrpfjG27HgdzGjBw",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:38:47.465Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 7,
+  "timestamp": "2026-05-29T10:38:48+00:00"
+}

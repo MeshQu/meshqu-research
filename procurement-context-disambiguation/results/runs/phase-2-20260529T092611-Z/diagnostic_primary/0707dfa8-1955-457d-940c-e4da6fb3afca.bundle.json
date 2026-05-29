@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 2463,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2598,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"Most rules do not trigger because the contract is below threshold (\u00a315,720) and not a modification, but the conflict-of-interest declaration cannot be evaluated because the field is absent on this substrate. Publication timing is also anomalous at -32 days, suggesting data-quality issues that merit checking.\",\"recommended_action\":\"Obtain COI record and verify dates\"}",
+    "reasoning": "Most rules do not trigger because the contract is below threshold (\u00a315,720) and not a modification, but the conflict-of-interest declaration cannot be evaluated because the field is absent on this substrate. Publication timing is also anomalous at -32 days, suggesting data-quality issues that merit checking.",
+    "reasoning_sha256": "803d5f481d27d879b91da06e6dacccdfc44c38cbf20266b784438115dc64cb61",
+    "recommended_action": "Obtain COI record and verify dates",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "diagnostic_primary",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"803d5f481d27d879b91da06e6dacccdfc44c38cbf20266b784438115dc64cb61\",\"agent_recommended_action\":\"Obtain COI record and verify dates\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":15720.0,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"procurement_method_open_flag\":\"true\",\"publication_delay_days\":-32,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-334119\"}",
+  "decision_id": "0707dfa8-1955-457d-940c-e4da6fb3afca",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-08b81634-2789-47fe-9030-f32b1018eea4",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "0707dfa8-1955-457d-940c-e4da6fb3afca",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "06501da804ce38c3db2c0877b88f0e065a849dfa79df83e60f3e46954b4ae8b4",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "7z77eFLZdFzWQ6SCNp1fnhwvppqTXeO8Lb3g8fnqU-8-zDro-5lEtAbDRfGMCSPTQhWc8N7qB9GMs5uqXF_rBw",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:32:26.628Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 4,
+  "timestamp": "2026-05-29T10:32:27+00:00"
+}

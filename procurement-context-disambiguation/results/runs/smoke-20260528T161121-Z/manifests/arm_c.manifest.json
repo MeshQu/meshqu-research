@@ -1,0 +1,30 @@
+{
+  "agent_model_id": "gpt-5.4-2026-03-05",
+  "agent_prompt_sha256": "690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2",
+  "agent_temperature": 0.0,
+  "arm_name": "arm_c",
+  "arm_profile": {
+    "diagnostic": false,
+    "l3_arm": "C",
+    "model_id": "gpt-5.4-2026-03-05",
+    "model_sampling": {
+      "temperature": 0
+    },
+    "nudge_excised": false
+  },
+  "bundle_envelope_version": 1,
+  "is_stub": false,
+  "meshqu_api_url": "https://meshqu-api-staging.up.railway.app",
+  "meshqu_tenant_label": "experiment-procurement",
+  "policy_snapshot_path": "/Users/sam/Projects/meshqu-research/procurement-context-gradient/policy/policy-snapshot-cbf12348.json",
+  "policy_snapshot_sha256": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+  "prereg_tag": "v0.3-predictions-locked",
+  "record_target_count": 3,
+  "run_id": "smoke-20260528T161121-Z",
+  "run_phase": "smoke",
+  "runner_git_commit": "0c4ce139c08c0f6bb5ca477290774db8bda0b5e1",
+  "runner_git_dirty": false,
+  "started_at": "2026-05-28T16:11:45+00:00",
+  "substrate_adapter_version": "0.0-stub",
+  "substrate_source": {}
+}

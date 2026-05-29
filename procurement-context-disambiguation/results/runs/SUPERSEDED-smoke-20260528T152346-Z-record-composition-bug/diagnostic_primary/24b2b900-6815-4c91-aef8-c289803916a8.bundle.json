@@ -1,0 +1,59 @@
+{
+  "agent": {
+    "cached_tokens": 0,
+    "latency_ms": 2397,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2060,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"No procurement record is provided, so none of the six rules can be confidently evaluated: publication delay, contract value, supplier sanctions status, conflict declaration, open-tender evidence, and modification ratio are all unknown. The missing audit trail means compliance with the authored policy cannot be confirmed.\",\"recommended_action\":\"Obtain the full procurement record and rule fields\"}",
+    "reasoning": "No procurement record is provided, so none of the six rules can be confidently evaluated: publication delay, contract value, supplier sanctions status, conflict declaration, open-tender evidence, and modification ratio are all unknown. The missing audit trail means compliance with the authored policy cannot be confirmed.",
+    "reasoning_sha256": "5b4176f8056bf96be939609f915272b620bd7fefea88c3c1e780cf3041e39c22",
+    "recommended_action": "Obtain the full procurement record and rule fields",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "diagnostic_primary",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"5b4176f8056bf96be939609f915272b620bd7fefea88c3c1e780cf3041e39c22\",\"agent_recommended_action\":\"Obtain the full procurement record and rule fields\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"diagnostic\":true,\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"runner_git_commit\":\"600d2aca925ab16470574711f8c26e70355fe35b\"}",
+  "decision_id": "24b2b900-6815-4c91-aef8-c289803916a8",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-00d99d64-a859-460c-9630-7511284e3e29",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "24b2b900-6815-4c91-aef8-c289803916a8",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "d3eb16d047dc2fcc66c606335cf56334e50e537c2d5acdc9dcad1ab296603b8a",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "5eSKUtkymCmDkJNBrRRC2PuXTBoRzv9Nfm8na6dBUCnjgrKuvs8-0Q85OXq6zztYIWR9orCW15jDaiblEUoUDw",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-28T15:24:33.515Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "expected_value": "numeric value",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Threshold field 'contract_value' is missing",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "not one of [SUPPLIER-OFAC-001, SUPPLIER-UK-SANCTIONS-001, SUPPLIER-EU-RESTRICTED-001]",
+        "field": "supplier_id",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "List field 'supplier_id' is missing",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-003-DEBARMENT",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 0,
+  "timestamp": "2026-05-28T15:24:34+00:00"
+}

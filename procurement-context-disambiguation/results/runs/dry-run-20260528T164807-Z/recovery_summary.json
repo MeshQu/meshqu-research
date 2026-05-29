@@ -1,0 +1,10 @@
+{
+  "dry_run": false,
+  "finished_at": "2026-05-28T16:58:08+00:00",
+  "orphans_total": 0,
+  "outcomes": [],
+  "recovered": 0,
+  "refetch_failed": 0,
+  "run_dir": "/Users/sam/Projects/meshqu-research/procurement-context-disambiguation/results/runs/dry-run-20260528T164807-Z",
+  "started_at": "2026-05-28T16:58:08+00:00"
+}
