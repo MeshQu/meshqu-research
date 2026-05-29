@@ -1,0 +1,61 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 1945,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2568,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"The contract is above threshold and governed by PA23, but publication_delay_days is 56, exceeding the policy\u2019s 30-day limit for the Contract Details Notice. The record also lacks a conflict_of_interest_declaration field, but the late publication alone triggers a critical failure.\",\"recommended_action\":\"Investigate late notice and remediate controls\"}",
+    "reasoning": "The contract is above threshold and governed by PA23, but publication_delay_days is 56, exceeding the policy\u2019s 30-day limit for the Contract Details Notice. The record also lacks a conflict_of_interest_declaration field, but the late publication alone triggers a critical failure.",
+    "reasoning_sha256": "c5536e1e402ffe241ff62f4e2b49bbce6917b7135afca698828a908e1f8da75f",
+    "recommended_action": "Investigate late notice and remediate controls",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "arm_name": "l4_without_nudge",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"c5536e1e402ffe241ff62f4e2b49bbce6917b7135afca698828a908e1f8da75f\",\"agent_recommended_action\":\"Investigate late notice and remediate controls\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":0.0,\"contract_value\":7750000.0,\"diagnostic\":false,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":true,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"procurement_method_open_flag\":\"true\",\"publication_delay_days\":56,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-334118\"}",
+  "decision_id": "ceee29a2-8a92-4e78-8c50-c1c156d1cfdb",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-09d0f7a1-208c-497d-88bf-0c22ba865858",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "ceee29a2-8a92-4e78-8c50-c1c156d1cfdb",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "731b709f733be20c65c68c5a1fad9f5be3db29c85f93c5c8597d6b6f7f8ea70c",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "May1is3MJiTuJhgq02X3PsgeKJtIaKhce-_OyA61wlSmi0FGIiQRwX-xdWFaR7T-fb99HxchtM5oS7R5I2OmDw",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:16:12.173Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 56,
+        "expected_value": "<= 30",
+        "field": "publication_delay_days",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'publication_delay_days' value 56 exceeds maximum 30",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-001-S53",
+        "severity": "critical"
+      },
+      {
+        "actual_value": 7750000,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 7750000 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 14,
+  "timestamp": "2026-05-29T10:16:12+00:00"
+}

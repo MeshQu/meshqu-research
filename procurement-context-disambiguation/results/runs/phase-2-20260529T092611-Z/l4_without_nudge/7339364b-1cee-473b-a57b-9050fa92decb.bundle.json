@@ -1,0 +1,60 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 2547,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2579,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"The record breaches multiple policy rules: contract value is \u00a3904,200, exceeding the \u00a3500,000 delegated-authority cap, and for an above-threshold PA23 procurement with no direct-award justification, the open-competition flag is absent while the method is noted as selective. The conflict-of-interest declaration field is also absent from the record.\",\"recommended_action\":\"Obtain approvals and competition/COI evidence before proceeding\"}",
+    "reasoning": "The record breaches multiple policy rules: contract value is \u00a3904,200, exceeding the \u00a3500,000 delegated-authority cap, and for an above-threshold PA23 procurement with no direct-award justification, the open-competition flag is absent while the method is noted as selective. The conflict-of-interest declaration field is also absent from the record.",
+    "reasoning_sha256": "0f149c75a6d08b800d19641dbe800bc54049e809d00346e803f1c744fe75da01",
+    "recommended_action": "Obtain approvals and competition/COI evidence before proceeding",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "arm_name": "l4_without_nudge",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"0f149c75a6d08b800d19641dbe800bc54049e809d00346e803f1c744fe75da01\",\"agent_recommended_action\":\"Obtain approvals and competition/COI evidence before proceeding\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":0.0,\"contract_value\":904200.0,\"diagnostic\":false,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":true,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":29,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-COH-04077975\"}",
+  "decision_id": "7339364b-1cee-473b-a57b-9050fa92decb",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-ea8fee4a-2905-42bd-94aa-ae1cb2cf0869",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "7339364b-1cee-473b-a57b-9050fa92decb",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "a07119591cb04c362c4a45e855ac4a76fa881ce588008d74c7d94e8fbb3025fd",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "wIUlCdE2YGKh5WPAHW7gK5ZBmgbpTBHHpgsVKguLKtSI0lxaTcRQR851H050HSKkMz4kq6jSQ3HKKi7qilCZDA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:30:40.541Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 904200,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 904200 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 256,
+  "timestamp": "2026-05-29T10:30:41+00:00"
+}

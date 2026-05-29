@@ -1,0 +1,49 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 2408,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2602,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"The record appears above-threshold and PA23-governed, with publication in 13 days, so no issue is evident there. However, it shows a selective rather than open method, no linked direct-award justification, and the conflict-of-interest declaration cannot be evaluated because the substrate lacks that field.\",\"recommended_action\":\"Obtain justification and COI evidence\"}",
+    "reasoning": "The record appears above-threshold and PA23-governed, with publication in 13 days, so no issue is evident there. However, it shows a selective rather than open method, no linked direct-award justification, and the conflict-of-interest declaration cannot be evaluated because the substrate lacks that field.",
+    "reasoning_sha256": "062fbad903d29e393e596208aa17679d8f7dde8ea1951807ce2c630848963267",
+    "recommended_action": "Obtain justification and COI evidence",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "diagnostic_primary",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"062fbad903d29e393e596208aa17679d8f7dde8ea1951807ce2c630848963267\",\"agent_recommended_action\":\"Obtain justification and COI evidence\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":426192.0,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":13,\"runner_git_commit\":\"917ddab8136b76f0c13dbb09a4ca925bcb57d49d\",\"supplier_id\":\"GB-COH-03858827\"}",
+  "decision_id": "d9cc22f2-651b-4085-92e8-092432118778",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-cd41c324-0b76-439a-ad5c-44e1c26e418d",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "d9cc22f2-651b-4085-92e8-092432118778",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "ebc0c9df897c4be0bf30bff2e74721303387d402b0efa5bcec25f302c838ec7e",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "fBZTuD90VpaYs3fILoaxU_qarnLl8J6RafNSs_c7v1XpW6OBBZbudjD85iLBimsyhL2VU6N5CCZOYlmmJYWuDA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-28T16:56:20.823Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 9,
+  "timestamp": "2026-05-28T16:56:21+00:00"
+}

@@ -1,0 +1,49 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 2494,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2579,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"The record passes the publication-delay, value, sanctions and modification rules on the fields provided, but it lacks a conflict_of_interest_declaration and shows a non-open method ('selective') while above threshold with no direct-award justification present. Because the substrate notes say COI cannot be evaluated here and direct-award linkage may be a false negative, human review is warranted.\",\"recommended_action\":\"Obtain COI record and competition justification\"}",
+    "reasoning": "The record passes the publication-delay, value, sanctions and modification rules on the fields provided, but it lacks a conflict_of_interest_declaration and shows a non-open method ('selective') while above threshold with no direct-award justification present. Because the substrate notes say COI cannot be evaluated here and direct-award linkage may be a false negative, human review is warranted.",
+    "reasoning_sha256": "1ffaec66e471a423ec1fa0b9cf29e254c3e2110f5c7956ec13db4c7d1b3f1e55",
+    "recommended_action": "Obtain COI record and competition justification",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "l4_without_nudge",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"1ffaec66e471a423ec1fa0b9cf29e254c3e2110f5c7956ec13db4c7d1b3f1e55\",\"agent_recommended_action\":\"Obtain COI record and competition justification\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":0.0,\"contract_value\":428169.0,\"diagnostic\":false,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":true,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":16,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-COH-04109393\"}",
+  "decision_id": "38f9569b-0fef-40e8-8d70-10dfa7781470",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-8c39e552-ddf7-4cb0-8fb6-eaeaa827b2d3",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "38f9569b-0fef-40e8-8d70-10dfa7781470",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "3bda7e186841686141c0a0f10d1d5687ef113f4ee7f377f88ae1ba9bbffaed0d",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "hrfo8qtB6iggFbr5Mifrgvy6Ak22siQANKO_VnIdCQaDszNBqoUbjpB13n9qLK7xFljrGI2SnurJ8mVupdPcDA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:24:40.932Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 157,
+  "timestamp": "2026-05-29T10:24:41+00:00"
+}

@@ -1,0 +1,60 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 4323,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2575,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"The record breaches multiple policy rules: contract value is 716,899.2, exceeding the 500,000 delegated-authority cap, and it is above threshold with no direct-award justification while the open-competition flag is absent and the method is noted as selective. The conflict-of-interest declaration field is also absent, so the audit trail is incomplete.\",\"recommended_action\":\"Obtain senior approval, COI record, and lawful competition justification before proceeding\"}",
+    "reasoning": "The record breaches multiple policy rules: contract value is 716,899.2, exceeding the 500,000 delegated-authority cap, and it is above threshold with no direct-award justification while the open-competition flag is absent and the method is noted as selective. The conflict-of-interest declaration field is also absent, so the audit trail is incomplete.",
+    "reasoning_sha256": "d1e069949eae79e4736d585802e15319ab9c733f9c3bd25a89759bd2834d2f7c",
+    "recommended_action": "Obtain senior approval, COI record, and lawful competition justification before proceeding",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "arm_name": "l4_without_nudge",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"d1e069949eae79e4736d585802e15319ab9c733f9c3bd25a89759bd2834d2f7c\",\"agent_recommended_action\":\"Obtain senior approval, COI record, and lawful competition justification before proceeding\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":0.0,\"contract_value\":716899.2,\"diagnostic\":false,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":true,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":1,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-334082\"}",
+  "decision_id": "2aef4fe1-ae4b-4583-93e1-872dc837c2af",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-39befb98-7e0c-4a4b-864a-092ad9b8d38f",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "2aef4fe1-ae4b-4583-93e1-872dc837c2af",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "6347185910af1473a8d390d9b0d350da53124cd755b56414d7823a0c6003a4b1",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "KPKgPy_KtUcTQK7wPsFnw4s_Egj-7zHAGzWtFe5T-GP7dCpiYSa78vfNahUuI0yAEuCDhPflv8I96r06feXoAw",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:18:55.223Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 716899.2,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 716899.2 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 59,
+  "timestamp": "2026-05-29T10:18:55+00:00"
+}

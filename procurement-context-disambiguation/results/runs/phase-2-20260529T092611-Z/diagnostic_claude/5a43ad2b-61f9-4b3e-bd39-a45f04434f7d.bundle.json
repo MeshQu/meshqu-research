@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": null,
+    "latency_ms": 3461,
+    "output_mode": "plain_text",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 3939,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"Contract value is recorded as \u00a30 and above_threshold is a conservative proxy, making s.53 publication-delay applicability uncertain despite the 33-day delay exceeding 30. COI declaration field is absent from the substrate and cannot be verified. These gaps warrant human review rather than a clear allow or deny.\",\"recommended_action\":\"Verify contract value, threshold status, and COI declaration\"}",
+    "reasoning": "Contract value is recorded as \u00a30 and above_threshold is a conservative proxy, making s.53 publication-delay applicability uncertain despite the 33-day delay exceeding 30. COI declaration field is absent from the substrate and cannot be verified. These gaps warrant human review rather than a clear allow or deny.",
+    "reasoning_sha256": "dc521e9587e0eb40d2340ec7ec6838a998ade13ac106df34ec9bfda7d6244bfe",
+    "recommended_action": "Verify contract value, threshold status, and COI declaration",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "diagnostic_claude",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"claude-opus-4-7\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"dc521e9587e0eb40d2340ec7ec6838a998ade13ac106df34ec9bfda7d6244bfe\",\"agent_recommended_action\":\"Verify contract value, threshold status, and COI declaration\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":null,\"contract_value\":0.0,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"claude-opus-4-7\",\"model_sampling\":{\"effort\":\"low\",\"temperature\":null},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"procurement_method_open_flag\":\"true\",\"publication_delay_days\":33,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-167023\"}",
+  "decision_id": "5a43ad2b-61f9-4b3e-bd39-a45f04434f7d",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-6bb11187-ac69-45a7-8246-73ce1b53100d",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "5a43ad2b-61f9-4b3e-bd39-a45f04434f7d",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "a8bf8475155270a591b5f43e9b3d7c36fc9e4eecce894e5ca7d4f1edaab47ffa",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "KhEfFc-ELmgDbwp5MKD8IhX6kRh2f8mJWHaSnIZ_JFxdgAUrY_txpKyBwK-1KwOmMuRvn-TbGZ3NA4WeZPO2Dw",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:42:04.012Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 50,
+  "timestamp": "2026-05-29T10:42:04+00:00"
+}

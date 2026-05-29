@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": null,
+    "latency_ms": 3347,
+    "output_mode": "plain_text",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 3944,
+    "raw_response": "{\"verdict\":\"review\",\"reasoning\":\"Below-threshold (\u00a334k) contract, so PROC-001/005 don't trigger and value is under delegated-authority threshold. However, the conflict-of-interest declaration field is absent from the record, which prevents confirming PROC-004 compliance. Substrate limitations rather than clear non-compliance.\",\"recommended_action\":\"Obtain conflict-of-interest declaration evidence\"}",
+    "reasoning": "Below-threshold (\u00a334k) contract, so PROC-001/005 don't trigger and value is under delegated-authority threshold. However, the conflict-of-interest declaration field is absent from the record, which prevents confirming PROC-004 compliance. Substrate limitations rather than clear non-compliance.",
+    "reasoning_sha256": "b5ccfb07edb91fdaec8bf9fd5ec518870d0a6e90237ec5a1335c1bed05bb0f3b",
+    "recommended_action": "Obtain conflict-of-interest declaration evidence",
+    "retry_count": 0,
+    "verdict": "REVIEW"
+  },
+  "arm_name": "diagnostic_claude",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"claude-opus-4-7\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"b5ccfb07edb91fdaec8bf9fd5ec518870d0a6e90237ec5a1335c1bed05bb0f3b\",\"agent_recommended_action\":\"Obtain conflict-of-interest declaration evidence\",\"agent_recommended_verdict\":\"REVIEW\",\"agent_temperature\":null,\"contract_value\":34000.0,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"claude-opus-4-7\",\"model_sampling\":{\"effort\":\"low\",\"temperature\":null},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":28,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-COH-07409897\"}",
+  "decision_id": "5e5eda21-9691-4913-a1fe-e90fbaeefbe7",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-422c1653-6acc-4cb5-b1a2-e6406d5c21e2",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "5e5eda21-9691-4913-a1fe-e90fbaeefbe7",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "616ba2b7e677f3fac4b7c2ae33d684d67be6366500d5d811be8d2e7f8133d9e4",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "5XLFWPoPH5arnwQ9YHZjIisjaqq0PxE7ekUZsqa82RFrQjCmmocyEUr9IJZV86eRnXoUbM477J3WvO22HiYKBA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:40:10.194Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 25,
+  "timestamp": "2026-05-29T10:40:10+00:00"
+}

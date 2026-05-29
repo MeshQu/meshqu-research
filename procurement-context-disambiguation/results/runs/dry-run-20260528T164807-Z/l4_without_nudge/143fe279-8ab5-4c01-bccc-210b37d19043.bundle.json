@@ -1,0 +1,60 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 2182,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2579,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"The record breaches PROC-001 because an above-threshold PA23 contract was published 85 days after award, exceeding the 30-day limit. It also fails PROC-005 because above_threshold is true, no direct-award justification is present, and the open-competition flag is absent; the COI field is also absent, leaving an incomplete audit trail.\",\"recommended_action\":\"Reject and obtain compliant notice and competition justification\"}",
+    "reasoning": "The record breaches PROC-001 because an above-threshold PA23 contract was published 85 days after award, exceeding the 30-day limit. It also fails PROC-005 because above_threshold is true, no direct-award justification is present, and the open-competition flag is absent; the COI field is also absent, leaving an incomplete audit trail.",
+    "reasoning_sha256": "c03b89610d4701f9fe935df59289fba73d78c3add0a3d7262206fe4538c75cbd",
+    "recommended_action": "Reject and obtain compliant notice and competition justification",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "arm_name": "l4_without_nudge",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"c03b89610d4701f9fe935df59289fba73d78c3add0a3d7262206fe4538c75cbd\",\"agent_recommended_action\":\"Reject and obtain compliant notice and competition justification\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":0.0,\"contract_value\":177984.0,\"diagnostic\":false,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":true,\"policy_permutation_seed\":null,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":85,\"runner_git_commit\":\"917ddab8136b76f0c13dbb09a4ca925bcb57d49d\",\"supplier_id\":\"GB-COH-08664789\"}",
+  "decision_id": "143fe279-8ab5-4c01-bccc-210b37d19043",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-119d1c05-7fa8-478f-ac6f-db416fb5b5c9",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "143fe279-8ab5-4c01-bccc-210b37d19043",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "9e9676672e0a84d74e5864b629bac8640748caf9e189a74927a1ad859838a3f4",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "lVILbSLQby40wYRu7gaNERniGul-s0vPgU1e_786-t7C-mhpskMUhlpi5Uf8fSPi4WbI4ChKgnVMUqSUw0Y-Dg",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-28T16:54:02.426Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 85,
+        "expected_value": "<= 30",
+        "field": "publication_delay_days",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'publication_delay_days' value 85 exceeds maximum 30",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-001-S53",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 1,
+  "timestamp": "2026-05-28T16:54:02+00:00"
+}

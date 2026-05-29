@@ -1,0 +1,60 @@
+{
+  "agent": {
+    "cached_tokens": null,
+    "latency_ms": 4745,
+    "output_mode": "plain_text",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 3941,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"Above-threshold contract (\u00a3726,189) used selective procurement with no direct-award justification present, breaching the open competition requirement (PROC-005). Publication delay of exactly 30 days also sits at the s.53(1) limit, and no conflict-of-interest declaration is recorded.\",\"recommended_action\":\"Reject award and require open tender or documented s.41 direct-award justification\"}",
+    "reasoning": "Above-threshold contract (\u00a3726,189) used selective procurement with no direct-award justification present, breaching the open competition requirement (PROC-005). Publication delay of exactly 30 days also sits at the s.53(1) limit, and no conflict-of-interest declaration is recorded.",
+    "reasoning_sha256": "1022a082671ae63cec8894f555c60290e53373e0888617a8524008a485abfce6",
+    "recommended_action": "Reject award and require open tender or documented s.41 direct-award justification",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "arm_name": "diagnostic_claude",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"claude-opus-4-7\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"1022a082671ae63cec8894f555c60290e53373e0888617a8524008a485abfce6\",\"agent_recommended_action\":\"Reject award and require open tender or documented s.41 direct-award justification\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":null,\"contract_value\":726189.0,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"claude-opus-4-7\",\"model_sampling\":{\"effort\":\"low\",\"temperature\":null},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":30,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-COH-02711141\"}",
+  "decision_id": "b15b7851-2082-4386-940c-5b9b59e211e9",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-9da7f5bb-fc0f-4953-b686-9ed83807c6ba",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "b15b7851-2082-4386-940c-5b9b59e211e9",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "26c24fd497a35a3ea45e1022d069fe104a8bef329c904b857bbef041e79872e9",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "AXSarbejl8LHVVs11GzjOQmgKtW9J1QdQ4QbI78-qneEa_CQm6B_M1O8GCtKSgH4aAwxuXcRFmkLAlK_fm1tCQ",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:44:25.596Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 726189,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 726189 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 73,
+  "timestamp": "2026-05-29T10:44:26+00:00"
+}

@@ -1,0 +1,191 @@
+{
+  "accountings": {
+    "arm_a": {
+      "arm_name": "arm_a",
+      "errors": [],
+      "latencies_ms": [
+        2986,
+        2052,
+        3377
+      ],
+      "latency_max_ms": 3377,
+      "latency_mean_ms": 2805.0,
+      "latency_min_ms": 2052,
+      "prompt_tokens": [
+        1318,
+        1320,
+        1320
+      ],
+      "prompt_tokens_total": 3958,
+      "receipts_written": 3,
+      "record_count": 3
+    },
+    "arm_b": {
+      "arm_name": "arm_b",
+      "errors": [],
+      "latencies_ms": [
+        2979,
+        1748,
+        2072
+      ],
+      "latency_max_ms": 2979,
+      "latency_mean_ms": 2266.3333333333335,
+      "latency_min_ms": 1748,
+      "prompt_tokens": [
+        926,
+        928,
+        928
+      ],
+      "prompt_tokens_total": 2782,
+      "receipts_written": 3,
+      "record_count": 3
+    },
+    "arm_c": {
+      "arm_name": "arm_c",
+      "errors": [],
+      "latencies_ms": [
+        1980,
+        2055,
+        2863
+      ],
+      "latency_max_ms": 2863,
+      "latency_mean_ms": 2299.3333333333335,
+      "latency_min_ms": 1980,
+      "prompt_tokens": [
+        1105,
+        1105,
+        1105
+      ],
+      "prompt_tokens_total": 3315,
+      "receipts_written": 3,
+      "record_count": 3
+    },
+    "diagnostic_claude": {
+      "arm_name": "diagnostic_claude",
+      "errors": [],
+      "latencies_ms": [
+        2723
+      ],
+      "latency_max_ms": 2723,
+      "latency_mean_ms": 2723.0,
+      "latency_min_ms": 2723,
+      "prompt_tokens": [
+        3087
+      ],
+      "prompt_tokens_total": 3087,
+      "receipts_written": 1,
+      "record_count": 1
+    },
+    "diagnostic_primary": {
+      "arm_name": "diagnostic_primary",
+      "errors": [],
+      "latencies_ms": [
+        2397
+      ],
+      "latency_max_ms": 2397,
+      "latency_mean_ms": 2397.0,
+      "latency_min_ms": 2397,
+      "prompt_tokens": [
+        2060
+      ],
+      "prompt_tokens_total": 2060,
+      "receipts_written": 1,
+      "record_count": 1
+    },
+    "l4_without_nudge": {
+      "arm_name": "l4_without_nudge",
+      "errors": [],
+      "latencies_ms": [
+        2617,
+        2004,
+        1847
+      ],
+      "latency_max_ms": 2617,
+      "latency_mean_ms": 2156.0,
+      "latency_min_ms": 1847,
+      "prompt_tokens": [
+        2037,
+        2037,
+        2037
+      ],
+      "prompt_tokens_total": 6111,
+      "receipts_written": 3,
+      "record_count": 3
+    }
+  },
+  "expected_total_receipts": 14,
+  "extrapolation": [
+    {
+      "arm": "arm_a",
+      "dry_run_prompt_tokens_projected": 39580,
+      "dry_run_receipts": 30,
+      "full_run_prompt_tokens_projected": 373371,
+      "full_run_receipts": 283,
+      "smoke_prompt_tokens_mean_per_record": 1319.3,
+      "smoke_prompt_tokens_total": 3958,
+      "smoke_receipts": 3
+    },
+    {
+      "arm": "arm_b",
+      "dry_run_prompt_tokens_projected": 27820,
+      "dry_run_receipts": 30,
+      "full_run_prompt_tokens_projected": 262435,
+      "full_run_receipts": 283,
+      "smoke_prompt_tokens_mean_per_record": 927.3,
+      "smoke_prompt_tokens_total": 2782,
+      "smoke_receipts": 3
+    },
+    {
+      "arm": "arm_c",
+      "dry_run_prompt_tokens_projected": 33150,
+      "dry_run_receipts": 30,
+      "full_run_prompt_tokens_projected": 312715,
+      "full_run_receipts": 283,
+      "smoke_prompt_tokens_mean_per_record": 1105.0,
+      "smoke_prompt_tokens_total": 3315,
+      "smoke_receipts": 3
+    },
+    {
+      "arm": "l4_without_nudge",
+      "dry_run_prompt_tokens_projected": 61110,
+      "dry_run_receipts": 30,
+      "full_run_prompt_tokens_projected": 576471,
+      "full_run_receipts": 283,
+      "smoke_prompt_tokens_mean_per_record": 2037.0,
+      "smoke_prompt_tokens_total": 6111,
+      "smoke_receipts": 3
+    },
+    {
+      "arm": "diagnostic_primary",
+      "dry_run_prompt_tokens_projected": 20600,
+      "dry_run_receipts": 10,
+      "full_run_prompt_tokens_projected": 206000,
+      "full_run_receipts": 100,
+      "smoke_prompt_tokens_mean_per_record": 2060.0,
+      "smoke_prompt_tokens_total": 2060,
+      "smoke_receipts": 1
+    },
+    {
+      "arm": "diagnostic_claude",
+      "dry_run_prompt_tokens_projected": 30870,
+      "dry_run_receipts": 10,
+      "full_run_prompt_tokens_projected": 308700,
+      "full_run_receipts": 100,
+      "smoke_prompt_tokens_mean_per_record": 3087.0,
+      "smoke_prompt_tokens_total": 3087,
+      "smoke_receipts": 1
+    }
+  ],
+  "finished_at": "2026-05-28T15:24:37+00:00",
+  "is_dry": false,
+  "ocids": [
+    "ocds-b5fd17-00d99d64-a859-460c-9630-7511284e3e29",
+    "ocds-b5fd17-15a37e29-28a4-4e14-a057-f1bc8f8124d6",
+    "ocds-b5fd17-9a2263a4-c2d5-4023-b405-882f8eacdd1e"
+  ],
+  "prereg_tag": "v0.3-predictions-locked",
+  "run_id": "smoke-20260528T152346-Z",
+  "started_at": "2026-05-28T15:23:46+00:00",
+  "total_errors": 0,
+  "total_receipts_written": 14
+}

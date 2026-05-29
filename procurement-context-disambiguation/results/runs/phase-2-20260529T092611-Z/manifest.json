@@ -1,0 +1,31 @@
+{
+  "agent_model_id": "claude-opus-4-7",
+  "agent_prompt_sha256": "690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2",
+  "agent_temperature": null,
+  "arm_name": "diagnostic_claude",
+  "arm_profile": {
+    "diagnostic": true,
+    "l3_arm": null,
+    "model_id": "claude-opus-4-7",
+    "model_sampling": {
+      "effort": "low",
+      "temperature": null
+    },
+    "nudge_excised": false
+  },
+  "bundle_envelope_version": 1,
+  "is_stub": false,
+  "meshqu_api_url": "https://meshqu-api-staging.up.railway.app",
+  "meshqu_tenant_label": "experiment-procurement",
+  "policy_snapshot_path": "/Users/sam/Projects/meshqu-research/procurement-context-gradient/policy/policy-snapshot-cbf12348.json",
+  "policy_snapshot_sha256": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+  "prereg_tag": "v0.3-predictions-locked",
+  "record_target_count": 100,
+  "run_id": "phase-2-20260529T092611-Z",
+  "run_phase": "full-run",
+  "runner_git_commit": "1b6136ac816e8adea80c8dde8b14df113ea9e50b",
+  "runner_git_dirty": true,
+  "started_at": "2026-05-29T10:38:11+00:00",
+  "substrate_adapter_version": "0.0-stub",
+  "substrate_source": {}
+}

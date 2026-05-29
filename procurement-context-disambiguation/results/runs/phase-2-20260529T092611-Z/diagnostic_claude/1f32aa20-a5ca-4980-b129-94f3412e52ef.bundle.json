@@ -1,0 +1,60 @@
+{
+  "agent": {
+    "cached_tokens": null,
+    "latency_ms": 4208,
+    "output_mode": "plain_text",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 3949,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"Above-threshold PA23 contract (\u00a319m) used selective procurement with no direct-award justification present, breaching the open-competition requirement under PA23 s.19/s.41. Delegated authority approval evidence for a \u00a319m award is also not shown, and COI declaration is absent from the record.\",\"recommended_action\":\"Reject award and require open-tender re-run or documented s.41 justification\"}",
+    "reasoning": "Above-threshold PA23 contract (\u00a319m) used selective procurement with no direct-award justification present, breaching the open-competition requirement under PA23 s.19/s.41. Delegated authority approval evidence for a \u00a319m award is also not shown, and COI declaration is absent from the record.",
+    "reasoning_sha256": "87b6cc8a502e41fc5f6e55f92498bea6f3a224cbd04eab900bf8829dac8d10a9",
+    "recommended_action": "Reject award and require open-tender re-run or documented s.41 justification",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "arm_name": "diagnostic_claude",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"claude-opus-4-7\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"87b6cc8a502e41fc5f6e55f92498bea6f3a224cbd04eab900bf8829dac8d10a9\",\"agent_recommended_action\":\"Reject award and require open-tender re-run or documented s.41 justification\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":null,\"contract_value\":19021274.52,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"claude-opus-4-7\",\"model_sampling\":{\"effort\":\"low\",\"temperature\":null},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":29,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-COH-4045527\"}",
+  "decision_id": "1f32aa20-a5ca-4980-b129-94f3412e52ef",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-438bd744-117a-437a-8b4d-761c7cee92f1",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "1f32aa20-a5ca-4980-b129-94f3412e52ef",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "46b05c55699f925532c32aaeb0b8155409d60b6f925771b6f376cc73e5f63ac9",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "XTrjNVGqH9ypoK-ZENQB_VgB7eQ4WNa6ZMOHT0-7VT8l8dC4FrBRh2jP7hF9TklxrmQd3csNqoDehYdOo6yqDQ",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:40:19.627Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 19021274.52,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 19021274.52 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 27,
+  "timestamp": "2026-05-29T10:40:20+00:00"
+}

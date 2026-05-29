@@ -1,0 +1,60 @@
+{
+  "agent": {
+    "cached_tokens": null,
+    "latency_ms": 3402,
+    "output_mode": "plain_text",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 3945,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"Above-threshold PA23 contract used selective (non-open) method with no direct-award justification present, breaching the open-competition requirement (PROC-005). Also, COI declaration is absent and \u00a31.8M value warrants senior delegated authority evidence, neither confirmed.\",\"recommended_action\":\"Halt award; require s.41 justification or re-tender openly\"}",
+    "reasoning": "Above-threshold PA23 contract used selective (non-open) method with no direct-award justification present, breaching the open-competition requirement (PROC-005). Also, COI declaration is absent and \u00a31.8M value warrants senior delegated authority evidence, neither confirmed.",
+    "reasoning_sha256": "318555055202cf426d44a564d9098fd1d5d056773f0c002e72d3109ffda87a5d",
+    "recommended_action": "Halt award; require s.41 justification or re-tender openly",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "arm_name": "diagnostic_claude",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"claude-opus-4-7\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"318555055202cf426d44a564d9098fd1d5d056773f0c002e72d3109ffda87a5d\",\"agent_recommended_action\":\"Halt award; require s.41 justification or re-tender openly\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":null,\"contract_value\":1800000.0,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"claude-opus-4-7\",\"model_sampling\":{\"effort\":\"low\",\"temperature\":null},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":1,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-334112\"}",
+  "decision_id": "96369b9e-e7f7-40e5-9eb0-2cf6de0d5819",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-04b7e64f-b67e-412d-80e2-617d05385709",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "96369b9e-e7f7-40e5-9eb0-2cf6de0d5819",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "6a745835707a510710164cec1de0f71105ab336cdf132b0df7277bab9c2d865c",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "pK7uTuLHlYJC2vaI2vxLTpEohuCKptkCsi2QsWjmi_PAz4K0Ov_wbg1OLs_L88skpaNT1Hs6rpi4KomZeuVxBg",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:38:24.030Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 1800000,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 1800000 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 2,
+  "timestamp": "2026-05-29T10:38:24+00:00"
+}

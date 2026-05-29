@@ -1,0 +1,71 @@
+{
+  "agent": {
+    "cached_tokens": 1792,
+    "latency_ms": 2289,
+    "output_mode": "json_object",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 2608,
+    "raw_response": "{\"verdict\":\"deny\",\"reasoning\":\"The record breaches multiple policy rules: publication was 33 days after award despite PA23/above-threshold status, and it is above threshold with no direct-award justification while the procurement method is not open. It also exceeds \u00a3500,000 with no delegated-authority evidence, and the conflict-of-interest declaration cannot be evaluated because the field is absent on this substrate.\",\"recommended_action\":\"Stop approval and obtain compliant notice, competition/justification",
+    "reasoning": "The record breaches multiple policy rules: publication was 33 days after award despite PA23/above-threshold status, and it is above threshold with no direct-award justification while the procurement method is not open. It also exceeds \u00a3500,000 with no delegated-authority evidence, and the conflict-of-interest declaration cannot be evaluated because the field is absent on this substrate.",
+    "reasoning_sha256": "2f4c9a88b53e85a81008cb38a665251ff861d8aa8248b62922069ef038d4679c",
+    "recommended_action": "Stop approval and obtain compliant notice, competition/justification, authority, and COI evidence",
+    "retry_count": 0,
+    "verdict": "DENY"
+  },
+  "arm_name": "diagnostic_primary",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"true\",\"agent_model_id\":\"gpt-5.4-2026-03-05\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"2f4c9a88b53e85a81008cb38a665251ff861d8aa8248b62922069ef038d4679c\",\"agent_recommended_action\":\"Stop approval and obtain compliant notice, competition/justification, authority, and COI evidence\",\"agent_recommended_verdict\":\"DENY\",\"agent_temperature\":0.0,\"contract_value\":57000000.0,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"gpt-5.4-2026-03-05\",\"model_sampling\":{\"temperature\":0},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":33,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-334137\"}",
+  "decision_id": "935f92dd-6563-4e33-90c3-bef52e1a0e42",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-282a00c5-37ef-4eed-b308-f2735d803e4f",
+  "receipt": {
+    "decision": "DENY",
+    "decision_id": "935f92dd-6563-4e33-90c3-bef52e1a0e42",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "896156f12f715d3356c5bca915ebd0be23c2fc8e1281e65cf72fee0bf70a3120",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "lXS6p_A1d6yDQ_sjkXCeA61taZe_BsIkCoVU1u4AlChEKIn1-hmG68c0ugS1kmwlMbt-vvjSZ7tUY_OgxYR7Cg",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:33:06.765Z",
+    "transparency_anchor": null,
+    "violations": [
+      {
+        "actual_value": 33,
+        "expected_value": "<= 30",
+        "field": "publication_delay_days",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'publication_delay_days' value 33 exceeds maximum 30",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-001-S53",
+        "severity": "critical"
+      },
+      {
+        "actual_value": 57000000,
+        "expected_value": "<= 500000",
+        "field": "contract_value",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Field 'contract_value' value 57000000 exceeds maximum 500000",
+        "reason_code": "VALUE_ABOVE_MAX",
+        "rule_code": "PROC-002-AUTHORITY",
+        "severity": "critical"
+      },
+      {
+        "expected_value": "non-empty value",
+        "field": "procurement_method_open_flag",
+        "is_shadow": false,
+        "policy_id": "900996de-d853-4b2a-beb2-9474adbee50e",
+        "reason": "Required field 'procurement_method_open_flag' is missing or empty",
+        "reason_code": "FIELD_MISSING",
+        "rule_code": "PROC-005-OPEN-TENDER",
+        "severity": "critical"
+      }
+    ]
+  },
+  "record_index": 15,
+  "timestamp": "2026-05-29T10:33:07+00:00"
+}

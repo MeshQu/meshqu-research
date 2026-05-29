@@ -1,0 +1,38 @@
+{
+  "agent": {
+    "cached_tokens": null,
+    "latency_ms": 2676,
+    "output_mode": "plain_text",
+    "parse_detail": "",
+    "parse_status": "ok",
+    "prompt_tokens": 3944,
+    "raw_response": "{\"verdict\":\"allow\",\"reasoning\":\"Below-threshold (\u00a350k) contract, published 15 days after award, supplier not on debarment list, not a modification. COI field absence is a substrate limitation, not evidence of non-compliance.\",\"recommended_action\":null}",
+    "reasoning": "Below-threshold (\u00a350k) contract, published 15 days after award, supplier not on debarment list, not a modification. COI field absence is a substrate limitation, not evidence of non-compliance.",
+    "reasoning_sha256": "7babeda72624c8cc7aeab1745586eab11499815218885a0830efcc0f44c02da9",
+    "recommended_action": null,
+    "retry_count": 0,
+    "verdict": "ALLOW"
+  },
+  "arm_name": "diagnostic_claude",
+  "bundle_envelope_version": 1,
+  "context_fields_canonical_json": "{\"above_threshold\":\"false\",\"agent_model_id\":\"claude-opus-4-7\",\"agent_model_version\":null,\"agent_prompt_sha256\":\"690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2\",\"agent_reasoning_sha256\":\"7babeda72624c8cc7aeab1745586eab11499815218885a0830efcc0f44c02da9\",\"agent_recommended_action\":null,\"agent_recommended_verdict\":\"ALLOW\",\"agent_temperature\":null,\"contract_value\":50000.0,\"diagnostic\":true,\"direct_award_justification_present\":\"false\",\"governed_by_pa23\":\"true\",\"is_modification\":\"false\",\"l3_arm\":null,\"model_id\":\"claude-opus-4-7\",\"model_sampling\":{\"effort\":\"low\",\"temperature\":null},\"nudge_excised\":false,\"policy_permutation_seed\":0,\"prereg_tag\":\"v0.3-predictions-locked\",\"publication_delay_days\":15,\"runner_git_commit\":\"1b6136ac816e8adea80c8dde8b14df113ea9e50b\",\"supplier_id\":\"GB-CFS-334130\"}",
+  "decision_id": "4bb3caf7-d36d-4e2f-bbe6-628fb004560b",
+  "is_stub": false,
+  "ocid": "ocds-b5fd17-5e0d1560-4d86-4633-b58e-69959043f1ca",
+  "receipt": {
+    "decision": "ALLOW",
+    "decision_id": "4bb3caf7-d36d-4e2f-bbe6-628fb004560b",
+    "evaluated_rules_hash": "1c16d2f4bc19aea799bd4e646109bce78b354b6f6d0900058c4c6341b173163c",
+    "integrity_hash": "00597ba23657e684f3aaea657998b5d7b501e4573597818d9cb1e5e18b62db72",
+    "policy_snapshot_digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "policy_snapshot_id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "retry_count": 0,
+    "signature": "WGnBHRYqDFpddLWxgzoXGIp8NHu6w5dc-JzBrAcEIOwq1Zs4uDIugk-SJJhUVSyZQ_CUgEjWGk4Hg-89rCOUBA",
+    "signature_kid": "meshqu-experiment-procurement-2026-05",
+    "timestamp": "2026-05-29T10:41:36.214Z",
+    "transparency_anchor": null,
+    "violations": []
+  },
+  "record_index": 44,
+  "timestamp": "2026-05-29T10:41:36+00:00"
+}
