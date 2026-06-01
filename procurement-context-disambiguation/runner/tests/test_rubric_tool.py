@@ -580,3 +580,321 @@ def test_render_report_matches_build_package_shape(tmp_path):
     assert "Category 3 (partial):" in rendered
     assert "P5 evaluation:" in rendered
     assert "Reported disposition: Confirmed" in rendered
+
+
+# ---------------------------------------------------------------------------
+# --compare-with: inter-coder κ + confusion matrix
+# ---------------------------------------------------------------------------
+
+
+def _write_sheet_pairs(
+    sheet_path: Path,
+    pairs: list[tuple[str, int]],
+    arm: str = "diagnostic_primary",
+    coder: str = "coder-a",
+) -> None:
+    """Construct a sheet from a list of (ocid, category) pairs."""
+    for ocid, cat in pairs:
+        append_entry(
+            sheet_path,
+            CodedEntry(
+                ocid=ocid,
+                arm=arm,
+                category=cat,
+                justification=f"j-{ocid}",
+                coded_at="2026-05-29T00:00:00Z",
+                coder=coder,
+            ),
+        )
+
+
+def test_compare_sheets_identical_kappa_is_one(tmp_path):
+    """Identical sheets → κ = 1.0, all diagonal cells populated, zero
+    disagreements."""
+    a = tmp_path / "a.jsonl"
+    b = tmp_path / "b.jsonl"
+    pairs = [
+        ("o1", 1), ("o2", 2), ("o3", 3),
+        ("o4", 1), ("o5", 2), ("o6", 3),
+    ]
+    _write_sheet_pairs(a, pairs, coder="alice")
+    _write_sheet_pairs(b, pairs, coder="bob")
+    rep = score_rubric.compare_sheets(
+        sheet_entries=read_sheet(a),
+        compare_entries=read_sheet(b),
+        arm="diagnostic_primary",
+        sheet_label="a.jsonl",
+        compare_label="b.jsonl",
+    )
+    assert rep.total == 6
+    assert rep.kappa == pytest.approx(1.0, abs=1e-9)
+    assert rep.disagreement_count == 0
+    assert rep.landis_koch == "Almost perfect"
+    # Off-diagonal cells are all zero.
+    for i in range(3):
+        for j in range(3):
+            if i != j:
+                assert rep.matrix[i][j] == 0
+
+
+def test_compare_sheets_inverted_kappa_is_negative(tmp_path):
+    """If every cat-1 → cat-2, cat-2 → cat-1, cat-3 → cat-3 (so the
+    two raters disagree systematically on the 1 vs 2 axis), κ should
+    end up negative or near-zero — agreement worse than chance on the
+    disagreement structure."""
+    a = tmp_path / "a.jsonl"
+    b = tmp_path / "b.jsonl"
+    # Pattern: 4 records cat-1 on A → cat-2 on B; 4 records cat-2 on
+    # A → cat-1 on B. p_o = 0 on the swapped 8, plus 0 cat-3 records.
+    a_pairs = [(f"o{i}", 1) for i in range(4)] + [(f"o{i + 4}", 2) for i in range(4)]
+    b_pairs = [(f"o{i}", 2) for i in range(4)] + [(f"o{i + 4}", 1) for i in range(4)]
+    _write_sheet_pairs(a, a_pairs)
+    _write_sheet_pairs(b, b_pairs)
+    rep = score_rubric.compare_sheets(
+        sheet_entries=read_sheet(a),
+        compare_entries=read_sheet(b),
+        arm="diagnostic_primary",
+        sheet_label="a.jsonl",
+        compare_label="b.jsonl",
+    )
+    # p_o = 0 (no diagonal hits), p_e = 0.5 (both have 50% cat-1, 50% cat-2),
+    # κ = (0 - 0.5) / (1 - 0.5) = -1.0.
+    assert rep.p_o == pytest.approx(0.0, abs=1e-9)
+    assert rep.p_e == pytest.approx(0.5, abs=1e-9)
+    assert rep.kappa == pytest.approx(-1.0, abs=1e-9)
+    assert rep.landis_koch == "Less than chance"
+    assert rep.disagreement_count == 8
+
+
+def test_compare_sheets_handcomputed_kappa(tmp_path):
+    """Hand-computed κ on a 100-record fixture that reproduces the
+    structural pattern of the 2026-05-29 inter-coder analysis (large
+    Cat 2 mass, smaller Cat 1/Cat 3 mass, systematic disagreement on
+    the rule-itself vs missing-evidence boundary).
+
+    Confusion matrix (rows=first-pass, cols=second-coder):
+        [10,  8,  2]   row sum 20  (first-pass cat 1)
+        [12, 35,  3]   row sum 50  (first-pass cat 2)
+        [ 3, 17, 10]   row sum 30  (first-pass cat 3)
+        col sums: [25, 60, 15]  total 100
+        diagonal: 10 + 35 + 10 = 55
+        p_o = 0.55
+        p_e = (20*25 + 50*60 + 30*15) / 10000 = 3950 / 10000 = 0.3950
+        κ   = (0.55 - 0.3950) / (1 - 0.3950) = 0.155 / 0.605
+            = 0.25619834...
+    """
+    a = tmp_path / "first_pass.jsonl"
+    b = tmp_path / "second_coder.jsonl"
+
+    # Build the row distributions explicitly per the matrix.
+    a_pairs: list[tuple[str, int]] = []
+    b_pairs: list[tuple[str, int]] = []
+    counter = 0
+    matrix_spec = [
+        # (first_pass_cat, second_coder_cat, n_records)
+        (1, 1, 10), (1, 2, 8), (1, 3, 2),
+        (2, 1, 12), (2, 2, 35), (2, 3, 3),
+        (3, 1, 3), (3, 2, 17), (3, 3, 10),
+    ]
+    for fp_cat, sc_cat, n in matrix_spec:
+        for _ in range(n):
+            ocid = f"o{counter:03d}"
+            a_pairs.append((ocid, fp_cat))
+            b_pairs.append((ocid, sc_cat))
+            counter += 1
+    assert counter == 100
+
+    _write_sheet_pairs(a, a_pairs, coder="human-first-pass")
+    _write_sheet_pairs(b, b_pairs, coder="ai-second-coder")
+
+    rep = score_rubric.compare_sheets(
+        sheet_entries=read_sheet(a),
+        compare_entries=read_sheet(b),
+        arm="diagnostic_primary",
+        sheet_label="first_pass.jsonl",
+        compare_label="second_coder.jsonl",
+    )
+    assert rep.total == 100
+    # Matrix shape matches our hand spec (categories sorted ascending).
+    assert rep.categories == (1, 2, 3)
+    assert rep.matrix == (
+        (10, 8, 2),
+        (12, 35, 3),
+        (3, 17, 10),
+    )
+    assert rep.p_o == pytest.approx(0.55, abs=1e-9)
+    assert rep.p_e == pytest.approx(0.395, abs=1e-9)
+    # 4 decimal places per the brief.
+    assert round(rep.kappa, 4) == 0.2562
+    assert rep.disagreement_count == 100 - 55
+    assert rep.landis_koch == "Fair"  # 0.2 <= κ < 0.4
+
+
+def test_compare_sheets_partial_overlap_reports_one_side_only(tmp_path):
+    """OCIDs in only one sheet are reported separately and NOT folded
+    into the κ."""
+    a = tmp_path / "a.jsonl"
+    b = tmp_path / "b.jsonl"
+    _write_sheet_pairs(a, [("o1", 1), ("o2", 2), ("o3", 3), ("o-extra-a", 2)])
+    _write_sheet_pairs(b, [("o1", 1), ("o2", 2), ("o3", 3), ("o-extra-b", 1)])
+    rep = score_rubric.compare_sheets(
+        sheet_entries=read_sheet(a),
+        compare_entries=read_sheet(b),
+        arm="diagnostic_primary",
+        sheet_label="a.jsonl",
+        compare_label="b.jsonl",
+    )
+    # The 3 shared OCIDs all agree → κ should be 1.0.
+    assert rep.total == 3
+    assert rep.sheet_only_ocids == ("o-extra-a",)
+    assert rep.compare_only_ocids == ("o-extra-b",)
+    assert rep.kappa == pytest.approx(1.0, abs=1e-9)
+
+
+def test_compare_sheets_filters_by_arm(tmp_path):
+    """A row from a different arm in either sheet does not affect the
+    requested-arm comparison."""
+    a = tmp_path / "a.jsonl"
+    b = tmp_path / "b.jsonl"
+    _write_sheet_pairs(a, [("o1", 1), ("o2", 2)], arm="diagnostic_primary")
+    _write_sheet_pairs(a, [("o-claude", 3)], arm="diagnostic_claude")
+    _write_sheet_pairs(b, [("o1", 1), ("o2", 2)], arm="diagnostic_primary")
+    _write_sheet_pairs(b, [("o-claude", 1)], arm="diagnostic_claude")
+    rep = score_rubric.compare_sheets(
+        sheet_entries=read_sheet(a),
+        compare_entries=read_sheet(b),
+        arm="diagnostic_primary",
+        sheet_label="a.jsonl",
+        compare_label="b.jsonl",
+    )
+    assert rep.total == 2
+    assert rep.kappa == pytest.approx(1.0)
+
+
+def test_compare_sheets_duplicate_ocid_raises(tmp_path):
+    """A duplicate (ocid, arm) row in either sheet means inter-coder κ
+    is ill-defined — surface loudly."""
+    a = tmp_path / "a.jsonl"
+    b = tmp_path / "b.jsonl"
+    _write_sheet_pairs(a, [("o1", 1), ("o1", 2)])  # duplicate
+    _write_sheet_pairs(b, [("o1", 1)])
+    with pytest.raises(RubricSchemaError, match="duplicate"):
+        score_rubric.compare_sheets(
+            sheet_entries=read_sheet(a),
+            compare_entries=read_sheet(b),
+            arm="diagnostic_primary",
+            sheet_label="a.jsonl",
+            compare_label="b.jsonl",
+        )
+
+
+def test_landis_koch_label_thresholds():
+    """The Landis-Koch banding thresholds match the canonical 1977
+    paper: <0 less-than-chance, 0–0.2 slight, 0.2–0.4 fair,
+    0.4–0.6 moderate, 0.6–0.8 substantial, 0.8–1.0 almost perfect."""
+    assert score_rubric.landis_koch_label(-0.05) == "Less than chance"
+    assert score_rubric.landis_koch_label(0.0) == "Slight"
+    assert score_rubric.landis_koch_label(0.19) == "Slight"
+    assert score_rubric.landis_koch_label(0.20) == "Fair"
+    assert score_rubric.landis_koch_label(0.39) == "Fair"
+    assert score_rubric.landis_koch_label(0.40) == "Moderate"
+    assert score_rubric.landis_koch_label(0.59) == "Moderate"
+    assert score_rubric.landis_koch_label(0.60) == "Substantial"
+    assert score_rubric.landis_koch_label(0.79) == "Substantial"
+    assert score_rubric.landis_koch_label(0.80) == "Almost perfect"
+    assert score_rubric.landis_koch_label(1.0) == "Almost perfect"
+
+
+def test_render_comparison_shape(tmp_path):
+    """The plain-text rendering surfaces the matrix + κ + Landis-Koch
+    interpretation in the shape Sam's orchestrator emits."""
+    a = tmp_path / "a.jsonl"
+    b = tmp_path / "b.jsonl"
+    _write_sheet_pairs(a, [("o1", 1), ("o2", 2), ("o3", 3)])
+    _write_sheet_pairs(b, [("o1", 1), ("o2", 2), ("o3", 2)])
+    rep = score_rubric.compare_sheets(
+        sheet_entries=read_sheet(a),
+        compare_entries=read_sheet(b),
+        arm="diagnostic_primary",
+        sheet_label="a.jsonl",
+        compare_label="b.jsonl",
+    )
+    rendered = score_rubric.render_comparison(rep)
+    assert "Inter-coder comparison" in rendered
+    assert "Confusion matrix (rows=--sheet, cols=--compare-with)" in rendered
+    assert "Cohen's κ" in rendered
+    assert "shared OCIDs    : 3" in rendered
+    assert "Disagreements: 1 of 3" in rendered
+
+
+def test_cli_compare_with_runs_end_to_end(tmp_path, capsys):
+    """End-to-end: CLI with --compare-with produces both the per-arm
+    aggregation AND the inter-coder block."""
+    a = tmp_path / "a.jsonl"
+    b = tmp_path / "b.jsonl"
+    _write_sheet_pairs(a, [("o1", 1), ("o2", 2), ("o3", 3)])
+    _write_sheet_pairs(b, [("o1", 1), ("o2", 2), ("o3", 2)])
+    predictions = (
+        Path(__file__).resolve().parents[2] / "planning" / "predictions.md"
+    )
+    rc = score_rubric.main([
+        "--sheet", str(a),
+        "--compare-with", str(b),
+        "--predictions", str(predictions),
+        "--arm", "diagnostic_primary",
+    ])
+    assert rc == 0
+    captured = capsys.readouterr().out
+    # Aggregation block.
+    assert "P5 evaluation:" in captured
+    # Comparison block.
+    assert "Inter-coder comparison" in captured
+    assert "Cohen's κ" in captured
+
+
+def test_cli_compare_with_json_payload(tmp_path, capsys):
+    """--json emits a structured payload with the comparison block
+    nested under 'comparison'."""
+    a = tmp_path / "a.jsonl"
+    b = tmp_path / "b.jsonl"
+    _write_sheet_pairs(a, [("o1", 1), ("o2", 2), ("o3", 3)])
+    _write_sheet_pairs(b, [("o1", 1), ("o2", 2), ("o3", 2)])
+    predictions = (
+        Path(__file__).resolve().parents[2] / "planning" / "predictions.md"
+    )
+    rc = score_rubric.main([
+        "--sheet", str(a),
+        "--compare-with", str(b),
+        "--predictions", str(predictions),
+        "--arm", "diagnostic_primary",
+        "--json",
+    ])
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["arms"][0]["arm"] == "diagnostic_primary"
+    cmp = payload["arms"][0]["comparison"]
+    assert cmp["total"] == 3
+    assert cmp["categories"] == [1, 2, 3]
+    assert "kappa" in cmp
+    assert "landis_koch" in cmp
+    # Matrix is keyed by stringified category.
+    assert cmp["matrix"]["1"]["1"] == 1
+
+
+def test_cli_without_compare_with_unchanged(tmp_path, capsys):
+    """The single-sheet path stays byte-identical when --compare-with
+    is omitted — additive change, not behavioural."""
+    a = tmp_path / "a.jsonl"
+    _write_sheet_pairs(a, [("o1", 2), ("o2", 2), ("o3", 2)])
+    predictions = (
+        Path(__file__).resolve().parents[2] / "planning" / "predictions.md"
+    )
+    rc = score_rubric.main([
+        "--sheet", str(a),
+        "--predictions", str(predictions),
+        "--arm", "diagnostic_primary",
+    ])
+    assert rc == 0
+    captured = capsys.readouterr().out
+    assert "Inter-coder comparison" not in captured
+    assert "Cohen's κ" not in captured
