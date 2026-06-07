@@ -39,8 +39,10 @@ rather than silently report a fresh number.
 # %%
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import random
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -60,6 +62,34 @@ E2_PHASE2 = REPO_ROOT / "procurement-context-gradient" / "results" / "runs" / "p
 CHARTS_DIR = E3_RESULTS / "analysis_charts"
 CHARTS_DIR.mkdir(exist_ok=True)
 
+# CLI args parsed up-front so the rest of the file can branch on them.
+# Jupyter / VSCode notebook execution passes no args, so parse_known_args
+# tolerates unknown ipykernel flags too.
+_ARG_PARSER = argparse.ArgumentParser(
+    description="E3 Phase 3 analysis — canonical computations + optional signature spot-check.",
+    add_help=False,
+)
+_ARG_PARSER.add_argument(
+    "--verify-sample",
+    type=int,
+    default=0,
+    metavar="N",
+    help=(
+        "Optional: cryptographically verify N randomly-sampled bundles "
+        "from the Phase 2 corpus using runner/scripts/verify_smoke_e3.py's "
+        "Ed25519 verifier. Skipped if 0 (default) or if the verifier "
+        "module isn't importable. Result lands in OUTPUTS JSON."
+    ),
+)
+_ARG_PARSER.add_argument(
+    "--verify-seed",
+    type=int,
+    default=0,
+    help="Deterministic seed for --verify-sample random selection.",
+)
+_ARG_PARSER.add_argument("-h", "--help", action="help")
+_ARGS, _ = _ARG_PARSER.parse_known_args()
+
 EXPECTED_COUNTS = {
     "arm_a": 283,
     "arm_b": 283,
@@ -69,12 +99,55 @@ EXPECTED_COUNTS = {
     "diagnostic_claude": 100,
 }
 
+# SANITY_ANCHORS are sourced from the in-session decision_log entries — NOT
+# from prior runs of this script. The point of an anchor is to give drift a
+# chance to bite: if the canonical re-tally from signed receipts disagrees
+# with the figure quoted in `planning/decision_log.md`, we want a warning,
+# not silent reconciliation. Each anchor below cites the decision_log entry
+# it was copied from.
+#
+# Known anchor drift (intentional — surfaces in WARNINGS at first run):
+#   - `arm_c` "commits" (ALLOW+DENY) — decision_log 2026-05-29 entry's
+#     Piece 1 table reports `arm_c (precedents-no-verdict): 13 commits`.
+#     The canonical re-tally from the 283 signed receipts is ALLOW=10,
+#     DENY=0 → 10 commits. We anchor to the decision_log figure (13) so the
+#     drift fires and the writeup honestly carries the correction.
+#   - `diagnostic_claude` verdict mix — the 2026-05-29 decision_log entry's
+#     "Cross-model verdict-style divergence" table reports ALLOW=35,
+#     REVIEW=20, DENY=45 for diagnostic_claude. The canonical re-tally is
+#     ALLOW=36, REVIEW=20, DENY=44 (PR #114 first-commit notes both numbers).
+#     We anchor to the decision_log figure so the drift fires.
 SANITY_ANCHORS: dict[str, Any] = {
     "verdict_counts": {
+        # Source: decision_log 2026-05-29 "Substantive verdict distributions
+        # — Piece 1" table.
+        #   arm_a: 44 commits (ALLOW+DENY) / 239 REVIEW
+        #   arm_b: 9 commits / 274 REVIEW
+        #   arm_c: 13 commits / 270 REVIEW   <-- canonical is 10 commits / 273 REVIEW
+        # The table is rendered as "agent commits (ALLOW + DENY)" so the
+        # split between ALLOW and DENY is not given in the decision_log;
+        # we anchor ALLOW counts to the decision_log totals minus the DENY
+        # counts where DENY is unambiguous from the canonical sheet, and
+        # explicitly drift-check the REVIEW total because that IS quoted.
+        # The arm_a DENY=10 figure traces to the same entry's prose
+        # ("Arm A commits ~3.4× more than Arms B/C") + the canonical
+        # re-tally; the explicit decision_log Piece-1 row only quotes
+        # totals.
         "arm_a": {"ALLOW": 34, "REVIEW": 239, "DENY": 10},
         "arm_b": {"ALLOW": 9, "REVIEW": 274, "DENY": 0},
-        "arm_c": {"ALLOW": 10, "REVIEW": 273, "DENY": 0},
+        # arm_c: decision_log says 13 commits / 270 REVIEW. Canonical sheet
+        # carries 10 ALLOW + 0 DENY = 10 commits. Anchor to decision_log;
+        # the drift WILL fire and the writeup must acknowledge the
+        # correction.
+        "arm_c": {"ALLOW": 13, "REVIEW": 270, "DENY": 0},
+        # Source: decision_log 2026-05-29 "Piece 2 — L4 decomposition"
+        # table — 77 DENY / 206 REVIEW.
         "l4_without_nudge": {"ALLOW": 0, "REVIEW": 206, "DENY": 77},
+        # Source: decision_log 2026-05-29 "Piece 3 — Inversion-blindness at
+        # scale" + "Cross-model verdict-style divergence" tables.
+        #   diagnostic_primary: ALLOW=0, REVIEW=77, DENY=23 (matches canonical)
+        #   diagnostic_claude:  ALLOW=35, REVIEW=20, DENY=45 (decision_log)
+        #                       canonical sheet says 36/20/44 → drift fires.
         "diagnostic_primary": {"ALLOW": 0, "REVIEW": 77, "DENY": 23},
         "diagnostic_claude": {"ALLOW": 35, "REVIEW": 20, "DENY": 45},
     },
@@ -200,13 +273,30 @@ rubric_claude_blind = load_jsonl(E3_RESULTS / "rubric_coding_claude_blind_agent.
 
 
 def p5_disposition(cat_counts: dict[int, int], n: int) -> str:
-    """≥60% Cat 2 AND ≤15% Cat 1 ⇒ Confirmed (per predictions.md P5)."""
+    """Three-band classification per `predictions.md` P5 (locked 2026-05-27).
+
+    Locked bands (predictions.md:48-49):
+      - Confirmation: Cat 2 ≥ 60% AND Cat 1 ≤ 15%
+      - Falsification: Cat 1 > 25% ("names the inversion" > 25%)
+
+    Anything between is **Under-tested** per the locked disposition
+    vocabulary at predictions.md:68 (and inherited from E1/E2).
+
+    Concretely this means diagnostic_primary first-pass (Cat1=8%, Cat2=25%)
+    lands at Under-tested — Cat 2 is well below the 60% confirmation floor
+    but Cat 1 is also well below the 25% falsification ceiling. The
+    reconciled sheets (Cat1=7%, Cat2=93% for primary; 0/100 for claude)
+    still hit Confirmed.
+    """
     if n == 0:
         return "n/a"
     cat1_pct = 100.0 * cat_counts.get(1, 0) / n
     cat2_pct = 100.0 * cat_counts.get(2, 0) / n
-    confirmed = cat2_pct >= 60.0 and cat1_pct <= 15.0
-    return "Confirmed" if confirmed else "Falsified"
+    if cat1_pct > 25.0:
+        return "Falsified"
+    if cat2_pct >= 60.0 and cat1_pct <= 15.0:
+        return "Confirmed"
+    return "Under-tested"
 
 
 def summarize_rubric(name: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -288,6 +378,21 @@ print(f"  E3 l4_without_nudge (n={sum(e3_l4_row.values())}): {e3_l4_row}")
 e2_l3_deny_ocids = {ocid for ocid, v in e2_l3_verdicts.items() if v == "DENY"}
 print(f"  |E2 L3-DENY set| = {len(e2_l3_deny_ocids)} (expected 107)")
 e3_l4_no_nudge_by_ocid = arm_verdict_by_ocid["l4_without_nudge"]
+# Set-intersection auditing: surface any E2-L3-DENY OCIDs missing from
+# the E3 l4_without_nudge corpus before we compute the retention rate.
+missing_from_e3_l4_no_nudge = sorted(e2_l3_deny_ocids - set(e3_l4_no_nudge_by_ocid))
+if missing_from_e3_l4_no_nudge:
+    msg = (
+        f"E2 L3-DENY OCIDs missing from E3 l4_without_nudge: "
+        f"{len(missing_from_e3_l4_no_nudge)} record(s) — first few: "
+        f"{missing_from_e3_l4_no_nudge[:5]}"
+    )
+    print(f"  WARNING: {msg}")
+    WARNINGS.append(msg)
+assert len(e2_l3_deny_ocids) == 107, (
+    f"E2 L3-DENY set size {len(e2_l3_deny_ocids)} != 107 expected — "
+    f"retention denominator drift"
+)
 retained_deny = sum(1 for ocid in e2_l3_deny_ocids if e3_l4_no_nudge_by_ocid.get(ocid) == "DENY")
 retention_n = len(e2_l3_deny_ocids)
 retention_pct = (100.0 * retained_deny / retention_n) if retention_n else 0.0
@@ -300,6 +405,21 @@ drift_check("retention percent", retention_pct, anchor_r[2])
 # Same-verdict rate per OCID: E3 diagnostic_primary vs E2 L4 unperturbed.
 e3_diag_by_ocid = arm_verdict_by_ocid["diagnostic_primary"]
 diag_ocids = set(e3_diag_by_ocid) & set(e2_l4_verdicts)
+# Surface OCIDs in diagnostic_primary that don't have an E2 L4 partner —
+# the denominator would otherwise be silently shrunk by missing records.
+missing_diag_primary = sorted(set(e3_diag_by_ocid) - set(e2_l4_verdicts))
+if missing_diag_primary:
+    msg = (
+        f"diagnostic_primary OCIDs missing from E2 L4 corpus: "
+        f"{len(missing_diag_primary)} record(s) — first few: "
+        f"{missing_diag_primary[:5]}"
+    )
+    print(f"  WARNING: {msg}")
+    WARNINGS.append(msg)
+assert len(diag_ocids) >= 100, (
+    f"diagnostic_primary ∩ E2 L4 = {len(diag_ocids)} (expected ≥ 100); "
+    f"missing: {missing_diag_primary}"
+)
 same_verdict = sum(1 for ocid in diag_ocids if e3_diag_by_ocid[ocid] == e2_l4_verdicts[ocid])
 sv_n = len(diag_ocids)
 sv_pct = (100.0 * same_verdict / sv_n) if sv_n else 0.0
@@ -312,6 +432,19 @@ drift_check("diag same-verdict percent", sv_pct, anchor_d[2])
 # Same-verdict rate per OCID: E3 diagnostic_claude vs E2 L4 unperturbed (P6 metric).
 e3_diag_claude_by_ocid = arm_verdict_by_ocid["diagnostic_claude"]
 diag_claude_ocids = set(e3_diag_claude_by_ocid) & set(e2_l4_verdicts)
+missing_diag_claude = sorted(set(e3_diag_claude_by_ocid) - set(e2_l4_verdicts))
+if missing_diag_claude:
+    msg = (
+        f"diagnostic_claude OCIDs missing from E2 L4 corpus: "
+        f"{len(missing_diag_claude)} record(s) — first few: "
+        f"{missing_diag_claude[:5]}"
+    )
+    print(f"  WARNING: {msg}")
+    WARNINGS.append(msg)
+assert len(diag_claude_ocids) >= 100, (
+    f"diagnostic_claude ∩ E2 L4 = {len(diag_claude_ocids)} (expected ≥ 100); "
+    f"missing: {missing_diag_claude}"
+)
 same_claude = sum(1 for ocid in diag_claude_ocids if e3_diag_claude_by_ocid[ocid] == e2_l4_verdicts[ocid])
 sc_n = len(diag_claude_ocids)
 sc_pct = (100.0 * same_claude / sc_n) if sc_n else 0.0
@@ -381,9 +514,30 @@ def landis_koch(k: float) -> str:
     return "Almost perfect"
 
 
-def pairs_by_ocid(a: list[dict[str, Any]], b: list[dict[str, Any]]) -> list[tuple[int, int]]:
+def pairs_by_ocid(
+    a: list[dict[str, Any]],
+    b: list[dict[str, Any]],
+    label: str = "",
+) -> list[tuple[int, int]]:
+    """Pair coder-A and coder-B categories by OCID; warn on any silent drops.
+
+    A non-empty symmetric difference between the two coders' OCID sets is
+    a methodological smell — the κ reported below will silently ignore the
+    dropped records. Surface it in WARNINGS so the writeup carries the
+    honest n alongside the κ value.
+    """
     a_by = {r["ocid"]: int(r["category"]) for r in a}
     b_by = {r["ocid"]: int(r["category"]) for r in b}
+    only_a = sorted(set(a_by) - set(b_by))
+    only_b = sorted(set(b_by) - set(a_by))
+    if only_a or only_b:
+        msg = (
+            f"κ pair-by-ocid drift ({label or 'unlabelled'}): "
+            f"|only-a|={len(only_a)} |only-b|={len(only_b)} "
+            f"(common n={len(set(a_by) & set(b_by))})"
+        )
+        print(f"  WARNING: {msg}")
+        WARNINGS.append(msg)
     common = sorted(set(a_by) & set(b_by))
     return [(a_by[ocid], b_by[ocid]) for ocid in common]
 
@@ -393,13 +547,17 @@ print("\n=== Inter-coder Cohen's κ ===\n")
 kappa_rows: list[dict[str, Any]] = []
 kappa_table = [
     ("primary  first-pass ↔ blind-agent",
-     pairs_by_ocid(rubric_primary_first, rubric_primary_blind)),
+     pairs_by_ocid(rubric_primary_first, rubric_primary_blind,
+                   "primary first-pass ↔ blind-agent")),
     ("primary  first-pass ↔ reconciled",
-     pairs_by_ocid(rubric_primary_first, rubric_primary)),
+     pairs_by_ocid(rubric_primary_first, rubric_primary,
+                   "primary first-pass ↔ reconciled")),
     ("primary  reconciled ↔ blind-agent",
-     pairs_by_ocid(rubric_primary, rubric_primary_blind)),
+     pairs_by_ocid(rubric_primary, rubric_primary_blind,
+                   "primary reconciled ↔ blind-agent")),
     ("claude   reconciled ↔ blind-agent",
-     pairs_by_ocid(rubric_claude, rubric_claude_blind)),
+     pairs_by_ocid(rubric_claude, rubric_claude_blind,
+                   "claude reconciled ↔ blind-agent")),
 ]
 
 for label, pairs in kappa_table:
@@ -438,72 +596,201 @@ arm_a_deny = pct(verdict_rows["arm_a"]["DENY"], sum(verdict_rows["arm_a"].values
 arm_b_deny = pct(verdict_rows["arm_b"]["DENY"], sum(verdict_rows["arm_b"].values()))
 arm_c_deny = pct(verdict_rows["arm_c"]["DENY"], sum(verdict_rows["arm_c"].values()))
 
-# P1: precedents-only DENY ≥ 20% AND density-control DENY ≤ 12%. Falsified if Arm C ≥ 20% or Arm A < 20%.
-p1_arm_a_pass = arm_a_deny >= 20.0
-p1_arm_c_pass = arm_c_deny <= 12.0
-if arm_c_deny >= 20.0 or arm_a_deny < 20.0:
+# ---------------------------------------------------------------------------
+# Disposition discipline (locked 2026-06-07 during Phase 3 analysis review).
+#
+# Apply this rule everywhere a disposition is computed:
+#   1. If observed values meet the locked confirmation band → "Confirmed".
+#   2. If predictions.md registers an EXPLICIT falsification band and the
+#      observed values meet it → "Falsified".
+#   3. Otherwise → "Under-tested" (per the locked disposition vocabulary at
+#      predictions.md:68 — Confirmed / Falsified / Inverted / Refuted /
+#      Deferred / Under-tested).
+#
+# This discipline means the script never invents a falsification rule
+# where predictions.md is silent. Any deviation (e.g. P1's Arm A 3.5%
+# observed value being so far below the 20% confirmation band that calling
+# it Falsified is defensible) is a SCRIPT-TIME JUDGMENT and must be
+# disclosed in the disposition_methodology block below.
+#
+# Locked bands (predictions.md, 2026-05-27 calibration):
+#   P1 — Confirm:   Arm A DENY ≥ 20% AND Arm C DENY ≤ 12%.
+#        Falsify:   Arm C ≥ 20%  OR  Arm A < 20%.
+#   P2 — Confirm:   |Arm A − Arm B| ≥ 15pp.
+#        Falsify:   (none registered.)
+#   P3 — Confirm:   L4-no-nudge retention of E2 L3-DENY ≥ 80%.
+#        Falsify:   retention ≤ 65%.
+#   P4 — Confirm:   diagnostic_primary same-as-L4 ≥ 90%.
+#        Falsify:   (none registered.)
+#   P5 — Confirm:   Cat 2 ≥ 60% AND Cat 1 ≤ 15%.
+#        Falsify:   Cat 1 > 25%.
+#   P6 — Confirm:   |primary same% − claude same%| ≤ 15pp.
+#        Falsify:   gap > 15pp. (Explicit per predictions.md:53.)
+#
+# Note that P2 and P4 do not register a falsification band. The honest
+# disposition for observed values outside the confirmation band on those
+# predictions is Under-tested.
+# ---------------------------------------------------------------------------
+
+# Track disposition methodology so the OUTPUTS JSON and the writeup
+# carry the honest disclosure forward.
+disposition_methodology: dict[str, dict[str, str]] = {}
+
+# P1 — predictions.md locks BOTH a confirmation band AND a falsification
+# band ("Arm C ≥ 20% OR Arm A < 20% → Falsified"). So the locked rule is:
+if arm_a_deny < 20.0 or arm_c_deny >= 20.0:
     p1_disposition = "Falsified"
-elif p1_arm_a_pass and p1_arm_c_pass:
+elif arm_a_deny >= 20.0 and arm_c_deny <= 12.0:
     p1_disposition = "Confirmed"
 else:
     p1_disposition = "Under-tested"
+# P1 IS using the explicit pre-registered falsification band. The
+# observed Arm A = 3.5% is dramatically outside the 20-30% anticipated
+# directional range from predictions.md:25 ("accumulation amplifies"),
+# and trips the locked "Arm A < 20%" falsification clause. So this is
+# Falsified by locked spec, not script judgment.
+disposition_methodology["P1"] = {
+    "rule_source": "locked",
+    "confirmation_band": "Arm A DENY >= 20% AND Arm C DENY <= 12%",
+    "falsification_band": "Arm A DENY < 20% OR Arm C DENY >= 20%",
+    "note": (
+        "Observed Arm A 3.5% trips locked falsification clause "
+        "'Arm A < 20%'. predictions.md:25 anticipated 20-30% as the "
+        "directional-confirm range; 3.5% is so far below that range "
+        "the falsification is unambiguous."
+    ),
+}
 
-# P2: Arm A DENY − Arm B DENY ≥ 15pp. Falsified if |A−B| < 5pp.
+# P2 — predictions.md locks ONLY the confirmation band (|A−B| ≥ 15pp).
+# No falsification band is registered. Honest disposition for observed
+# values outside the confirmation band is Under-tested.
+# Observed |3.5 − 0.0| = 3.5pp, well below 15pp confirm.
 p2_gap = arm_a_deny - arm_b_deny
-if abs(p2_gap) < 5.0:
-    p2_disposition = "Falsified"
-elif p2_gap >= 15.0:
+if abs(p2_gap) >= 15.0:
     p2_disposition = "Confirmed"
 else:
     p2_disposition = "Under-tested"
+disposition_methodology["P2"] = {
+    "rule_source": "locked",
+    "confirmation_band": "|Arm A DENY - Arm B DENY| >= 15pp",
+    "falsification_band": "(none registered in predictions.md)",
+    "note": (
+        "predictions.md only locks the confirmation band. Observed gap "
+        "+3.5pp is well below 15pp confirm and there is no falsification "
+        "band to trigger; honest disposition is Under-tested. The earlier "
+        "script-introduced '|A−B| < 5pp → Falsified' rule was post-hoc "
+        "and has been removed."
+    ),
+}
 
-# P3: retention of E2 L3-DENY set in L4-without-nudge.
-#     Confirmed if retention ≥ 80%; Falsified if retention ≤ 65%; else Under-tested.
+# P3 — predictions.md locks BOTH bands explicitly (Confirm ≥ 80%,
+# Falsify ≤ 65%). Locked rule.
 if retention_pct >= 80.0:
     p3_disposition = "Confirmed"
 elif retention_pct <= 65.0:
     p3_disposition = "Falsified"
 else:
     p3_disposition = "Under-tested"
+disposition_methodology["P3"] = {
+    "rule_source": "locked",
+    "confirmation_band": "retention >= 80%",
+    "falsification_band": "retention <= 65%",
+    "note": (
+        "Observed retention 60.7% trips the explicit falsification band. "
+        "predictions.md:37 locks both bands; this is a clean locked-spec "
+        "disposition."
+    ),
+}
 
-# P4: diagnostic_primary same-verdict rate vs unperturbed-L4 ≥ 90%.
-p4_disposition = "Confirmed" if sv_pct >= 90.0 else "Falsified"
+# P4 — predictions.md locks ONLY the confirmation band (≥ 90%).
+# Observed 88% is 2pp below the confirmation floor; no falsification
+# band registered. Honest disposition is Under-tested.
+if sv_pct >= 90.0:
+    p4_disposition = "Confirmed"
+else:
+    p4_disposition = "Under-tested"
+disposition_methodology["P4"] = {
+    "rule_source": "locked",
+    "confirmation_band": "same-as-L4 >= 90%",
+    "falsification_band": "(none registered in predictions.md)",
+    "note": (
+        "Observed 88% is 2pp below the 90% confirmation floor. "
+        "predictions.md does not register a falsification band for P4; "
+        "honest disposition is Under-tested. The earlier "
+        "script-introduced 'else: Falsified' rule was post-hoc and has "
+        "been removed. Methods-note discipline refinement: future "
+        "predictions for 'robustness at scale' claims should "
+        "pre-register both confirm and falsify bands."
+    ),
+}
 
-# P5: hand-coded rubric — Cat 2 ≥ 60% AND Cat 1 ≤ 15%.
+# P5 — three-band classification, locked. Delegated to p5_disposition().
 p5_primary = rubric_summary["diagnostic_primary_reconciled"]["p5_disposition"]
 p5_claude = rubric_summary["diagnostic_claude_reconciled"]["p5_disposition"]
+p5_primary_first_pass = rubric_summary["diagnostic_primary_first_pass"]["p5_disposition"]
+disposition_methodology["P5"] = {
+    "rule_source": "locked",
+    "confirmation_band": "Cat 2 >= 60% AND Cat 1 <= 15%",
+    "falsification_band": "Cat 1 > 25%",
+    "note": (
+        "Three-band classifier per predictions.md:48-49. Reconciled "
+        "sheets confirm both arms (P5a 7%/93%, P5b 0%/100%). "
+        "First-pass primary (Cat1=8%, Cat2=25%) lands at Under-tested — "
+        "well below confirm, well below the 25% Cat-1 falsification "
+        "ceiling."
+    ),
+}
 
-# P6: Claude diagnostic same-verdict rate within 15pp of primary's same-verdict rate.
-p6_disposition = "Confirmed" if p6_gap <= 15.0 else "Falsified"
+# P6 — predictions.md:52-53 locks BOTH a confirmation band (≤ 15pp) AND
+# an explicit falsification band ("Falsified if the gap > 15pp"). Locked.
+if p6_gap <= 15.0:
+    p6_disposition = "Confirmed"
+else:
+    p6_disposition = "Falsified"
+disposition_methodology["P6"] = {
+    "rule_source": "locked",
+    "confirmation_band": "|primary same% - claude same%| <= 15pp",
+    "falsification_band": "gap > 15pp (explicit, predictions.md:53)",
+    "note": (
+        "Observed 46pp gap is far outside the explicit 15pp "
+        "falsification band. predictions.md:53 pre-registered this "
+        "outcome as 'a strong finding, not a failure' — the model-"
+        "specific behaviour is substantively interesting."
+    ),
+}
 
 disposition_table = [
-    ("P1", "Arm A DENY ≥ 20% AND Arm C DENY ≤ 12%",
+    ("P1", "Confirm: Arm A DENY ≥ 20% AND Arm C DENY ≤ 12%; Falsify: Arm A < 20% OR Arm C ≥ 20%",
      f"Arm A {arm_a_deny:.1f}%, Arm C {arm_c_deny:.1f}%", p1_disposition),
-    ("P2", "Arm A − Arm B DENY gap ≥ 15pp",
+    ("P2", "Confirm: |Arm A − Arm B| ≥ 15pp; Falsify: (none registered)",
      f"gap = {p2_gap:+.1f}pp (A={arm_a_deny:.1f}%, B={arm_b_deny:.1f}%)", p2_disposition),
-    ("P3", "L4-no-nudge retention of E2 L3-DENY ≥ 80% (Confirm) / ≤ 65% (Falsify)",
+    ("P3", "Confirm: retention ≥ 80%; Falsify: retention ≤ 65%",
      f"retention = {retention_pct:.1f}% ({retained_deny}/{retention_n})", p3_disposition),
-    ("P4", "diagnostic_primary same-as-L4 ≥ 90%",
+    ("P4", "Confirm: same-as-L4 ≥ 90%; Falsify: (none registered)",
      f"same = {sv_pct:.1f}% ({same_verdict}/{sv_n})", p4_disposition),
-    ("P5a", "diagnostic_primary Cat 2 ≥ 60% AND Cat 1 ≤ 15%",
+    ("P5a", "Confirm: Cat 2 ≥ 60% AND Cat 1 ≤ 15%; Falsify: Cat 1 > 25% (diagnostic_primary reconciled)",
      f"Cat1 {rubric_summary['diagnostic_primary_reconciled']['cat_1_pct']:.1f}%, "
      f"Cat2 {rubric_summary['diagnostic_primary_reconciled']['cat_2_pct']:.1f}%", p5_primary),
-    ("P5b", "diagnostic_claude  Cat 2 ≥ 60% AND Cat 1 ≤ 15%",
+    ("P5b", "Confirm: Cat 2 ≥ 60% AND Cat 1 ≤ 15%; Falsify: Cat 1 > 25% (diagnostic_claude reconciled)",
      f"Cat1 {rubric_summary['diagnostic_claude_reconciled']['cat_1_pct']:.1f}%, "
      f"Cat2 {rubric_summary['diagnostic_claude_reconciled']['cat_2_pct']:.1f}%", p5_claude),
-    ("P6", "|primary same% − claude same%| ≤ 15pp",
+    ("P5-fp", "Same as P5 (diagnostic_primary first-pass — methods-disclosure row, not a separate prediction)",
+     f"Cat1 {rubric_summary['diagnostic_primary_first_pass']['cat_1_pct']:.1f}%, "
+     f"Cat2 {rubric_summary['diagnostic_primary_first_pass']['cat_2_pct']:.1f}%", p5_primary_first_pass),
+    ("P6", "Confirm: |primary − claude| ≤ 15pp; Falsify: gap > 15pp (explicit)",
      f"gap = {p6_gap:.1f}pp (primary {sv_pct:.1f}%, claude {sc_pct:.1f}%)", p6_disposition),
 ]
 
-print(f"  {'ID':<4} {'Locked threshold':<60} {'Observed':<48} {'Disposition':<14}")
-print("  " + "-" * 130)
+print(f"  {'ID':<6} {'Locked threshold':<90} {'Observed':<48} {'Disposition':<14}")
+print("  " + "-" * 160)
 for pid, threshold, observed, disp in disposition_table:
-    print(f"  {pid:<4} {threshold:<60} {observed:<48} {disp:<14}")
+    print(f"  {pid:<6} {threshold:<90} {observed:<48} {disp:<14}")
 
 OUTPUTS["disposition_table"] = [
     {"id": pid, "threshold": threshold, "observed": observed, "disposition": disp}
     for pid, threshold, observed, disp in disposition_table
 ]
+OUTPUTS["disposition_methodology"] = disposition_methodology
 
 # %% [markdown]
 # ## 7. Cost-accuracy: dry-run baseline tokens-per-record vs Phase 2 actuals
@@ -675,6 +962,117 @@ if HAVE_MPL:
     save_chart("same_verdict_comparison.png")
 
 # %% [markdown]
+# ## 8a. Optional Ed25519 signature spot-check (`--verify-sample N`)
+#
+# Closes the loop on the methodology paper's "every receipt verifiable"
+# claim. Selects N randomly-sampled bundles across the six Phase 2 arm
+# directories and runs them through `runner/scripts/verify_smoke_e3.py`'s
+# `verify_bundle` (Ed25519 against the experiment-tenant pinned public
+# key). Skipped if N=0 (default) or if the verifier module isn't
+# importable from the script's path. Result lands in OUTPUTS JSON.
+
+# %%
+def _maybe_load_verifier() -> Any:
+    """Import verify_smoke_e3 from the runner scripts dir. Returns the
+    module or None if the import fails."""
+    verifier_path = (
+        REPO_ROOT
+        / "procurement-context-disambiguation"
+        / "runner"
+        / "scripts"
+        / "verify_smoke_e3.py"
+    )
+    if not verifier_path.exists():
+        return None
+    sys.path.insert(0, str(verifier_path.parent))
+    try:
+        import verify_smoke_e3  # type: ignore[import-not-found]
+        return verify_smoke_e3
+    except Exception as exc:
+        print(f"  signature verify: importing verify_smoke_e3 failed ({exc!r}); skipping.")
+        return None
+
+
+verify_sample_n = int(_ARGS.verify_sample)
+verify_result: dict[str, Any] = {
+    "enabled": verify_sample_n > 0,
+    "n_requested": verify_sample_n,
+}
+
+if verify_sample_n > 0:
+    print("\n=== Signature spot-check ===\n")
+    verifier_mod = _maybe_load_verifier()
+    if verifier_mod is None:
+        verify_result["status"] = "skipped"
+        verify_result["reason"] = (
+            "verify_smoke_e3 module not importable from "
+            "procurement-context-disambiguation/runner/scripts/. "
+            "Likely missing PyNaCl/cryptography deps in the runtime "
+            "venv. Run analysis.py from the runner venv to enable."
+        )
+        msg = (
+            f"signature spot-check requested (N={verify_sample_n}) but "
+            "verifier module not importable; result deferred"
+        )
+        print(f"  {verify_result['reason']}")
+        WARNINGS.append(msg)
+    else:
+        # Build the population: every (arm, bundle_path) across the six
+        # Phase 2 arm subdirs.
+        population: list[tuple[str, Path]] = []
+        for arm in EXPECTED_COUNTS:
+            for bundle_path in sorted((E3_PHASE2 / arm).glob("*.bundle.json")):
+                population.append((arm, bundle_path))
+        rng = random.Random(int(_ARGS.verify_seed))
+        sample_n = min(verify_sample_n, len(population))
+        sample = rng.sample(population, sample_n)
+        passed = 0
+        failures: list[dict[str, Any]] = []
+        for arm, bundle_path in sample:
+            try:
+                report = verifier_mod.verify_bundle(bundle_path, arm)
+                ok = getattr(report, "passed", None)
+                # BundleReport.passed is a property in verify_smoke_e3; in
+                # case of API shift, fall back to "no errors recorded".
+                if ok is None:
+                    ok = not getattr(report, "errors", ["unknown"])
+                if ok:
+                    passed += 1
+                else:
+                    failures.append({
+                        "arm": arm,
+                        "bundle": str(bundle_path.relative_to(REPO_ROOT)),
+                        "errors": list(getattr(report, "errors", [])),
+                    })
+            except Exception as exc:
+                failures.append({
+                    "arm": arm,
+                    "bundle": str(bundle_path.relative_to(REPO_ROOT)),
+                    "errors": [f"verifier raised: {exc!r}"],
+                })
+        verify_result["status"] = "ran"
+        verify_result["seed"] = int(_ARGS.verify_seed)
+        verify_result["n_population"] = len(population)
+        verify_result["n_sampled"] = sample_n
+        verify_result["n_passed"] = passed
+        verify_result["n_failed"] = sample_n - passed
+        verify_result["failures"] = failures
+        print(
+            f"  sampled {sample_n} of {len(population)} bundles (seed={_ARGS.verify_seed}): "
+            f"passed={passed}  failed={sample_n - passed}"
+        )
+        if failures:
+            msg = f"signature spot-check: {len(failures)} failure(s) of {sample_n}"
+            print(f"  {msg}")
+            WARNINGS.append(msg)
+            for failure in failures[:5]:
+                print(f"    - {failure['bundle']}: {failure['errors']}")
+else:
+    verify_result["status"] = "not_requested"
+
+OUTPUTS["signature_spot_check"] = verify_result
+
+# %% [markdown]
 # ## 9. Persist canonical numbers
 
 # %%
@@ -686,6 +1084,10 @@ print(f"\nWrote canonical outputs to {out_path.relative_to(REPO_ROOT)}")
 
 if WARNINGS:
     print(f"\n{'!' * 4} {len(WARNINGS)} drift warning(s) emitted; review above.")
-    sys.exit(1 if os.environ.get("E3_DRIFT_FATAL") else 0)
+    # Default is fatal so CI / `python analysis.py` surfaces drift loudly.
+    # Set E3_DRIFT_FATAL=0 in interactive sessions to keep iterating
+    # despite known/expected drift (e.g. while updating anchors).
+    fatal = os.environ.get("E3_DRIFT_FATAL", "1") not in ("0", "false", "False", "")
+    sys.exit(1 if fatal else 0)
 else:
     print("\nAll computed numbers within 1% of sanity anchors.")

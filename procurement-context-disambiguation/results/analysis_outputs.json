@@ -126,48 +126,92 @@
     },
     "p6_gap_pp": 46.0
   },
+  "disposition_methodology": {
+    "P1": {
+      "confirmation_band": "Arm A DENY >= 20% AND Arm C DENY <= 12%",
+      "falsification_band": "Arm A DENY < 20% OR Arm C DENY >= 20%",
+      "note": "Observed Arm A 3.5% trips locked falsification clause 'Arm A < 20%'. predictions.md:25 anticipated 20-30% as the directional-confirm range; 3.5% is so far below that range the falsification is unambiguous.",
+      "rule_source": "locked"
+    },
+    "P2": {
+      "confirmation_band": "|Arm A DENY - Arm B DENY| >= 15pp",
+      "falsification_band": "(none registered in predictions.md)",
+      "note": "predictions.md only locks the confirmation band. Observed gap +3.5pp is well below 15pp confirm and there is no falsification band to trigger; honest disposition is Under-tested. The earlier script-introduced '|A\u2212B| < 5pp \u2192 Falsified' rule was post-hoc and has been removed.",
+      "rule_source": "locked"
+    },
+    "P3": {
+      "confirmation_band": "retention >= 80%",
+      "falsification_band": "retention <= 65%",
+      "note": "Observed retention 60.7% trips the explicit falsification band. predictions.md:37 locks both bands; this is a clean locked-spec disposition.",
+      "rule_source": "locked"
+    },
+    "P4": {
+      "confirmation_band": "same-as-L4 >= 90%",
+      "falsification_band": "(none registered in predictions.md)",
+      "note": "Observed 88% is 2pp below the 90% confirmation floor. predictions.md does not register a falsification band for P4; honest disposition is Under-tested. The earlier script-introduced 'else: Falsified' rule was post-hoc and has been removed. Methods-note discipline refinement: future predictions for 'robustness at scale' claims should pre-register both confirm and falsify bands.",
+      "rule_source": "locked"
+    },
+    "P5": {
+      "confirmation_band": "Cat 2 >= 60% AND Cat 1 <= 15%",
+      "falsification_band": "Cat 1 > 25%",
+      "note": "Three-band classifier per predictions.md:48-49. Reconciled sheets confirm both arms (P5a 7%/93%, P5b 0%/100%). First-pass primary (Cat1=8%, Cat2=25%) lands at Under-tested \u2014 well below confirm, well below the 25% Cat-1 falsification ceiling.",
+      "rule_source": "locked"
+    },
+    "P6": {
+      "confirmation_band": "|primary same% - claude same%| <= 15pp",
+      "falsification_band": "gap > 15pp (explicit, predictions.md:53)",
+      "note": "Observed 46pp gap is far outside the explicit 15pp falsification band. predictions.md:53 pre-registered this outcome as 'a strong finding, not a failure' \u2014 the model-specific behaviour is substantively interesting.",
+      "rule_source": "locked"
+    }
+  },
   "disposition_table": [
     {
       "disposition": "Falsified",
       "id": "P1",
       "observed": "Arm A 3.5%, Arm C 0.0%",
-      "threshold": "Arm A DENY \u2265 20% AND Arm C DENY \u2264 12%"
+      "threshold": "Confirm: Arm A DENY \u2265 20% AND Arm C DENY \u2264 12%; Falsify: Arm A < 20% OR Arm C \u2265 20%"
     },
     {
-      "disposition": "Falsified",
+      "disposition": "Under-tested",
       "id": "P2",
       "observed": "gap = +3.5pp (A=3.5%, B=0.0%)",
-      "threshold": "Arm A \u2212 Arm B DENY gap \u2265 15pp"
+      "threshold": "Confirm: |Arm A \u2212 Arm B| \u2265 15pp; Falsify: (none registered)"
     },
     {
       "disposition": "Falsified",
       "id": "P3",
       "observed": "retention = 60.7% (65/107)",
-      "threshold": "L4-no-nudge retention of E2 L3-DENY \u2265 80% (Confirm) / \u2264 65% (Falsify)"
+      "threshold": "Confirm: retention \u2265 80%; Falsify: retention \u2264 65%"
     },
     {
-      "disposition": "Falsified",
+      "disposition": "Under-tested",
       "id": "P4",
       "observed": "same = 88.0% (88/100)",
-      "threshold": "diagnostic_primary same-as-L4 \u2265 90%"
+      "threshold": "Confirm: same-as-L4 \u2265 90%; Falsify: (none registered)"
     },
     {
       "disposition": "Confirmed",
       "id": "P5a",
       "observed": "Cat1 7.0%, Cat2 93.0%",
-      "threshold": "diagnostic_primary Cat 2 \u2265 60% AND Cat 1 \u2264 15%"
+      "threshold": "Confirm: Cat 2 \u2265 60% AND Cat 1 \u2264 15%; Falsify: Cat 1 > 25% (diagnostic_primary reconciled)"
     },
     {
       "disposition": "Confirmed",
       "id": "P5b",
       "observed": "Cat1 0.0%, Cat2 100.0%",
-      "threshold": "diagnostic_claude  Cat 2 \u2265 60% AND Cat 1 \u2264 15%"
+      "threshold": "Confirm: Cat 2 \u2265 60% AND Cat 1 \u2264 15%; Falsify: Cat 1 > 25% (diagnostic_claude reconciled)"
+    },
+    {
+      "disposition": "Under-tested",
+      "id": "P5-fp",
+      "observed": "Cat1 8.0%, Cat2 25.0%",
+      "threshold": "Same as P5 (diagnostic_primary first-pass \u2014 methods-disclosure row, not a separate prediction)"
     },
     {
       "disposition": "Falsified",
       "id": "P6",
       "observed": "gap = 46.0pp (primary 88.0%, claude 42.0%)",
-      "threshold": "|primary same% \u2212 claude same%| \u2264 15pp"
+      "threshold": "Confirm: |primary \u2212 claude| \u2264 15pp; Falsify: gap > 15pp (explicit)"
     }
   ],
   "phase2_total_receipts": 1332,
@@ -210,7 +254,7 @@
       "cat_3": 67,
       "cat_3_pct": 67.0,
       "n": 100,
-      "p5_disposition": "Falsified"
+      "p5_disposition": "Under-tested"
     },
     "diagnostic_primary_reconciled": {
       "cat_1": 7,
@@ -222,6 +266,11 @@
       "n": 100,
       "p5_disposition": "Confirmed"
     }
+  },
+  "signature_spot_check": {
+    "enabled": false,
+    "n_requested": 0,
+    "status": "not_requested"
   },
   "verdict_counts": {
     "arm_a": {
@@ -256,6 +305,8 @@
     }
   },
   "warnings": [
+    "DRIFT WARNING \u2014 arm_c ALLOW count: observed=10 anchor=13",
+    "DRIFT WARNING \u2014 arm_c REVIEW count: observed=273 anchor=270",
     "DRIFT WARNING \u2014 diagnostic_claude ALLOW count: observed=36 anchor=35",
     "DRIFT WARNING \u2014 diagnostic_claude DENY count: observed=44 anchor=45"
   ]
