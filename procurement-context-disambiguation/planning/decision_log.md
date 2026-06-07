@@ -4,6 +4,31 @@ Reverse-chronological. Most recent decision at the top. Each entry: date, decisi
 
 ---
 
+## 2026-06-07 — Phase 2.5 closed: diagnostic_claude via AI-first; P5 Confirmed on both arms; cross-model rubric-axis finding
+
+**Decision**: `diagnostic_claude` coded via AI-first + human review-and-adjudication protocol (PR #110's `review_all.py`). Blind agent pass (PR #111) produced 0/100/0 distribution. Reviewer walked all 100 records with agent's call + rubric refresher + default-rule sentence visible per record; accepted agent's call on all 100 (`review_action`: 100 `agent-accepted`, 0 `human-overridden`). κ between blind agent and final = +1.0000. Final canonical sheet: 0 Cat 1 / 100 Cat 2 / 0 Cat 3 → **P5 Confirmed**.
+
+**Cross-model rubric-axis finding** (the substantive cross-arm observation):
+
+| Arm | Model | Cat 1 | Cat 2 | Cat 3 |
+|---|---|---:|---:|---:|
+| `diagnostic_primary` | GPT-5.4 | **7 (7.0%)** | 93 (93.0%) | 0 (0.0%) |
+| `diagnostic_claude` | Opus 4.7 | **0 (0.0%)** | 100 (100.0%) | 0 (0.0%) |
+
+Both models predominantly inversion-blind. **GPT-5.4 occasionally names the inversion (7%); Opus never does (0%).** Coherent with the cross-model verdict-axis finding from Phase 2 (2026-05-29 decision_log entry): Opus 80% decisive vs GPT-5.4 23% decisive. Confident application of the rule-as-stated IS Cat 2 inversion-blindness; Opus's verdict decisiveness translates to rubric Cat 2 thoroughness. **Direction of effect is cross-axis-consistent at n=100.** Real cross-model contribution for the writeup.
+
+**Methodological framing — important to preserve verbatim**. The claude arm's protocol is **AI-first + human review-and-adjudication**, NOT blind first pass (Sam saw the agent's call per record), NOT reconciliation-with-rubric-anchor (Sam reviewed all 100 records, not just disagreements between two prior coders). PR #110's `review_all.py` enforces this framing via a docstring test that fails if "blind first pass" appears outside negative framings. The verbatim methods-section sentence (lifted from Sam, 2026-06-07) lives at `results/rubric_inter_coder_analysis_claude.md`. Don't drift on this in the writeup.
+
+**Why the protocol differed between arms (honest disclosure for the methods section)**. Primary used blind first pass + blind AI second-coder + reconciliation. Primary's first pass drifted off-rubric due to coder fatigue (2026-06-07 prior entry); reconciliation under fresh eyes produced 79/79 second-coder-adopted on contested records. The drift observation motivated the protocol change for claude — AI-first + human review-and-adjudication eliminates the fatigue vector (categorisation from memory under cognitive load) while preserving human final adjudication. The change is documented end-to-end via the per-record `review_action` audit field on the canonical sheet.
+
+**Audit observation on claude's 100% acceptance rate** — could in principle signal reviewer over-acceptance under cognitive load on an AI-first walk where every suggestion is Cat 2 ("just `a` enter through"). Two pieces of evidence against that reading: (1) the agent's regex sweep for inversion-naming vocabulary (PR #111 body) found zero matches across all 100 reasoning texts, corroborating Cat 1 absence orthogonally; (2) the 6 borderlines the agent flagged each genuinely contain missing-evidence hedging (COI field absent etc.) which the rubric default rule unambiguously excludes from Cat 3. Orchestrator audited the 6 borderlines independently and concurs. The 100% acceptance is rubric-aligned.
+
+**P5 verdict on both diagnostic arms: Confirmed.** Cross-model robustness with the cross-axis-coherent direction-of-effect (Opus more thorough inversion-blindness on both rubric axis and verdict axis) strengthens P5 evidence beyond what a single-arm replication would provide.
+
+**What's next**: **Phase 2.5 is closed.** Phase 3 (analysis notebook + writeup) is the next phase. Methods section lifts the two verbatim protocol-disclosure sentences (one per arm) plus a sentence explaining why the protocols differ. Results section is anchored by per-arm verdict-axis distributions (Phase 2 receipts), per-arm rubric-axis distributions (the two canonical sheets), and the cross-model comparison on both axes. The methodologically meaningful arcs to surface in the methods note are catalogued in this log: record-composition fix (PR #97), rubric drift caught by κ check on primary (PR #109), AI-first protocol introduced for claude (PR #110 + this entry).
+
+---
+
 ## 2026-06-07 — Phase 2.5 diagnostic_primary: drift, reconciliation, P5 Confirmed
 
 **Decision**: first-pass coding of 100 `diagnostic_primary` reasoning texts (2026-05-29) yielded distribution 8/25/67 → Under-tested. Blind AI second-coder pass via PR #107 surfaced κ = −0.0369 against the first pass — concentrated at the missing-evidence/rule-itself rubric boundary (66 of 79 disagreements at Sam=3 / Agent=2). Sam's own characterisation: *"I misinterpreted the categories first pass and was fatigued."* Reconciled 2026-06-07 via PR #108's `review_disagreements` tool: on all 79 contested records, fresh-eyes Sam adopted the agent's call (0 `first-pass-kept`, 0 `override`). Reconciled sheet distribution: 7/93/0 → **Confirmed**. P5 verdict for `diagnostic_primary`: **Confirmed**.
