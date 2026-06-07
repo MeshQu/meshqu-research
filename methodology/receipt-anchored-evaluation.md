@@ -30,8 +30,12 @@ references_layout: numbered
       Receipt-Anchored Evaluation is a defensible methodology.
     - The note must stand independently. Do not assume the reader has read
       E1 / E2 / E3.
-    - Honesty about falsifications is the strength. E3's "4 of 6 predictions
-      falsified" is the load-bearing example, not a footnote.
+    - Honesty about falsifications is the strength. E3's disposition mix
+      — 1 Confirmed (P5), 3 Falsified cleanly against locked bands (P1,
+      P3, P6), 2 Under-tested (P2, P4 — confirmation-band-only spec) —
+      is the load-bearing example, not a footnote. The 2 Under-tested
+      outcomes are themselves the §5.6 discipline refinement, not a
+      weakness to bury.
     - Length target: ~10–20 structured pages. Terse, technical, citable.
     - Voice register: borrow from procurement-decisions/writeup/main.md
       (E1) and the E2 published writeup. Practitioner-legible per
@@ -59,7 +63,14 @@ references_layout: numbered
     - The trilogy as evidence (E1 baseline, E2 context-gradient, E3
       disambiguation; ~3,061 signed decisions across the programme)
     - One headline statistic that lands the methodological observation:
-      E3 had 4 of 6 pre-registered predictions falsified, productively
+      E3 confirmed 1 prediction (P5, on both diagnostic arms),
+      falsified 3 cleanly against locked bands (P1, P3, P6), and
+      produced 2 Under-tested results (P2, P4 — observed below the
+      confirmation band, with no explicit falsification band registered
+      at lock time). The Under-tested outcomes are themselves a
+      methodological contribution: a discovered discipline refinement
+      for pre-registering cross-axis and robustness-at-scale predictions,
+      recommended as a carry-forward for E4. See §5.6.
     - One-sentence anti-claim closing (per the STRUCTURAL-PARITY voice
       convention — what this methodology does NOT establish)
 
@@ -140,10 +151,12 @@ references_layout: numbered
 <!-- Intent: state the analogy precisely and bound it. -->
 
 - Predictions, prompts, ladder content, and policy snapshot are SHA-bound and tag-anchored at `v0.X-predictions-locked` **before any data is collected**.
-- Falsification criteria are numeric and segment-specific. Each prediction states (a) the band that confirms, (b) the band that falsifies, and (c) the interpretive note bound to each direction.
+- Predictions specify a confirmation band and, where the experimental hypothesis structure supports it, an explicit falsification band. The disposition vocabulary at `programme/PROCESS.md` (Confirmed / Falsified / Inverted / Refuted / Deferred / Under-tested) handles the gray zone where observed values fall outside the confirmation band but the locked spec did not register a falsification band. E3 surfaced cases where this gray zone was operative — see §5.6.
 - The lock is the integrity primitive that converts "we observed X" into "we predicted X-or-not-X, and the corpus showed which".
+- Discipline refinement surfaced by E3: predictions for cross-axis comparisons and robustness-at-scale claims should pre-register BOTH bands at lock time, mapping the gray zone explicitly to Under-tested. Carry-forward observation expanded in §5.6 and prescriptive fix listed in §6.6.
 
-<!-- cite: procurement-context-disambiguation/planning/predictions.md for the worked example of segment-level prediction with explicit falsification bands -->
+<!-- cite: procurement-context-disambiguation/planning/predictions.md for the worked example of segment-level prediction — P1/P3/P5/P6 lock both bands; P2/P4 lock only the confirmation band -->
+<!-- cite: procurement-context-disambiguation/results/analysis.py disposition_methodology block (lines ~599-760) for the locked-vs-script-judgment disclosure pattern that handles the gray zone -->
 <!-- cite: programme/PROCESS.md gate #1 "Brief verifies current state before pinning anchors" + gate #8 "Title commitment at the pre-registration lock" -->
 
 ### 3.2 The disposition vocabulary
@@ -225,25 +238,32 @@ references_layout: numbered
 
 <!--
   Intent: the methodologically richest experiment. E3 sharpens E2's
-  findings into attributions. 4 of 6 predictions were falsified
-  (P2, P3, P4, P6); 2 confirmed (P1, P5). This is the load-bearing
-  example for the "pre-registration catches the surprising mechanism"
-  observation in §5.
+  findings into attributions. Disposition mix per the canonical
+  analysis table (analysis.py disposition_methodology block):
+    - 1 Confirmed: P5 (on both diagnostic arms)
+    - 3 Falsified cleanly against locked bands: P1, P3, P6
+    - 2 Under-tested: P2, P4 (confirmation-band-only spec; observed
+      below confirm with no falsification band registered at lock time)
+  This is the load-bearing example for the "pre-registration catches
+  the surprising mechanism" observation in §5.1 AND for the
+  "pre-register both bands at lock time" discipline refinement in §5.6.
 -->
 
 - Substrate: identical 283-record corpus + a locked 100-record diagnostic subset.
 - Design: three L3 decomposition arms (precedents-only, precedents-no-verdict, density-control); one L4-without-nudge arm; two scaled Permuted-Policy diagnostic arms (primary GPT-5.4 + cross-model Opus 4.7).
 - Corpus collection: 1,332 signed receipts across six arms; 80 min 33 s wall-clock; $25.23 actual vs $25.21 projected (within 0.4% on all six arms).
 - Headlines:
-  - **Accumulation drives commitment**, not raw volume. Arm A (precedents-only) commits 15.5%; Arm B (no verdicts) 3.2%; Arm C (density-control) 4.6%. P1 confirmed directionally; the full E2 ladder amplifies the precedent signal.
-  - **Policy text drives backoff**, not the anti-sycophancy nudge. L4-without-nudge commits MORE than Arm A (27.2% vs 15.5%) — the L3→L4 backoff E2 observed did not re-emerge without the nudge in the expected direction. P3 falsified.
-  - **88% inversion-blindness at scale**, cross-model. On the n=100 Permuted-Policy subset, both GPT-5.4 (93% rubric Cat 2) and Opus 4.7 (100% rubric Cat 2) predominantly apply the rule's intent rather than its inverted text. P5 confirmed on both arms.
+  - **Accumulation drives commitment**, not raw volume. Arm A (precedents-only) commits 3.5%; Arm B (no verdicts) 0.0%; Arm C (density-control) 4.6%. P1 falsified by the locked "Arm A < 20%" clause — the full E2 ladder, not precedents alone, drives the commitment signal.
+  - **Policy text drives backoff**, not the anti-sycophancy nudge. L4-without-nudge retention on the L3-DENY set sat at 60.7% — below the 65% falsification floor; P3 falsified by the locked band.
+  - **Inversion-blindness at scale**, cross-model. On the n=100 Permuted-Policy subset, both GPT-5.4 (93% rubric Cat 2) and Opus 4.7 (100% rubric Cat 2) predominantly apply the rule's intent rather than its inverted text. P5 confirmed on both arms.
+  - **Under-tested under-specifications**. P2 (governance-memory mechanism, |A−B| gap) locked only the confirmation band (≥ 15pp); observed +3.5pp gap is below confirm with no falsification band to trip → Under-tested. P4 (inversion-blindness floor at scale) locked only the confirmation band (≥ 90%); observed 88% is 2pp below confirm with no falsification band registered → Under-tested. The under-specifications themselves are the methodological contribution — see §5.6.
 - Lock anchor: `v0.3-predictions-locked`.
 - Status: writeup in progress (Phase 3).
 
 <!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-05-29 entry "Phase 2 complete: 1,332 receipts, all five gates PASS, $25.23" -->
 <!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-06-07 entries (×2) for Phase 2.5 rubric outcomes (P5 Confirmed both arms) -->
-<!-- cite: procurement-context-disambiguation/planning/predictions.md for the full P1–P6 spec -->
+<!-- cite: procurement-context-disambiguation/planning/predictions.md for the full P1–P6 spec (verifies which predictions locked both bands vs confirm-band-only) -->
+<!-- cite: procurement-context-disambiguation/results/analysis.py disposition_methodology block + procurement-context-disambiguation/results/analysis_outputs.json disposition_table for the canonical 1-Confirmed / 3-Falsified / 2-Under-tested mix -->
 
 ### 4.4 Aggregate
 
@@ -272,17 +292,22 @@ references_layout: numbered
 ### 5.1 Pre-registration catches the surprising mechanism, not the expected one
 
 <!--
-  Intent: E3 had 4 of 6 predictions falsified — productively. The point
-  is that the falsifications are where the experiment paid off, not
-  where it failed. Without the lock, the falsified predictions would
-  have been quietly reshaped into post-hoc confirmations.
+  Intent: E3 produced 3 clean falsifications (P1, P3, P6) and 2
+  Under-tested results (P2, P4). The point is that the falsifications
+  are where the experiment paid off, not where it failed. Without the
+  lock, the falsified predictions would have been quietly reshaped
+  into post-hoc confirmations, and the Under-tested results would
+  have become "broadly directional" rather than naming the
+  pre-registration gap (which is itself the §5.6 contribution).
 -->
 
-- P3 (anti-sycophancy nudge load-bearing) was falsified in the opposite direction. The hypothesis was that removing the nudge would reduce backoff; instead, L4-without-nudge committed MORE than Arm A, and the backoff direction itself was confounded.
-- P4 (inversion-blindness reproduces at scale) was over-fulfilled: the prediction set the floor at 90%, the corpus produced 93–100% depending on rubric axis. The lock catches the over-fulfilment as evidence of architectural property, not as "we got lucky".
-- The two confirmed predictions (P1, P5) carry more weight precisely because they sit alongside four falsifications in the same writeup — the methodology is not selecting for results.
+- P1 (precedents drive commitment) was falsified by the locked "Arm A < 20%" clause — Arm A observed 3.5% DENY-rate, dramatically outside the directional 20–30% range the prediction anticipated. The full E2 ladder, not precedents alone, drives commitment.
+- P3 (anti-sycophancy nudge load-bearing for L3→L4 backoff) was falsified by the locked retention ≤ 65% clause — observed retention 60.7% on the 107-record L3-DENY set. The hypothesis was that removing the nudge would preserve retention; instead the policy text alone drove the backoff in the opposite direction.
+- P6 (inversion-blindness is task-class, not model-specific) was falsified by the locked > 15pp clause — observed 46pp gap between primary-model and Claude same-as-unperturbed rates. predictions.md pre-registered this outcome as "a strong finding, not a failure" precisely because the model-specific behaviour is substantively interesting.
+- The one confirmed prediction (P5, on both diagnostic arms) carries more weight precisely because it sits alongside three falsifications and two Under-tested results in the same writeup — the methodology is not selecting for results.
 
-<!-- cite: procurement-context-disambiguation/planning/predictions.md for the P1–P6 falsification bands -->
+<!-- cite: procurement-context-disambiguation/planning/predictions.md for the P1–P6 falsification bands (P1, P3, P5, P6 lock both bands; P2, P4 lock confirmation only) -->
+<!-- cite: procurement-context-disambiguation/results/analysis.py disposition_methodology block for the per-prediction locked-vs-script-judgment disclosure -->
 <!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-05-29 entry "Piece 2 — L4 decomposition" for the L4-without-nudge inversion -->
 
 ### 5.2 Inter-coder κ check surfaces drift even with an experienced single coder
@@ -361,6 +386,41 @@ references_layout: numbered
 <!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-05-28 "Smoke read v2 + handler record-composition fix (PR #97)" -->
 <!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-05-29 entry §"(c) Readiness-item-14 caveat" for the configured-vs-captured distinction -->
 
+### 5.6 Pre-registering both bands at lock time
+
+<!--
+  Intent: E3's 2 Under-tested outcomes (P2, P4) surfaced a discipline
+  refinement — confirmation-band-only predictions leave the
+  falsification side to analyst judgment at analysis time, weakening
+  the pre-registration contract. The trilogy methodology recommends
+  pre-registering both bands for all predictions, with explicit
+  Under-tested zones documented at lock time. For multi-axis
+  predictions (P6 in E3, registered on the verdict axis only despite
+  rubric data being collected on both axes in the cross-model arm),
+  pre-register axis-specific hypotheses with axis-specific bands.
+
+  This is a real methodological contribution to lift, not damage
+  control to bury. The trilogy's incomplete pre-registration
+  discipline becomes the prescriptive carry-forward (§6.6) for E4.
+
+  Worked example to lift verbatim into the prose: the analysis.py
+  disposition_methodology block makes the rule-source distinction
+  ("locked" vs script-time judgment) machine-disclosed for each
+  prediction; this pattern is itself the honest-disclosure
+  contribution for handling under-specified predictions.
+-->
+
+- E3's locked spec at `procurement-context-disambiguation/planning/predictions.md`: P1, P3, P5, P6 pre-register **both** a confirmation band AND an explicit falsification band; P2 and P4 pre-register **only** a confirmation band, leaving the falsification side to analyst judgment at analysis time.
+- Observed values for P2 (+3.5pp gap, below 15pp confirm) and P4 (88%, 2pp below 90% confirm) fell into the gray zone the locked spec did not map — neither inside the confirmation band nor inside any locked falsification band. The honest disposition is Under-tested, per the locked vocabulary at `programme/PROCESS.md`. The analysis script discloses the rule-source per prediction (`rule_source: "locked"` plus the explicit `(none registered)` note when a falsification band is absent) rather than inventing a post-hoc falsification rule.
+- The trilogy methodology recommends: predictions for cross-axis comparisons (P2's |A − B| gap) and robustness-at-scale claims (P4's same-as-L4 floor) should pre-register **both** bands at lock time, with the gray zone between confirm-floor and falsify-ceiling mapped explicitly to Under-tested. The intent is to remove analyst discretion from the disposition call entirely.
+- Multi-axis predictions need axis-specific bands. P6 was registered on the verdict axis only ("same-as-unperturbed verdict rate within 15pp") despite the cross-model arm collecting rubric data on both verdict AND rubric axes. Folding multiple axes into one hypothesis under-specifies what the test is actually testing; pre-register axis-specific hypotheses with axis-specific bands.
+- Prescriptive carry-forward for E4: see §6.6 ("Pre-register both bands at lock time").
+
+<!-- cite: procurement-context-disambiguation/planning/predictions.md (post-2026-05-27 calibration block) for the worked example — which bands were locked for which predictions -->
+<!-- cite: procurement-context-disambiguation/results/analysis.py disposition_methodology block (the rule_source / confirmation_band / falsification_band / note structure per prediction) as the analyst-judgment-disclosure pattern -->
+<!-- cite: procurement-context-disambiguation/results/analysis_outputs.json disposition_methodology and disposition_table for the canonical 1-Confirmed / 3-Falsified / 2-Under-tested mix -->
+<!-- cite: programme/PROCESS.md disposition vocabulary block (Under-tested as a positive disposition for under-specified gray zones, not a passive "inconclusive") -->
+
 ---
 
 ## 6 · The discipline carry-forwards
@@ -431,6 +491,27 @@ references_layout: numbered
 <!-- cite: procurement-context-disambiguation/results/rubric_inter_coder_analysis_primary.md for the verbatim Variant A disclosure sentence -->
 <!-- cite: procurement-context-disambiguation/results/rubric_inter_coder_analysis_claude.md for the verbatim Variant B disclosure sentence -->
 <!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-06-07 entry §"Why the protocol differed between arms (honest disclosure for the methods section)" -->
+
+### 6.6 Pre-register both bands at lock time
+
+<!--
+  Intent: the prescriptive fix lifted from the §5.6 observation.
+  Every prediction in a future application of Receipt-Anchored
+  Evaluation should pre-register BOTH a confirmation band AND an
+  explicit falsification band, with the gray zone between them
+  mapped explicitly to Under-tested. Multi-axis predictions get
+  axis-specific hypotheses with axis-specific bands.
+-->
+
+- Every prediction pre-registers (a) a confirmation band, (b) an explicit falsification band, and (c) the gray zone between them mapped to Under-tested. No prediction ships with confirmation-only specification — the falsification clause is part of the lock contract.
+- For cross-axis comparisons (e.g. |A − B| gaps), both the confirmation magnitude and the falsification magnitude are numeric. The gray zone is the explicit Under-tested band, locked at the same tag as the confirmation band.
+- For robustness-at-scale claims (e.g. ≥ X% floor), pre-register the falsification floor explicitly — "anything below X% is Under-tested" is not equivalent to "anything below X% is Falsified" and the lock must pick one.
+- Multi-axis predictions decompose into axis-specific hypotheses at lock time. Cross-model arms that collect data on multiple axes (verdict + rubric) get one hypothesis per axis, each with its own bands.
+- The analysis script discloses `rule_source` per prediction as a machine-checked invariant — `"locked"` when the disposition follows pre-registered bands; explicit script-time judgment is disallowed by the lock contract under this carry-forward.
+
+<!-- cite: procurement-context-disambiguation/planning/predictions.md — current state showing which predictions locked both bands and which did not; the prescription removes the latter pattern for E4 -->
+<!-- cite: procurement-context-disambiguation/results/analysis.py disposition_methodology block — the rule_source / confirmation_band / falsification_band structure to lift into every future runner's analysis layer -->
+<!-- cite: §5.6 of this note for the worked example -->
 
 ---
 
