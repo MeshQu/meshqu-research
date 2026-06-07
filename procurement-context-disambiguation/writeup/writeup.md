@@ -29,8 +29,8 @@
 
 - Pre-registered programme arc: E1 baseline → E2 ladder shape → E3 disambiguation
 - E3 design intent: three pieces (L3 decomposition with arms A/B/C; L4-without-nudge; scaled diagnostic + cross-model on Opus 4.7)
-- Headline: P1, P2, P3, P4 falsified; P5 confirmed on both diagnostic arms; P6 disposition <!-- TODO: fill in from analysis notebook -->
-- The falsifications are the story — each one names a third reading the predictions explicitly anticipated and that the corpus surfaced
+- Headline: **P5 confirmed on both diagnostic arms; P1, P3, P6 falsified cleanly against locked falsification bands; P2 and P4 under-tested (confirm-band only; no locked falsify band)**
+- The falsifications + under-tested dispositions are the story — each one names either a third reading the predictions explicitly anticipated (P1, P3) or a substantive cross-model finding the locked vocabulary couldn't pre-categorize (P4, P6), and the corpus also surfaces a Piece 1 mechanism refinement sharper than P2 captured
 - Cross-model arm yields a substantive cross-axis-coherent finding (verdict-style divergence + rubric-axis Cat 1 difference both consistent with Opus's verdict decisiveness)
 - Locked at `v0.3-predictions-locked` (commit `ba4ebfb`); no artefact at lock has been edited
 
@@ -95,12 +95,12 @@
 
 | ID | Pre-registered claim | Falsification criterion | Outcome (corpus) | Disposition |
 |---|---|---|---|---|
-| P1 | Arm A DENY ≥ 20% AND Arm C DENY ≤ 12% (precedents drive commitment, not raw volume) | Arm C ≥ 20% OR Arm A < 20% | Arm A 15.5%, Arm C 4.6%, Arm B 3.2% <!-- TODO: cross-check against analysis notebook --> | **Falsified** — Arm A below the 20% commit floor (the third-reading interpretation: accumulation amplifies, precedents alone don't reach E2's L3 37.8%) |
-| P2 | Arm A − Arm B DENY rate ≥ 15pp (verdict exemplars are load-bearing) | \|A − B\| < 5pp | A − B = 15.5% − 3.2% = 12.3pp <!-- TODO: confirm exact numbers from notebook --> | **Falsified** narrowly — gap is meaningful but below the 15pp threshold; verdict-exemplar mechanism not specifically DENY-anchoring as predicted; bidirectional commitment-anchoring instead <!-- TODO: confirm bidirectional reading once notebook A/B breakdown by ALLOW vs DENY is in --> |
-| P3 | L4-without-nudge retention of E2's L3-DENY set ≥ 80% (nudge load-bearing, Framing A.1) | retention ≤ 65% (policy text alone, Framing A.2) | <!-- TODO: notebook to report retention on the 107-record L3-DENY set --> 60.7% retention | **Falsified → Framing A.2 confirmed**: retention 60.7% < 65% threshold; the policy text drove the backoff, the nudge clause is incidental |
-| P4 | Scaled Permuted-Policy: ≥90% same-as-unperturbed L4 verdict (n=100, primary model) | < 90% | <!-- TODO: lift from notebook --> 88% | **Falsified narrowly** — 88% < 90%; E2's 92.9% at n=14 didn't quite hold at n=100 (the architectural-property reading is weakened, but ~88% is still high) |
-| P5 | Hand-coded rubric: Cat 2 ("reasons solely against rule intent") ≥ 60% modal AND Cat 1 ("names the inversion") ≤ 15% | Cat 1 > 25% | Primary: Cat 2 93% / Cat 1 7%. Claude: Cat 2 100% / Cat 1 0%. | **Confirmed** on both arms (κ between blind agent and final = +1.0000 on both arms) |
-| P6 | Claude's same-as-unperturbed rate within 15pp of primary's rate (task-class, not model-specific) | gap > 15pp | <!-- TODO: cross-model verdict-axis comparison from Phase 2 receipts; combined with rubric-axis cross-model finding -->  | <!-- TODO: state disposition based on data; the cross-model rubric-axis finding (GPT-5.4 7% Cat 1 vs Opus 0%) is direction-coherent with the verdict-style divergence (GPT-5.4 23% decisive vs Opus 80% decisive) and is the substantive cross-model contribution — frame as Confirmed in spirit (cross-model robustness) even if the verdict-axis numbers technically straddle the band --> |
+| P1 | Arm A DENY ≥ 20% AND Arm C DENY ≤ 12% (precedents drive commitment, not raw volume) | Arm C DENY ≥ 20% OR Arm A DENY < 20% (locked clause from predictions.md:24) | Arm A DENY 3.5% (10/283), Arm B DENY 0% (0/283), Arm C DENY 0% (0/283) | **Falsified** — Arm A 3.5% trips the locked falsification clause "Arm A < 20%". The third-reading interpretation (accumulation amplifies, precedents alone don't reach E2's L3 37.8%) is starker than the directional 20–30% band anticipated |
+| P2 | Arm A DENY rate − Arm B DENY rate ≥ 15pp (verdict exemplars are load-bearing for DENY-anchoring) | (locked spec specifies confirm band only; no falsification band locked — see analysis.py disposition_methodology["P2"]) | A − B DENY gap = 3.5pp (3.5% − 0%) | **Under-tested** — gap of 3.5pp is below the 15pp confirm band; no falsification band locked. See §4.2 — the underlying finding (Arm A is the only arm producing any DENY at all) is substantively richer than P2's confirm/falsify binary captured |
+| P3 | L4-without-nudge retention of E2's L3-DENY set ≥ 80% (nudge load-bearing, Framing A.1) | retention ≤ 65% (locked falsification band, predictions.md:37 — policy text alone, Framing A.2) | 60.7% retention (65/107) | **Falsified → Framing A.2 confirmed**: retention 60.7% ≤ 65% locked floor; the policy text drove the backoff, the nudge clause is incidental |
+| P4 | Scaled Permuted-Policy: ≥90% same-as-unperturbed L4 verdict (n=100, primary model) | (locked spec specifies confirm band only; no falsification band locked — see analysis.py disposition_methodology["P4"]) | 88% same-as-unperturbed (88/100) | **Under-tested** — 88% is 2pp below the 90% confirm floor; no falsification band locked. Methods-note discipline refinement: future "robustness at scale" predictions should pre-register both confirm and falsify bands |
+| P5 | Hand-coded rubric: Cat 2 ("reasons solely against rule intent") ≥ 60% modal AND Cat 1 ("names the inversion") ≤ 15% | Cat 1 > 25% (locked, predictions.md:49) | Primary reconciled: Cat 2 93% / Cat 1 7%. Claude reconciled: Cat 2 100% / Cat 1 0%. | **Confirmed** on both arms (κ between blind agent and reconciled = +1.0000 on both arms) |
+| P6 | Claude's same-as-unperturbed rate within 15pp of primary's rate (task-class, not model-specific) | gap > 15pp (locked falsification band, predictions.md:53 — pre-registered the model-specific outcome as "a strong finding, not a failure") | gap = 46pp (primary 88%, claude 42%) | **Falsified** — 46pp gap far outside locked 15pp band. predictions.md:53 pre-registered the model-specific outcome as substantively interesting; the cross-model finding is the substantive cross-model contribution (see §4.7) |
 
 ## §4 — Results
 
@@ -111,35 +111,70 @@
      claims, and E4 implications. Length: ~10–12 pages worth across all
      subsections; this is the heart of the paper. -->
 
-### §4.1 — P1 falsified: Arm A below the 20% commit floor
+### §4.1 — P1 falsified: Arm A DENY rate far below the 20% commit floor
 
 <!-- ~2 paragraphs. Argues: the first reading of P1 is the obvious one
-     (precedents are not load-bearing on their own). The right reading,
-     captured in the predictions interpretive note, is the third one:
-     accumulation amplifies. E2's L3 hit 37.8% because L0+L1+L2+L3 stacked,
-     not because precedents alone could push the agent off the REVIEW spine
-     to that magnitude. -->
+     (precedents are not load-bearing on their own for DENY commitment).
+     The right reading, captured in the predictions interpretive note, is
+     the third one: accumulation amplifies. E2's L3 hit 37.8% DENY because
+     L0+L1+L2+L3 stacked, not because precedents alone could push the agent
+     off the REVIEW spine to that magnitude. The corrected numbers make the
+     falsification starker than the directional 20–30% band anticipated:
+     Arm A's DENY rate is 3.5%, not 15.5% — and Arm C produces zero DENYs,
+     not 4.6%. The substantive narrative ("accumulation-amplifies, precedents
+     alone don't reach the commit floor") still holds, but with much sharper
+     numbers than the original draft suggested. -->
 
-- Arm A precedents-only DENY rate: 15.5% (44/283) <!-- TODO: confirm exact -->
-- Threshold: 20% (predictions calibration note: 20–30% band confirms directionally with the accumulation-amplifies note; <20% falsifies)
-- Reading: **the L3 break is real but accumulation-amplified.** The L1 prose framing + L2 named-rules + L3 precedent receipts together cleared the commit floor at E2; precedents in isolation reach only ~15%
-- Arm C density-control DENY rate: 4.6% (13/283) — well below the ≤12% threshold, so the volume-alone (Reading B) explanation is also falsified
-- Anti-claim: **the falsification of P1 is not a refutation of the precedent mechanism.** Arm A still commits 3.4× more than Arm C (15.5% vs 4.6%); precedents are doing work, they just don't carry the full weight of the L3 break alone. The accumulation reading was named explicitly in the predictions' interpretive note as the third shading
+- Arm A precedents-only DENY rate: **3.5% (10/283)**
+- Threshold: 20% (predictions calibration note: 20–30% band confirms directionally with the accumulation-amplifies note; <20% trips the locked falsification clause)
+- Reading: **the L3 DENY break is real but accumulation-amplified.** The L1 prose framing + L2 named-rules + L3 precedent receipts together cleared the DENY commit floor at E2 (37.8%); precedents in isolation reach only 3.5% — an order of magnitude below the locked confirm threshold
+- Arm C density-control DENY rate: **0% (0/283)** — comfortably below the ≤12% threshold, so the volume-alone (Reading B) explanation is also falsified, and starker than the original draft (4.6%) suggested
+- Anti-claim: **the falsification of P1 is not a refutation of the precedent mechanism.** Arm A still produces every single DENY observed in Piece 1 (10 vs 0 in B and 0 in C); precedents are doing work for DENY commitment, they just don't carry the full weight of the L3 break alone. The accumulation reading was named explicitly in the predictions' interpretive note as the third shading
+- Pointer: the verdict-axis breakdown (ALLOW/REVIEW/DENY per arm) reveals a sharper finding than P1's DENY-rate binary — see §4.2 for the Piece 1 verdict-distribution table and the reframe of P2
 
-### §4.2 — P2 falsified narrowly: the verdict-exemplar gap
+### §4.2 — P2 under-tested; Piece 1 mechanism refinement: verdict-bearing precedents enable directional commitment (mostly ALLOW)
 
-<!-- ~2 paragraphs. Argues: the A − B gap is meaningful (12.3pp; well above the
-     5pp falsification floor) but below the 15pp threshold P2 required to
-     declare verdict exemplars specifically load-bearing. The reading is
-     that verdict exemplars contribute to commitment but the mechanism is
-     not the predicted "prior DENYs anchor new DENYs" — it is bidirectional
-     commitment-anchoring (any exemplar of a committed verdict, ALLOW or
-     DENY, gives the agent permission to commit). -->
+<!-- ~3 paragraphs. SUBSTANTIVE REFRAME. P2 was pre-registered on
+     DENY-rate-anchoring specifically (Arm A DENY − Arm B DENY ≥ 15pp).
+     The observed gap is 3.5pp — well below the 15pp confirm band, and
+     no falsification band was locked. Disposition is therefore
+     Under-tested per analysis.py disposition_methodology["P2"].
 
-- Arm A − Arm B DENY rate: ~12.3pp (15.5% − 3.2%) <!-- TODO: confirm; also report ALLOW commitment breakdown if notebook supplies it -->
-- The gap is meaningful (above the 5pp floor) but below the 15pp threshold; predictions vocabulary lands at Falsified
-- Reading: **verdict exemplars do contribute, but not specifically as DENY-anchoring.** The mechanism is broader — committed exemplars (verdict present, any direction) give the agent permission to commit; verdict-absent precedents (Arm B) don't. The original P2 framing in `predictions.md` Piece 1 explicitly tested the governance-memory claim from E2's §10; the corpus weakens that to bidirectional anchoring
-- Anti-claim: **this does not refute the governance-memory interpretation** — it sharpens it. The claim survives as "committed precedents anchor commitment", not as "DENY precedents anchor DENYs". The bundle schema's verdict field still carries the load; the polarity does not
+     BUT the underlying finding is sharper than P2's confirm/falsify binary
+     captured. Re-cut by the full verdict distribution (ALLOW/REVIEW/DENY)
+     instead of by DENY rate alone, a substantively richer Piece 1 mechanism
+     emerges:
+
+       arm_a (precedents-with-verdicts):    34 ALLOW,  239 REVIEW, 10 DENY
+       arm_b (precedents-no-verdict):        9 ALLOW,  274 REVIEW,  0 DENY
+       arm_c (density-control):             10 ALLOW,  273 REVIEW,  0 DENY
+
+     Arm A is the ONLY condition producing any DENY commitment at all.
+     Arms B and C produce zero DENYs. AND across all three arms, ALLOW
+     commitment dominates DENY commitment by 3.4× (53 ALLOW vs 10 DENY).
+     The mechanism isn't "DENY precedents anchor new DENYs" (the pre-
+     registered framing) — it's verdict-bearing precedents enable
+     directional commitment in both directions, with ALLOW the dominant
+     direction in this corpus + policy combination. The §10 governance-
+     memory mechanism from E2 holds, but operates symmetrically, not
+     DENY-asymmetrically. -->
+
+- Arm A − Arm B DENY rate gap: **3.5pp** (3.5% − 0%) — below the 15pp confirm band; no falsification band locked
+- Honest disposition: **Under-tested** (locked-band failure, per analysis.py disposition_methodology["P2"])
+- **Substantively interesting** Piece 1 mechanism refinement: verdict distribution across the three arms
+
+  | arm | ALLOW | REVIEW | DENY | any commitment (ALLOW + DENY) |
+  |---|---:|---:|---:|---:|
+  | arm_a (precedents with verdicts) | 34 | 239 | 10 | 44 (15.5%) |
+  | arm_b (precedents-no-verdict) | 9 | 274 | 0 | 9 (3.2%) |
+  | arm_c (density-control) | 10 | 273 | 0 | 10 (3.5%) |
+  | **all three arms combined** | 53 | 786 | 10 | 63 (7.4%) |
+
+- **Arm A is the only arm to produce any DENY commitment (10 records). Arms B and C produce zero DENYs.** Strip the verdict signal from precedents and the agent never commits to DENY in this experimental condition
+- **Across all three arms, ALLOW commitment dominates DENY commitment by 3.4× (53 ALLOW vs 10 DENY).** The mechanism isn't "DENY precedents anchor new DENYs" (the pre-registered framing). It's: **verdict-bearing precedents enable directional commitment in both directions — with ALLOW the dominant direction in this corpus + policy combination**
+- The mechanism is sharper than P2 anticipated: any-direction commitment (ALLOW + DENY) rises from 3.2% (Arm B) → 15.5% (Arm A) — a 4.8× lift, well above what the DENY-only slice captured
+- Anti-claim: **the §10 governance-memory mechanism from E2 holds — but operates symmetrically, not DENY-asymmetrically as P2 anticipated.** The bundle schema's verdict field carries the load (verdict-bearing precedents differ from verdict-stripped ones); the polarity does not (ALLOW-bearing precedents are not specifically anchoring DENYs in this corpus)
+- Methods-note discipline refinement: P2's pre-registered DENY-rate framing collapsed onto a single axis a mechanism that the data reveals is two-dimensional (any-direction commitment vs verdict-stripped non-commitment). The locked vocabulary's Under-tested disposition is the honest call; the substantive finding is reported here as a Piece 1 mechanism refinement, not as a post-hoc rescue of P2
 
 ### §4.3 — Arm C asymmetric-control caveat (methods reading)
 
@@ -148,7 +183,7 @@
 
 - Arm C token parity vs Arm A: −16.43% (locked at PR #93, pre-registered as documented methods caveat)
 - The asymmetry rules out one family of confounds (Arm C did not commit because it had more volume than precedents) and introduces another (Arm C may not have committed because it had less volume than Arm A)
-- P1's Arm C ≤12% threshold is comfortably cleared (Arm C 4.6%), so the volume-alone (Reading B) explanation is falsified even granting the asymmetry — but the writeup names the caveat explicitly rather than burying it
+- P1's Arm C ≤12% DENY threshold is comfortably cleared (Arm C DENY 0%, observed even sharper than the original draft suggested), so the volume-alone (Reading B) explanation is falsified even granting the asymmetry — but the writeup names the caveat explicitly rather than burying it
 
 ### §4.4 — P3 falsified, Framing A.2 confirmed: the policy text drove the backoff
 
@@ -160,27 +195,31 @@
      The nudge clause was incidental; the policy text alone produces the
      backoff. -->
 
-- Retention on the 107-record L3-DENY set under L4-without-nudge: 60.7% <!-- TODO: confirm exact -->
+- Retention on the 107-record L3-DENY set under L4-without-nudge: 60.7% (65/107)
 - E2's L4-with-nudge retention on the same set: 57% (61/107)
 - Delta: ~+3.7pp — within noise band; the nudge clause is incidental
 - Reading: **Framing A.2 confirmed.** The policy text alone — its explicit enumeration of rule clauses, threshold tests, and field expectations — drove the backoff. The anti-sycophancy nudge ("if a required field is absent, do not assume it satisfies the rule") was a small refinement on a mechanism that was already working
 - Anti-claim: this does NOT mean the nudge is useless. It means the L3→L4 reversion on E2's PROC-005 ambiguous-rule axis was already being driven by the policy text's structural cues; the nudge is a discipline reinforcement, not the causal agent
-- l4_without_nudge also commits MORE often overall than Arm A (27.2% vs 15.5%) — the policy text continues to do work beyond what precedents alone produce
+- l4_without_nudge DENY rate is 27.2% (77/283) vs Arm A DENY 3.5% (10/283) — the policy text continues to do substantially more DENY-direction work than precedents alone produce
 
-### §4.5 — P4 falsified narrowly: inversion-blindness holds at scale (just below the 90% floor)
+### §4.5 — P4 under-tested: inversion-blindness substantively holds at scale; locked spec specifies confirm band only
 
 <!-- ~2 paragraphs. P4 predicted ≥90% same-as-unperturbed verdict on the n=100
      Permuted-Policy subset. E2's n=14 hit 92.9%. The corpus reports 88% —
-     2pp below the 90% threshold. Predictions vocabulary lands at Falsified
-     but the substantive reading is that inversion-blindness is overwhelmingly
-     present at scale and the small degradation from E2's n=14 is honest about
-     measurement noise. -->
+     2pp below the 90% confirm threshold. predictions.md locked the confirm
+     band but did NOT lock a falsification band; per analysis.py
+     disposition_methodology["P4"], the honest disposition is Under-tested.
+     The substantive reading is that inversion-blindness is overwhelmingly
+     present at scale; the methods-note discipline refinement is that future
+     "robustness at scale" predictions should pre-register both confirm and
+     falsify bands. -->
 
-- diagnostic_primary same-as-unperturbed-L4 rate: 88% <!-- TODO: confirm; needs cross-reference against E2's L4 verdicts on the same 100 OCIDs -->
-- Threshold: 90%
-- Reading: **the architectural-property reading is weakened but not refuted.** 88% is high; 12 records out of 100 emitted a different verdict than they did at unperturbed L4. The locked falsification floor doesn't admit "broadly" — vocabulary lands at Falsified
-- Methodological frame: this is the prediction working under its own discipline. E2's n=14 result couldn't have falsified P4 at this scale; the prediction was specifically calibrated to a larger n. The corpus broke the prediction by 2pp; the prediction said "this is informative" and the writeup reports it as such
-- The substantive reading carries into P5: even on the 12 records where the verdict shifted, the rubric coding shows the rule-intent prior still dominates the reasoning
+- diagnostic_primary same-as-unperturbed-L4 rate: 88% (88/100)
+- Locked confirm band: ≥ 90%. Locked falsification band: **none registered** (see analysis.py disposition_methodology["P4"])
+- Disposition: **Under-tested** — 88% is 2pp below the confirm floor; no falsification band locked, so the locked spec doesn't admit a categorical Falsified call
+- Reading: **the architectural-property reading is substantively present at scale.** 88% is high; 12 records out of 100 emitted a different verdict than they did at unperturbed L4. The substantive read carries into P5: even on the 12 records where the verdict shifted, the rubric coding shows the rule-intent prior still dominates the reasoning
+- Methods-note discipline refinement: P4 is the cleanest example of why "confirm-band-only" predictions force Under-tested dispositions on near-misses. The 88% finding is substantively informative but the locked vocabulary can't categorize it as Falsified without a pre-registered falsification band — future "robustness at scale" predictions should pre-register both bands explicitly
+- Anti-claim: this is NOT "narrowly falsified" — calling it Falsified would be a post-hoc rule introduction the locked vocabulary disallows. The discipline of leaving it Under-tested is itself a methods-note contribution
 
 ### §4.6 — P5 confirmed on both diagnostic arms: rubric Cat 2 dominance
 
@@ -202,7 +241,7 @@
 ### §4.7 — Cross-model arm: verdict-style divergence + rubric-axis coherence
 
 <!-- ~3 paragraphs. The substantive cross-model finding, on two axes.
-     Verdict-axis (Phase 2 receipts): Opus 80% decisive (35 ALLOW + 45 DENY)
+     Verdict-axis (Phase 2 receipts): Opus 80% decisive (36 ALLOW + 44 DENY)
      vs GPT-5.4 23% decisive (0 ALLOW + 23 DENY + 77 REVIEW). Rubric-axis:
      Opus 0% Cat 1 vs GPT-5.4 7% Cat 1. The direction of the divergence is
      cross-axis-coherent: Opus is more thorough on both axes simultaneously.
@@ -214,7 +253,7 @@
   | arm | ALLOW | REVIEW | DENY | decisive rate |
   |---|---:|---:|---:|---:|
   | diagnostic_primary (GPT-5.4) | 0 | 77 | 23 | 23% |
-  | diagnostic_claude (Opus 4.7) | 35 | 20 | 45 | 80% |
+  | diagnostic_claude (Opus 4.7) | 36 | 20 | 44 | 80% |
 
 - **Rubric-axis cross-model divergence (Phase 2.5 canonical sheets, n=100 each)**:
 
@@ -241,13 +280,14 @@
      first pass of `diagnostic_primary`; the reconciliation under strict
      rubric default produced the Confirmed result. The cost projection landed
      within 0.4% of actual on all six arms. The disposition vocabulary forced
-     honest reporting on the narrow falsifications (P2 narrow, P4 narrow) that
-     a less disciplined vocabulary would have called "broadly confirmed". -->
+     honest Under-tested calls on P2 and P4 (confirm-band-only locked spec)
+     where a less disciplined vocabulary would have called them "narrowly
+     falsified" or "broadly confirmed". -->
 
 ### Pre-registration catching the surprising mechanism, not the predicted one
 
 - P1's interpretive note explicitly anticipated the accumulation-amplifies reading: *"Arm A landing in the 20–30% band (below E2's L3 37.8%) confirms P1 directionally but signals that accumulation amplifies… That's a real, reportable third shading, not a clean A-vs-B binary."*
-- The corpus landed below even the 20–30% band — at 15.5% — but the third-shading frame was on the page before the data was collected
+- The corpus landed far below even the 20–30% band — at Arm A DENY 3.5% — but the third-shading frame was on the page before the data was collected; the falsification is unambiguous and starker than the directional band anticipated
 - The discipline: predictions don't just bind the falsification threshold; they bind the interpretive frame the writeup uses to make sense of the result
 - This is what pre-registration is for. The mechanism the writeup commits to is one that was anticipated in the predictions' own language, not invented to fit the data
 
@@ -281,9 +321,11 @@
 ### Disposition vocabulary as honest-reporting discipline
 
 - The locked vocabulary {Confirmed / Falsified / Inverted / Refuted / Deferred / Under-tested} forces categorical reporting
-- P2 narrowly falsified (gap 12.3pp, threshold 15pp) — vocabulary requires Falsified; the writeup names it as such and reads the result as bidirectional commitment-anchoring rather than as DENY-anchoring
-- P4 narrowly falsified (88%, threshold 90%) — vocabulary requires Falsified; the writeup reads the result as inversion-blindness substantively holding at scale with 2pp degradation from E2's n=14
-- Without the locked vocabulary, both of these would be reported as "broadly confirmed" and the reader would not see the discipline working
+- **P2 Under-tested (gap 3.5pp, confirm threshold 15pp, no falsification band locked)** — the locked spec specifies only a confirmation band; the gap is well below confirm but the vocabulary doesn't admit a Falsified call without a pre-registered falsification band. The writeup names this Under-tested and reports the substantively richer Piece 1 mechanism refinement (verdict-bearing precedents enable directional commitment, mostly ALLOW) as a finding the locked P2 framing collapsed onto a too-narrow axis
+- **P4 Under-tested (88%, confirm threshold 90%, no falsification band locked)** — same shape as P2. The writeup names this Under-tested and reads the result as inversion-blindness substantively holding at scale with 2pp degradation from E2's n=14
+- **P1 and P3 and P6 falsified cleanly against locked falsification bands** — P1 trips the locked "Arm A < 20%" clause (observed 3.5%); P3 trips the locked "retention ≤ 65%" clause (observed 60.7%); P6 trips the locked ">15pp gap" clause (observed 46pp). These are clean locked-spec dispositions
+- Methods-note discipline refinement: the P2 / P4 pattern is the strongest argument for pre-registering both confirm AND falsify bands on every prediction. Without the locked vocabulary, P2 and P4 would have been reported as "narrowly falsified" or "broadly confirmed" — both phrasings invent post-hoc rules the pre-registration didn't carry. Under-tested is the honest call; the methods note inherits the discipline lift
+- Without the locked vocabulary, the headline ("1 confirmed, 3 falsified cleanly, 2 under-tested") would have collapsed to "4 of 6 falsified" — and the reader would not see the discipline working
 
 ## §6 — Cross-model arm: full treatment
 
@@ -352,7 +394,7 @@
 
 - E4 design intent: receipt-as-memory experiment with a design partner. Live receipt-anchored memory, investigative-agent format shift (not one-shot record review)
 - E3's contribution to E4: the L3 decomposition shows precedents amplify commitment when they sit on top of a governance-context substrate, not when they sit alone. E4 needs to provide that substrate operationally
-- The cross-model finding tightens the deployment story: the task class is what carries the inversion-blindness pattern, not the model. E4's design-partner conversation can lean on this — the operational governance need is not "pick a better model"
+- The cross-model finding tightens the deployment story: on the rubric axis (the reasoning trace) inversion-blindness reproduces under two model-protocols (P5 confirmed both arms); on the verdict axis, P6 falsified with a 46pp gap — verdict style is model-specific (Opus decisive, GPT-5.4 hedging) but the underlying inversion-blindness pattern is task-class. E4's design-partner conversation can lean on this — the operational governance need is not "pick a better model"
 - <!-- TODO: confirm with Sam the exact framing of the E4 design-partner pitch before locking this section -->
 
 ## §8 — Limitations + caveats
@@ -366,7 +408,7 @@
 
 - Arm C token parity vs Arm A: −16.43% (PR #93, documented at pre-registration)
 - The asymmetry rules out one family of confounds (Arm C did not have excess volume) and introduces another (Arm C may not have had enough volume)
-- P1's Arm C ≤12% threshold is comfortably cleared (4.6% observed), so the volume-alone Reading B explanation is falsified even granting the asymmetry — but the writeup names the caveat explicitly
+- P1's Arm C ≤12% DENY threshold is comfortably cleared (Arm C DENY 0% observed), so the volume-alone Reading B explanation is falsified even granting the asymmetry — but the writeup names the caveat explicitly
 - Pre-registration commitment (`v0.3-predictions-locked`) unchanged; a documented caveat was preferred over a post-tag amendment
 
 ### Opus 4.7 no-temperature sampling difference
@@ -410,9 +452,10 @@
      contributions. E4 is the next experiment. -->
 
 - E3 was designed to resolve E2's two open structural findings (L3 break, inversion-blindness) and to disambiguate the L3→L4 backoff (nudge vs policy text)
-- The corpus resolved all three in forms the predictions explicitly anticipated as third readings: accumulation amplifies (not precedents alone); policy text drives the backoff (not the nudge); inversion-blindness reproduces at scale across two models with directionally-coherent cross-axis evidence
-- Four predictions falsified, one confirmed on two arms, one disposition <!-- TODO: state for P6 --> — the falsifications are the story, and each names a sharpened mechanism rather than a refuted one
-- The methodology substrate — pre-registered predictions with locked falsification criteria, κ-check protocol with reconciliation methodology, disposition vocabulary, receipt-anchored cost projection — is the durable contribution and carries forward to the trilogy methods note
+- The corpus resolved all three in forms the predictions explicitly anticipated as third readings: accumulation amplifies (not precedents alone); policy text drives the backoff (not the nudge); inversion-blindness reproduces at scale on the primary model with a substantive verdict-style divergence on the cross-model arm (P6 falsified — the model-specific outcome pre-registered as "a strong finding, not a failure")
+- Disposition mix: **P5 confirmed on both diagnostic arms; P1, P3, P6 falsified cleanly against locked falsification bands; P2 and P4 under-tested (confirm-band only; no locked falsify band)** — the falsifications + under-tested dispositions are the story, and each names either a sharpened mechanism or a methods-note discipline refinement rather than a refuted finding
+- Piece 1 substantive refinement (recovered by re-cutting on verdict distribution rather than DENY rate alone): verdict-bearing precedents enable directional commitment in both directions, with ALLOW dominant in this corpus + policy combination; the §10 governance-memory mechanism from E2 holds but operates symmetrically rather than DENY-asymmetrically as P2 anticipated
+- The methodology substrate — pre-registered predictions with locked falsification criteria, κ-check protocol with reconciliation methodology, disposition vocabulary (including the Under-tested honest call when locked spec only registers a confirm band), receipt-anchored cost projection — is the durable contribution and carries forward to the trilogy methods note
 - E4 is the operational receipt-as-memory experiment; the design-partner shape is named but the design is not yet locked
 
 ## §10 — Acknowledgments
