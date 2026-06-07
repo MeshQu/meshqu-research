@@ -4,6 +4,22 @@ Reverse-chronological. Most recent decision at the top. Each entry: date, decisi
 
 ---
 
+## 2026-06-07 — Phase 2.5 diagnostic_primary: drift, reconciliation, P5 Confirmed
+
+**Decision**: first-pass coding of 100 `diagnostic_primary` reasoning texts (2026-05-29) yielded distribution 8/25/67 → Under-tested. Blind AI second-coder pass via PR #107 surfaced κ = −0.0369 against the first pass — concentrated at the missing-evidence/rule-itself rubric boundary (66 of 79 disagreements at Sam=3 / Agent=2). Sam's own characterisation: *"I misinterpreted the categories first pass and was fatigued."* Reconciled 2026-06-07 via PR #108's `review_disagreements` tool: on all 79 contested records, fresh-eyes Sam adopted the agent's call (0 `first-pass-kept`, 0 `override`). Reconciled sheet distribution: 7/93/0 → **Confirmed**. P5 verdict for `diagnostic_primary`: **Confirmed**.
+
+**Process working as designed**. The κ check protocol was a coder-hygiene measure (single-coder is explicitly allowed by the locked rubric); the blind second-coder pass caught drift before the writeup committed to the wrong disposition. The reconciliation tool documents per-record `reconciliation_action` (`agreement-kept` / `first-pass-kept` / `second-coder-adopted` / `override`) plus `first_pass_category` and `second_coder_category` — the canonical sheet is auditable end-to-end.
+
+**Methodological framing — important to preserve verbatim**. The reconciliation step is **reconciliation with rubric anchor**, NOT blind re-coding. The reviewer saw both the first-pass call AND the second-coder's call alongside the rubric's default rule. This mirrors formal multi-coder reconciliation protocols. PR #108's `review_disagreements.py` enforces this framing via a docstring test that fails if "blind re-coding" appears outside negative framings. Don't drift on this in the writeup.
+
+The verbatim methods-section sentence (lifted from Sam, 2026-05-30) lives at `results/rubric_inter_coder_analysis_primary.md`. The writeup methods note should lift it directly without paraphrase.
+
+**What's next**: `diagnostic_claude` (n=100) under the same protocol — first pass blind via `code_rubric.py`, then blind AI second-coder via fresh agent dispatch (same hard rails), then `score_rubric.py --compare-with` for κ, then `review_disagreements.py` for reconciliation IF disagreements warrant. The primary arm's 100% adoption of the agent's calls under fresh-eyes review is direction-of-signal that claude may follow a similar pattern — but a different model's reasoning produces a different disagreement structure regardless. The κ check is the empirical question.
+
+**Post-Phase-2 cleanup todo** (still pending; folds into the docs-cleanup PR after Phase 3 starts): unchanged from the prior entry, plus a sentence in the smoke / dry-run brief recommending `python3 -u` when piping through `tee`.
+
+---
+
 ## 2026-05-29 — Phase 2 complete: 1,332 receipts, all five gates PASS, $25.23
 
 **Decision**: E3 Phase 2 fired and completed cleanly. Canonical run at `results/runs/phase-2-20260529T092611-Z` (committed to git in PR #104 alongside three SUPERSEDED- audit-trail runs from the abort-and-recover arc). All five operational gates passed; substantive verdict distributions across the locked corpus available for Phase 2.5 rubric coding and Phase 3 analysis.
