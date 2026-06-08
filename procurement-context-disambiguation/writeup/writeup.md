@@ -28,6 +28,8 @@ E3 is the third experiment in a pre-registered programme on governance-context e
 
 The methodological discipline carries forward from E2 unchanged. Every AI decision in the corpus is bound to a cryptographically signed Decision Receipt — Ed25519 signature, public Sigstore transparency-log anchor, schema-versioned envelope — together with the policy snapshot, prompt SHA, and reasoning text. Predictions are pre-registered with locked confirmation and falsification bands. P-series predictions and F-series findings are reported using their pre-defined disposition vocabularies. Anti-claims are first-class output, reported alongside findings and aggregated in §9. The methodology itself is documented separately in the companion methods note, *Receipt-Anchored Evaluation*.
 
+**Figure 7 — The trilogy arc.** *Programme diagram of the four experiments, each named with its load-bearing question. E1: can decisions be bound to evidence? E2: what governance context changes behaviour? E3 (this paper): which of E2's competing explanations survive contact with data? E4 (named but not yet locked): can governance memory operate in live workflows? The figure visualises the programme's question-shape; the methodological substrate — signed receipts, locked predictions, anti-claims, disposition vocabularies — carries forward across all four. Asset needs generation.*
+
 ## §3 — E3 design recap
 
 The pre-registration was locked on 2026-05-28 as `v0.3-predictions-locked` (commit `ba4ebfb`). The locked content includes the Arm C density-control payload, the Arm B precedent-no-verdict format, the L4-without-nudge prompt variant, the hand-coded rubric protocol, the diagnostic subset selection rule (sha256(ocid) sort, first 100 records), and the Claude version pin (`claude-opus-4-7`, no `temperature`, `effort: low`). The substrate is inherited from E2 unchanged: the same 283-record OCDS corpus, the same policy snapshot (`5d7d800186…`), the same primary agent configuration (`gpt-5.4-2026-03-05`, temperature 0), and the same signing kid (`meshqu-experiment-procurement-2026-05`).
@@ -57,6 +59,21 @@ Predictions P1–P6 are specified at the segment level, incorporating the primar
 | P5 | Hand-coded rubric: Cat 2 ("reasons solely against rule intent") ≥ 60% modal AND Cat 1 ("names the inversion") ≤ 15% | Cat 1 > 25% (locked, predictions.md:49) | Primary reconciled: Cat 2 93% / Cat 1 7%. Claude reconciled: Cat 2 100% / Cat 1 0%. | **Confirmed** on both arms (κ between blind agent and reconciled = +1.0000 on both arms) |
 | P6 | Claude's same-as-unperturbed rate within 15pp of primary's rate (task-class, not model-specific) | gap > 15pp (locked falsification band, predictions.md:53 — pre-registered the model-specific outcome as "a strong finding, not a failure") | gap = 46pp (primary 88%, claude 42%) | **Falsified** — 46pp gap far outside locked 15pp band. predictions.md:53 pre-registered the model-specific outcome as substantively interesting; the cross-model finding is the substantive cross-model contribution (see §4.7) |
 
+### Questions in plain English
+
+Reading the corpus through the questions the predictions were designed to answer — rather than through the formal P1–P6 dispositions alone — produces a complementary view of what E3 closed:
+
+| Question | What we expected | What the corpus shows |
+|---|---|---|
+| Did precedents alone drive the L3 commitment break? | Mostly yes (Reading A) | Only partially — Arm A produces every observed DENY, but at 3.5% rather than the 20%+ rate the prediction required |
+| Did raw content density alone drive the L3 break? | Possibly (Reading B) | No — Arm C produces zero DENYs |
+| Did the anti-sycophancy nudge drive the L4 backoff? | Yes (Framing A.1) | No — `l4_without_nudge` retention is within noise of E2's nudge condition |
+| Does inversion-blindness reproduce at corpus scale? | Open at lock | Yes — 88% same-as-unperturbed on the primary, with the reasoning-axis pattern dominating in both diagnostic arms |
+| Is inversion-blindness model-specific on the reasoning axis? | Open at lock; possibly model-specific | Appears not — Cat 2 dominates on both GPT-5.4 and Claude Opus 4.7 |
+| Is verdict-commitment style model-specific? | Not specifically pre-registered | Appears yes — Opus 80% decisive vs GPT-5.4 23% on identical records |
+
+The formal disposition table reports against the locked pre-registration; this table reports against the underlying questions. The two complement each other and diverge only where the locked vocabulary forces Under-tested calls (P2, P4) on observations that nonetheless point at a clear corpus-level answer.
+
 ## §4 — Results
 
 <!-- This is the bulk of the writeup. Walk through each finding piece by piece,
@@ -74,7 +91,7 @@ The simplest reading is that precedents alone are not sufficient to produce DENY
 
 The falsification of P1 should not be read as a refutation of the precedent mechanism. Arm A still produces every DENY observed across the Piece 1 decomposition — 10 records, compared with zero in Arm B and zero in Arm C. Precedents are doing measurable work on the verdict axis; they simply do not account for the full magnitude of the L3 break when evaluated in isolation.
 
-The three-arm verdict distribution therefore reveals a finding sharper than the binary P1 disposition captures. The important distinction is not whether precedents matter, but how much of the E2 effect they explain. That question is examined directly in §4.2 alongside the under-tested P2 result.
+The three-arm verdict distribution therefore reveals a finding sharper than the binary P1 disposition captures. The important distinction is not whether precedents matter, but how much of the E2 effect they explain. That question is examined directly in §4.2 alongside the under-tested P2 result. The practical implication is that governance behaviour appears to emerge from interacting governance layers rather than any single artefact in isolation.
 
 ### §4.2 — P2 under-tested; Piece 1 mechanism refinement: verdict-bearing precedents enable directional commitment (mostly ALLOW)
 
@@ -133,7 +150,7 @@ The observed retention is 60.7% (65/107), below the falsification threshold and 
 
 P3 is therefore falsified under the locked criterion. By the pre-registered design, this result confirms Framing A.2: the policy text itself drove the L3→L4 backoff. Explicit rule clauses, threshold tests, and structured field expectations were sufficient to produce the reduction in DENY commitment observed at L4.
 
-This result should not be interpreted as evidence that the anti-sycophancy clause is ineffective. Rather, it rejects the stronger claim that the clause was load-bearing for the backoff observed in E2. The clause may still provide behavioural discipline in adversarial or edge-case settings not represented in the diagnostic corpus. What the experiment establishes is that the structural effect was already present in the policy layer.
+This result should not be interpreted as evidence that the anti-sycophancy clause is ineffective. Rather, it rejects the stronger claim that the clause was load-bearing for the backoff observed in E2. The clause may still provide behavioural discipline in adversarial or edge-case settings not represented in the diagnostic corpus. What the experiment indicates is that the structural effect was already present in the policy layer.
 
 The magnitude of that policy effect remains substantial. `l4_without_nudge` produces DENY commitment on 27.2% of records (77/283), compared with 3.5% in Arm A (10/283). Even with the nudge removed, the policy condition continues to produce an order-of-magnitude increase in DENY commitment relative to precedents alone. The policy text is doing the structural work.
 
@@ -149,7 +166,7 @@ The pre-registered ≥90% threshold was set with reference to E2's n=14 result o
 
 P4 is the cleanest example in this experiment of why confirmation-band-only predictions force Under-tested dispositions on near-misses. The locked vocabulary does not admit a categorical Falsified call without a pre-registered falsification band, and calling P4 "narrowly falsified" would be a post-hoc rule introduction the discipline disallows. We don't get to claim formal confirmation because we missed our own threshold by 2 percentage points. That is the discipline working as designed.
 
-What the result establishes is that the inversion-blindness pattern reproduces overwhelmingly in this corpus. What the locked vocabulary, with its confirmation-band-only structure, will not allow us to say is whether the small residual is meaningful or noise. That is the methods-note finding: when robustness-at-scale predictions matter, both bands must be locked from the outset.
+What the result shows is that the inversion-blindness pattern reproduces overwhelmingly in this corpus. What the locked vocabulary, with its confirmation-band-only structure, will not allow us to say is whether the small residual is meaningful or noise. That is the methods-note finding: when robustness-at-scale predictions matter, both bands must be locked from the outset.
 
 ### §4.6 — P5 confirmed on both diagnostic arms: rubric Cat 2 dominance
 
@@ -342,6 +359,14 @@ E4 is the operational follow-on the trilogy points toward: a receipt-as-memory e
 
 <!-- TODO: confirm with Sam the exact framing of the E4 design-partner pitch before locking this section -->
 
+### §7.4 — Cross-axis synthesis: reasoning vs verdict portability
+
+Across §4.6 and §4.7, the cross-model arm yields a finding that does not reduce to either P5 or P6 in isolation. The two models reach substantially different verdict distributions — GPT-5.4 produces 23% commitment, Claude Opus 4.7 produces 80% — yet both exhibit the same inversion-blind reasoning pattern, with Cat 2 dominance at 93% and 100% respectively. The corpus is consistent with a separation that the locked vocabulary did not pre-specify: reasoning portability and verdict portability appear to be distinct properties of governance-augmented LLM agents.
+
+The implication is more general than either P5 or P6 alone. If reasoning patterns generalise across models while verdict commitment behaviour remains model-specific, then evaluation methodology designed against verdict outputs may produce model-specific conclusions that do not transfer, while evaluation methodology designed against reasoning patterns may produce findings that survive a change of model. The cross-axis evidence in this corpus is consistent with this separation but does not establish it as a general property; reproduction on additional substrates and additional model pairs would be required for the broader claim. The finding is recorded as F014 (cross-model verdict-style divergence, §4.7), refines the original P2 framing through F013 (verdict-bearing precedents enable directional commitment in either direction, §4.2), and motivates E4's substrate-not-model design framing (§7.3).
+
+The methodology refinement that follows is straightforward. AI evaluation in regulated contexts should evaluate on both axes — the verdict the agent emits and the reasoning that produced it — and should not assume that agreement on one implies agreement on the other. The receipt primitive binds both into a single signed envelope; the methodology infrastructure for this evaluation already exists.
+
 ## §8 — Limitations + caveats
 
 <!-- ~3 sub-bullets. Honest disclosure section, matching E2's §9 anti-claims
@@ -368,6 +393,10 @@ Both protocols are named honestly in §5.3 and in the per-arm inter-coder analys
 ### Single-domain, single-substrate, single-policy-snapshot
 
 E3 inherits E2's substrate constraints: 283 UK procurement records, one policy snapshot, one substrate adapter version. The disambiguation findings — accumulation-amplifies, policy-text-drives-backoff, inversion-blindness-reproduces-at-scale, verdict-style-is-model-specific — may not transfer to AML, KYC, underwriting, or clinical-decision domains. The methodology is portable; the substrate findings are not. Cross-domain replication is E4-shaped, not E3-shaped: a new substrate adapter and a domain-specific policy authoring pass are the minimum prerequisites, and neither was in scope for the pre-registered E3 design.
+
+### What E3 did not test
+
+E3 measures behavioural effects and decision-shape changes within a pre-registered design. It does not test whether governance artefacts improve decision quality, policy compliance, or institutional outcomes in deployment. The experiment evaluates how an AI agent's verdict and reasoning shift under controlled changes to the governance context provided at evaluation time; it does not evaluate whether those shifts correlate with downstream organisational outcomes, regulatory compliance metrics, or accuracy against ground-truth labels. Those are downstream evaluative questions that require additional substrate, additional ground truth, and additional design — none of which were in scope for the E3 corpus or the trilogy's methodological substrate.
 
 ## §9 — Anti-claims
 
@@ -399,6 +428,8 @@ E3 was designed to resolve two structural findings carried forward from E2 — t
 What E3 leaves to the trilogy is its methodology substrate. The pre-registration discipline survived two narrow falsifications by forcing categorical reporting rather than narrative softening; the κ-check protocol caught coder drift on diagnostic_primary before the writeup committed to the wrong P5 disposition; the locked vocabulary's Under-tested category turned out to be the only honest call for the two predictions whose pre-registration was asymmetric; receipt-anchored cost projection landed within 0.4% of actual on a 1,332-receipt corpus and within 1.2% of the dry-run preceding it. These are the durable methodological contributions, and they carry forward into the trilogy methods note unchanged. E4 — the operational receipt-as-memory experiment, named but not yet locked — inherits both the substrate findings about when precedents matter and the discipline by which those findings were established.
 
 The methodology is portable across domains; the substrate findings, on present evidence, are not.
+
+The programme began as an evaluation of AI decision behaviour. It concludes with evidence that governance artefacts themselves can be studied as experimental variables.
 
 ## §11 — Declaration of AI assistance
 
