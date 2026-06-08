@@ -12,29 +12,15 @@
 
 ## §1 — Abstract
 
-<!-- ~1 paragraph. The Abstract is load-bearing for casual readers and for the
-     trilogy capstone's pull-quote pool. Lead with the disambiguation framing
-     (E2 surfaced two confounds; E3 was designed to slice them) and let the
-     direction of falsifications carry the story.
+E3 is the third experiment in a pre-registered programme studying governance-context effects in AI decision agents. E2 surfaced three unresolved questions: whether the L3 commitment break was caused by precedent receipts or by accumulated governance context; whether the L4 backoff was driven by the anti-sycophancy nudge or by the policy text itself; and whether inversion-blindness reflected a model-specific behaviour or a broader task-class property.
 
-     Argues: E3 is the disambiguation experiment for E2's two open structural
-     findings (the L3 break and inversion-blindness). The pre-registered
-     mechanism (Reading A precedents-anchor) and the predicted scale (≥20%
-     Arm A DENY) were both broken by the corpus; what the data showed
-     instead is the third reading the predictions explicitly named in the
-     interpretive notes — accumulation, not precedents alone. The L4 backoff
-     turns out to be the policy text, not the nudge clause. Inversion-blindness
-     reproduces at scale across two models with directionally-coherent
-     verdict-style divergence. -->
+E3 was designed to separate these effects directly. Three L3 decomposition arms disentangled verdict signal, informational concreteness, and prompt density. An L4-without-nudge variant isolated the contribution of the anti-sycophancy clause. A scaled n=100 diagnostic re-tested inversion-blindness at corpus scale, and a cross-model replication arm introduced Claude Opus 4.7 alongside the original GPT-5.4 configuration.
 
-- Pre-registered programme arc: E1 baseline → E2 ladder shape → E3 disambiguation
-- E3 design intent: three pieces (L3 decomposition with arms A/B/C; L4-without-nudge; scaled diagnostic + cross-model on Opus 4.7)
-- Headline: **P5 confirmed on both diagnostic arms; P1, P3, P6 falsified cleanly against locked falsification bands; P2 and P4 under-tested (confirm-band only; no locked falsify band)**
-- The falsifications + under-tested dispositions are the story — each one names either a third reading the predictions explicitly anticipated (P1, P3) or a substantive cross-model finding the locked vocabulary couldn't pre-categorize (P4, P6), and the corpus also surfaces a Piece 1 mechanism refinement sharper than P2 captured
-- Cross-model arm yields a substantive cross-axis-coherent finding (verdict-style divergence + rubric-axis Cat 1 difference both consistent with Opus's verdict decisiveness)
-- Locked at `v0.3-predictions-locked` (commit `ba4ebfb`); no artefact at lock has been edited
+The corpus falsified the leading interpretations carried forward from E2. The L3 commitment break collapses when verdict-bearing precedents are removed, indicating that accumulated governance context, rather than precedent verdicts themselves, is the dominant driver of commitment. The L4 backoff persists without the anti-sycophancy clause, indicating that policy exposure rather than the nudge language is responsible for most of the effect. The inversion-blindness pattern reproduces across both diagnostic arms and both model families, suggesting a task-class behaviour rather than a model-specific artefact.
 
-> <!-- Optional Correction footnote — only if Phase 3 surfaces a provisional/canonical mismatch the way E2's F007 did. E3's Phase 2 close-out reported all five gates PASS and clean numbers, so this footnote may not be needed. Sam's call. -->
+The strongest cross-model finding is a separation between reasoning and verdict behaviour. Both models exhibit the same inversion-blind reasoning pattern, yet produce materially different verdict distributions: GPT-5.4 remains review-oriented (23% commit rate) while Claude Opus 4.7 commits substantially more often (80%). The result suggests that inversion-blind reasoning may be a task-class property while verdict commitment remains model-specific. If that separation holds in further work, it has direct implications for how cross-model AI deployment in regulated decisioning should be evaluated — **reasoning evaluations may generalise; verdict evaluations may not.**
+
+Across six pre-registered predictions, one was confirmed, three were falsified, and two were under-tested due to confirmation-only lock criteria. All predictions, thresholds, and artefacts remained unchanged from the v0.3 pre-registration lock (`ba4ebfb`).
 
 ## §2 — Programme context
 
