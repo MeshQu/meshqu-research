@@ -68,24 +68,13 @@ Predictions P1–P6 are specified at the segment level, incorporating the primar
 
 ### §4.1 — P1 falsified: Arm A DENY rate far below the 20% commit floor
 
-<!-- ~2 paragraphs. Argues: the first reading of P1 is the obvious one
-     (precedents are not load-bearing on their own for DENY commitment).
-     The right reading, captured in the predictions interpretive note, is
-     the third one: accumulation amplifies. E2's L3 hit 37.8% DENY because
-     L0+L1+L2+L3 stacked, not because precedents alone could push the agent
-     off the REVIEW spine to that magnitude. The corrected numbers make the
-     falsification starker than the directional 20–30% band anticipated:
-     Arm A's DENY rate is 3.5%, not 15.5% — and Arm C produces zero DENYs,
-     not 4.6%. The substantive narrative ("accumulation-amplifies, precedents
-     alone don't reach the commit floor") still holds, but with much sharper
-     numbers than the original draft suggested. -->
+Arm A produces a DENY commitment rate of 3.5% (10 records out of 283), an order of magnitude below the 20% locked confirmation threshold. The locked falsification clause — *Arm A DENY < 20%* — is therefore triggered. Arm C produces zero DENYs (0/283), comfortably below the 12% upper bound for the density-control arm.
 
-- Arm A precedents-only DENY rate: **3.5% (10/283)**
-- Threshold: 20% (predictions calibration note: 20–30% band confirms directionally with the accumulation-amplifies note; <20% trips the locked falsification clause)
-- Reading: **the L3 DENY break is real but accumulation-amplified.** The L1 prose framing + L2 named-rules + L3 precedent receipts together cleared the DENY commit floor at E2 (37.8%); precedents in isolation reach only 3.5% — an order of magnitude below the locked confirm threshold
-- Arm C density-control DENY rate: **0% (0/283)** — comfortably below the ≤12% threshold, so the volume-alone (Reading B) explanation is also falsified, and starker than the original draft (4.6%) suggested
-- Anti-claim: **the falsification of P1 is not a refutation of the precedent mechanism.** Arm A still produces every single DENY observed in Piece 1 (10 vs 0 in B and 0 in C); precedents are doing work for DENY commitment, they just don't carry the full weight of the L3 break alone. The accumulation reading was named explicitly in the predictions' interpretive note as the third shading
-- Pointer: the verdict-axis breakdown (ALLOW/REVIEW/DENY per arm) reveals a sharper finding than P1's DENY-rate binary — see §4.2 for the Piece 1 verdict-distribution table and the reframe of P2
+The simplest reading is that precedents alone are not sufficient to produce DENY commitment at anything close to the magnitude observed at E2's L3 rung. The corpus supports a more specific interpretation, anticipated in the predictions' interpretive note as a third reading. E2's L3 commitment rate emerged under accumulated governance context: L0 baseline, L1 prose framing, L2 named rules, and L3 precedent receipts operating together. When isolated, precedents produce only 3.5% DENY commitment. Raw prompt density performs even less strongly. Both Reading A (precedents alone drive the L3 break) and Reading B (content density alone drives the L3 break) are falsified by the corpus. The evidence instead supports an accumulation effect in which multiple governance-context layers combine to produce the commitment behaviour observed in E2.
+
+The falsification of P1 should not be read as a refutation of the precedent mechanism. Arm A still produces every DENY observed across the Piece 1 decomposition — 10 records, compared with zero in Arm B and zero in Arm C. Precedents are doing measurable work on the verdict axis; they simply do not account for the full magnitude of the L3 break when evaluated in isolation.
+
+The three-arm verdict distribution therefore reveals a finding sharper than the binary P1 disposition captures. The important distinction is not whether precedents matter, but how much of the E2 effect they explain. That question is examined directly in §4.2 alongside the under-tested P2 result.
 
 ### §4.2 — P2 under-tested; Piece 1 mechanism refinement: verdict-bearing precedents enable directional commitment (mostly ALLOW)
 
