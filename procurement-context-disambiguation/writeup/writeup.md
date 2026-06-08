@@ -53,7 +53,7 @@
 
 - E1 (MRP-2026-02): single-condition baseline on 283 OCDS procurement records
 - E2 (MRP-2026-03): five-rung additive ladder; L3 break + inversion-blindness signal at n=14
-- E3 (this paper): disambiguation experiment — L3 decomposition + L4-without-nudge + scaled diagnostic (n=100) + cross-model arm (Opus 4.7)
+- E3 (this paper): disambiguation experiment — L3 decomposition + L4-without-nudge + scaled Permuted-Policy diagnostic (n=100) + cross-model arm (Opus 4.7)
 - Methods substrate inherited unchanged: signed Ed25519 receipts + Rekor anchoring, locked-prompt SHAs, pre-registered predictions with the locked disposition vocabulary, anti-claims, F-series structure
 - Pointer to the trilogy methods note (*Receipt-Anchored Evaluation*) <!-- TODO: confirm whether this writeup forward-references the methods note or whether the methods note is published first; per decision_log Phase 4 is post-E3 capstone -->
 
@@ -65,7 +65,7 @@
      resolve.
 
      Argues: the design is three pieces (L3 decomposition, L4-without-nudge,
-     scaled diagnostic + cross-model arm), and each piece is targeted at one
+     scaled Permuted-Policy diagnostic + cross-model arm), and each piece is targeted at one
      of E2's open readings. The predictions are segment-level (the E2
      retrospective lesson) and condition-specific. Several predictions stated
      the reading E2 leaned toward as the directional hypothesis — the design
@@ -83,7 +83,7 @@
 
 - **Piece 1 — L3 decomposition** (Arms A / B / C, n=283 each): isolates whether precedents drove the L3 break (Reading A) or any sufficient content density did (Reading B), and whether verdict exemplars are load-bearing (the governance-memory mechanism) or concreteness alone is enough
 - **Piece 2 — L4 decomposition** (L4-without-nudge, n=283): isolates whether the explicit anti-sycophancy nudge clause drove E2's L3→L4 backoff (Framing A.1) or the full policy text alone did (A.2)
-- **Piece 3 — Scaled diagnostic + cross-model arm** (diagnostic_primary + diagnostic_claude, n=100 each, record-matched): establishes whether inversion-blindness is real at scale (vs E2's n=14 signal) and whether it is model-specific or a property of the task class
+- **Piece 3 — Scaled Permuted-Policy diagnostic + cross-model arm** (diagnostic_primary + diagnostic_claude, n=100 each, record-matched): establishes whether inversion-blindness is real at scale (vs E2's n=14 signal) and whether it is model-specific or a property of the task class
 
 ### Predictions table
 
@@ -98,7 +98,7 @@
 | P1 | Arm A DENY ≥ 20% AND Arm C DENY ≤ 12% (precedents drive commitment, not raw volume) | Arm C DENY ≥ 20% OR Arm A DENY < 20% (locked clause from predictions.md:24) | Arm A DENY 3.5% (10/283), Arm B DENY 0% (0/283), Arm C DENY 0% (0/283) | **Falsified** — Arm A 3.5% trips the locked falsification clause "Arm A < 20%". The third-reading interpretation (accumulation amplifies, precedents alone don't reach E2's L3 37.8%) is starker than the directional 20–30% band anticipated |
 | P2 | Arm A DENY rate − Arm B DENY rate ≥ 15pp (verdict exemplars are load-bearing for DENY-anchoring) | (locked spec specifies confirm band only; no falsification band locked — see analysis.py disposition_methodology["P2"]) | A − B DENY gap = 3.5pp (3.5% − 0%) | **Under-tested** — gap of 3.5pp is below the 15pp confirm band; no falsification band locked. See §4.2 — the underlying finding (Arm A is the only arm producing any DENY at all) is substantively richer than P2's confirm/falsify binary captured |
 | P3 | L4-without-nudge retention of E2's L3-DENY set ≥ 80% (nudge load-bearing, Framing A.1) | retention ≤ 65% (locked falsification band, predictions.md:37 — policy text alone, Framing A.2) | 60.7% retention (65/107) | **Falsified → Framing A.2 confirmed**: retention 60.7% ≤ 65% locked floor; the policy text drove the backoff, the nudge clause is incidental |
-| P4 | Scaled Permuted-Policy: ≥90% same-as-unperturbed L4 verdict (n=100, primary model) | (locked spec specifies confirm band only; no falsification band locked — see analysis.py disposition_methodology["P4"]) | 88% same-as-unperturbed (88/100) | **Under-tested** — 88% is 2pp below the 90% confirm floor; no falsification band locked. Methods-note discipline refinement: future "robustness at scale" predictions should pre-register both confirm and falsify bands |
+| P4 | Scaled Permuted-Policy diagnostic: ≥90% same-as-unperturbed L4 verdict (n=100, primary model) | (locked spec specifies confirm band only; no falsification band locked — see analysis.py disposition_methodology["P4"]) | 88% same-as-unperturbed (88/100) | **Under-tested** — 88% is 2pp below the 90% confirm floor; no falsification band locked. Methods-note discipline refinement: future "robustness at scale" predictions should pre-register both confirm and falsify bands |
 | P5 | Hand-coded rubric: Cat 2 ("reasons solely against rule intent") ≥ 60% modal AND Cat 1 ("names the inversion") ≤ 15% | Cat 1 > 25% (locked, predictions.md:49) | Primary reconciled: Cat 2 93% / Cat 1 7%. Claude reconciled: Cat 2 100% / Cat 1 0%. | **Confirmed** on both arms (κ between blind agent and reconciled = +1.0000 on both arms) |
 | P6 | Claude's same-as-unperturbed rate within 15pp of primary's rate (task-class, not model-specific) | gap > 15pp (locked falsification band, predictions.md:53 — pre-registered the model-specific outcome as "a strong finding, not a failure") | gap = 46pp (primary 88%, claude 42%) | **Falsified** — 46pp gap far outside locked 15pp band. predictions.md:53 pre-registered the model-specific outcome as substantively interesting; the cross-model finding is the substantive cross-model contribution (see §4.7) |
 
@@ -176,6 +176,20 @@
 - Anti-claim: **the §10 governance-memory mechanism from E2 holds — but operates symmetrically, not DENY-asymmetrically as P2 anticipated.** The bundle schema's verdict field carries the load (verdict-bearing precedents differ from verdict-stripped ones); the polarity does not (ALLOW-bearing precedents are not specifically anchoring DENYs in this corpus)
 - Methods-note discipline refinement: P2's pre-registered DENY-rate framing collapsed onto a single axis a mechanism that the data reveals is two-dimensional (any-direction commitment vs verdict-stripped non-commitment). The locked vocabulary's Under-tested disposition is the honest call; the substantive finding is reported here as a Piece 1 mechanism refinement, not as a post-hoc rescue of P2
 
+#### F013 — Piece 1 verdict-distribution refinement (Discovered)
+
+<!-- F-series entry, post-data findings register; E2 ended at F012 so E3 starts
+     at F013. Discovered class: surfaced from the corpus without a pre-existing
+     P-series prediction matching the verdict-distribution cut. Sam's prose
+     pass can lift the §4.2 bullets verbatim — the F-tag header here makes the
+     finding addressable in the methods note and the trilogy capstone. -->
+
+- **Status**: Discovered
+- **Evidence (n=283 per arm, all three L3 arms)**: Arm A produces 100% of observed DENYs across the three L3 arms (10 of 10). Arms B and C produce zero DENYs. Across all three arms, ALLOW commitment dominates DENY commitment 3.4× (53 ALLOW vs 10 DENY)
+- **Mechanism**: verdict-bearing precedents enable directional commitment in both directions; ALLOW is the dominant direction in this corpus + policy combination
+- **Anti-claim**: F013 does NOT show the §10 governance-memory mechanism from E2 is wrong — it shows the mechanism operates symmetrically rather than DENY-asymmetrically as P2 anticipated
+- **E4 design implications**: the operational receipt-as-memory experiment should anticipate ALLOW-bearing precedents anchoring ALLOW commitments at least as strongly as DENY-bearing precedents anchor DENYs
+
 ### §4.3 — Arm C asymmetric-control caveat (methods reading)
 
 <!-- ~1 paragraph. Honest disclosure section, matching E2's §6 style of
@@ -230,6 +244,18 @@
      instrumented for. The cross-model arm strengthens the finding beyond what
      a single-arm replication would. -->
 
+<!-- ~1 short paragraph + bullets. Names the rubric as the hand-coded
+     operationalisation of E2's D4 axis, the piece E2 explicitly deferred to
+     E3 in Appendix C. This is the place to name the mapping so the trilogy
+     reader sees D4 (the E2 axis) and Cat 1/2/3 (the E3 rubric) as the same
+     construct, two scopes apart. Sam's prose pass can lift this paragraph
+     verbatim or rewrite — the mapping itself is the load-bearing piece. -->
+
+- **The rubric is the hand-coded operationalisation of D4 deferred from E2's Appendix C.** E2 operationalised D4 *Policy resistance* against the n=14 Permuted-Policy diagnostic on two readings — lexicon-strict (0/14 contradiction-naming fires) and v1.1 structural (inversion-blind authority-conditioned alignment) — and explicitly named the hand-coded refinement as an E3 ask. The three rubric categories are that refinement:
+  - **Cat 1 ("names the inversion")** = lexicon-strict D4 contradiction-naming, at n=100 per arm
+  - **Cat 2 ("reasons solely against rule intent")** = v1.1 structural D4 inversion-blind authority-conditioned alignment, at n=100 per arm
+  - **Cat 3 ("partial recognition")** = the gray zone E2's binary D4 reading did not admit — the agent partially registers the inversion but applies the rule's training-prior anyway
+- The mapping makes the n=14 → n=100 scale shift legible against the E2 axis it sharpens, not against a fresh construct introduced in E3
 - diagnostic_primary: Cat 1 = 7 (7.0%), Cat 2 = 93 (93.0%), Cat 3 = 0 (0.0%) → **Confirmed**
 - diagnostic_claude: Cat 1 = 0 (0.0%), Cat 2 = 100 (100.0%), Cat 3 = 0 (0.0%) → **Confirmed**
 - Cross-model robustness: P5 confirmed under two model-protocols. The Cat 1 rate varies by model (Opus 0%, GPT-5.4 7%) in the direction the verdict-axis already suggested
@@ -265,6 +291,21 @@
 - Reading: **Opus's verdict decisiveness translates into rubric Cat 2 thoroughness.** Confident application of the rule-as-stated IS Cat 2 inversion-blindness. GPT-5.4's hedging creates surface area for occasional inversion-registration that Opus's decisiveness eliminates
 - Engine-ALLOW vs engine-DENY directional alignment at n=100: 100% LLM-non-DENY on engine-ALLOW records (52/52 GPT-5.4, 52/52 Opus); 99.0% LLM-non-ALLOW on engine-DENY records (0/48 GPT-5.4 ALLOW, 1/48 Opus ALLOW). Cross-evaluator + cross-model directional alignment at scale
 - **Methods caveat: Opus 4.7 removed the `temperature` parameter.** The cross-model arm cannot match the primary agent's temperature-0 setting; `effort: low` is the closest near-deterministic equivalent. The verdict-axis comparison is NOT verdict-for-verdict comparability; the reading is on the rubric distribution shape, not on per-record verdict equivalence. This is a documented methods caveat, not a confound — see §8
+
+#### F014 — Cross-model verdict-style divergence (Discovered)
+
+<!-- F-series entry, post-data findings register. Discovered class: the cross-
+     model arm was designed to test inversion-blindness reproduction (P5) and
+     cross-model robustness (P6); the verdict-style divergence is a substantive
+     additional finding the locked vocabulary did not pre-categorise. The
+     §4.7 tables carry the numbers; the F-tag header here makes the finding
+     addressable. -->
+
+- **Status**: Discovered
+- **Evidence (n=100 record-matched, Phase 2 receipts)**: Opus 4.7 commits on 80/100 records (36 ALLOW + 44 DENY + 20 REVIEW); GPT-5.4 commits on 23/100 (0 ALLOW + 23 DENY + 77 REVIEW). Same inversion-blind reasoning pattern (P5 Confirmed both arms; Cat 2 = 93% primary, 100% claude) but materially different verdict shapes
+- **Reading**: Opus's verdict decisiveness translates into rubric Cat 2 thoroughness; GPT-5.4's hedging creates surface area for occasional Cat 1 inversion-registration that Opus's decisiveness eliminates. The divergence is cross-axis-coherent: Opus is more thorough on both verdict and rubric axes simultaneously
+- **Anti-claim**: F014 does NOT establish that Opus is "more correct" or "more inversion-blind" — the rubric distribution shape is what carries the P5 confirmation, not per-record verdict equivalence. The Opus 4.7 no-temperature sampling caveat is part of why
+- **E4 design implications**: model-specific verdict style is a cross-cutting variable any operational receipt-as-memory deployment will inherit; the design-partner conversation should not lean on "pick a better model" as the lever — the underlying inversion-blindness pattern is task-class
 
 ## §5 — Methodology in action
 
@@ -326,6 +367,45 @@
 - **P1 and P3 and P6 falsified cleanly against locked falsification bands** — P1 trips the locked "Arm A < 20%" clause (observed 3.5%); P3 trips the locked "retention ≤ 65%" clause (observed 60.7%); P6 trips the locked ">15pp gap" clause (observed 46pp). These are clean locked-spec dispositions
 - Methods-note discipline refinement: the P2 / P4 pattern is the strongest argument for pre-registering both confirm AND falsify bands on every prediction. Without the locked vocabulary, P2 and P4 would have been reported as "narrowly falsified" or "broadly confirmed" — both phrasings invent post-hoc rules the pre-registration didn't carry. Under-tested is the honest call; the methods note inherits the discipline lift
 - Without the locked vocabulary, the headline ("1 confirmed, 3 falsified cleanly, 2 under-tested") would have collapsed to "4 of 6 falsified" — and the reader would not see the discipline working
+
+### Methodological findings (F-series)
+
+<!-- F-series methodological findings — direct analogs to E2's §7. F015 + F016
+     are process-discipline anchor-drift catches in the E2/F007 lineage; F017
+     is the κ-check coder-drift catch, in the E2/F012 both-and reading lineage.
+     The F-tag headers make these findings addressable in the methods note and
+     the trilogy capstone; the substantive numbers live in §5 and the
+     decision_log Phase 3 re-tally entry (commit 9d9a6f3). -->
+
+#### F015 — arm_c verdict-count anchor drift (Discovered)
+
+- **Status**: Discovered
+- **Evidence (n=283)**: the Phase 2 close-out decision_log anchor recorded arm_c as 13 commits; canonical re-tally from the signed receipts says 10 commits (10 ALLOW + 273 REVIEW + 0 DENY). A 3-count drift on the ALLOW field; DENY field unchanged at zero
+- **Disposition**: process-discipline finding, direct analog to E2's F007 (provisional-vs-canonical anchor mismatch). The bundles on disk are canonical; the decision_log anchor was provisional. Phase 3 reconciled before quoting any headline number; the writeup inherits the reconciled state
+- **Anti-claim**: F015 does NOT change any P1/P2 disposition. P1 is still falsified (Arm A < 20% locked clause); P2 is still Under-tested. The verdict-distribution table at §4.2 already carries the canonical 10/273/0 numbers
+- **E4 design implications**: provisional-vs-canonical reconciliation as the *first* move at each phase boundary is the discipline E3 inherited from E2/F007 and that E4 should inherit forward
+
+#### F016 — diagnostic_claude verdict-mix anchor drift (Discovered)
+
+- **Status**: Discovered
+- **Evidence (n=100)**: the Phase 2 close-out decision_log anchor recorded diagnostic_claude as 35 ALLOW / 20 REVIEW / 45 DENY; canonical re-tally from the signed receipts says 36 ALLOW / 20 REVIEW / 44 DENY. A one-record DENY→ALLOW shift; REVIEW field unchanged at 20
+- **Disposition**: process-discipline finding, sibling to F015 in the same E2/F007 lineage. Same root cause: the close-out anchor was provisional ahead of the canonical re-tally
+- **Anti-claim**: F016 does NOT change the P5 disposition (Confirmed; both arms; κ=+1.0000) or the P6 disposition (Falsified; 46pp gap far outside locked 15pp band). The one-record DENY→ALLOW shift adjusts the cross-model verdict-style table at §4.7 / F014 but does not change the cross-axis-coherent reading
+- **E4 design implications**: same as F015 — the discipline is the same
+
+#### F017 — κ-check coder drift catch on diagnostic_primary (Discovered)
+
+<!-- F017 is the E3 analog of E2's F012 in shape: a methodological observation
+     that the measurement instrument is doing its design work, surfaced from
+     the data itself. The both-and reading: (i) the instrument worked; (ii)
+     the substantive P5 result on this arm carries an additional layer of
+     instrument-as-finding. -->
+
+- **Status**: Discovered
+- **Evidence (n=100, Phase 2.5 inter-coder pass)**: blind AI second-coder pass on diagnostic_primary surfaced systematic disagreement at the missing-evidence-hedge / rule-itself-hedge rubric boundary. First-pass κ between human first pass (8/25/67) and blind agent (7/93/0) = **−0.0369** (less than chance). Reconciliation under the strict rubric default (missing-evidence hedging is the normal nudge behaviour and is NOT inversion-recognition) walked the 79 disagreements with both calls visible alongside the default rule; reconciler adopted the agent's call on 79/79 records (`second-coder-adopted` audit field). Reconciled-vs-agent κ = **+1.000**
+- **Disposition**: methodological finding, direct analog to E2's F012 (both-and reading). (i) The κ protocol worked exactly as designed: a measurement-instrument check caught coder drift before the writeup committed to the wrong P5 disposition. (ii) The substantive P5 result is unchanged after reconciliation — the rubric-axis Cat 2 dominance was always in the corpus; the first-pass categorisation drift was a coder fatigue artefact at a boundary the rubric's default rule unambiguously resolves
+- **Anti-claim**: F017 does NOT establish that human first-pass coding is unreliable in general — it establishes that *this human, on this rubric, under this cognitive load, on this boundary* drifted. The reconciler's drift characterisation (verbatim, 2026-06-07): *"I misinterpreted the categories first pass and was fatigued."* The protocol change for diagnostic_claude (AI-first + human review-and-adjudication) is the response to the methodological observation, not to a generalised claim about human coding
+- **E4 design implications**: any operational receipt-as-memory experiment that includes a hand-coded rubric step should bake in the κ-check + reconciliation primitive at design time, not as a post-hoc rescue
 
 ## §6 — Cross-model arm: full treatment
 
@@ -433,7 +513,33 @@
 - The disambiguation results may not transfer to AML / KYC / underwriting / clinical-decision domains; the methodology is portable, the findings are not
 - Cross-domain replication is E4-shaped, not E3-shaped
 
-## §9 — Conclusion
+## §9 — Anti-claims
+
+<!-- Dedicated aggregated anti-claims section, mirroring E2's §9. The
+     proximity-discipline copies (inline anti-claims at each finding in §4)
+     are preserved; this section is the aggregated audit lens that lets a
+     reader read the full set of "what the writeup does NOT establish" on
+     one page. Mix of finding-anchored bullets (lifted from §4.1, §4.2,
+     §4.4, §4.5, §4.6, §4.7, §5) and cross-finding bullets that span more
+     than one §4 subsection. Voice matches E2's §9: each bullet names a
+     claim the corpus cannot support, with the reason it cannot. -->
+
+The findings in this writeup do *not* establish the following. Each item names a claim the corpus cannot support, with the reason it cannot.
+
+- **The falsification of P1 is not a refutation of the precedent mechanism.** Arm A still produces every single DENY observed in Piece 1 (10 vs 0 in B and 0 in C); precedents are doing work for DENY commitment. They just don't carry the full weight of the L3 break alone. The accumulation reading was named explicitly in the predictions' interpretive note as the third shading.
+- **The §10 governance-memory mechanism from E2 holds — but operates symmetrically, not DENY-asymmetrically as P2 anticipated** (see F013). The bundle schema's verdict field carries the load (verdict-bearing precedents differ from verdict-stripped ones); the polarity does not (ALLOW-bearing precedents are not specifically anchoring DENYs in this corpus).
+- **The L3→L4 backoff result does NOT mean the nudge clause is useless.** It means the L3→L4 reversion on E2's PROC-005 ambiguous-rule axis was already being driven by the policy text's structural cues; the nudge is a discipline reinforcement, not the causal agent.
+- **P4's 88% same-as-unperturbed is NOT "narrowly falsified".** Calling it Falsified would be a post-hoc rule introduction the locked vocabulary disallows; the locked spec specifies a confirm band only. The discipline of leaving it Under-tested is itself a methods-note contribution.
+- **The Cat 2 dominance is not "the agent is sycophantic" in the AI-safety-literature pinpoint sense.** The agent is not agreeing with the inverted policy; it is ignoring the inversion and applying its rule-intent prior — the E2 distinction between "authority-conditioned alignment in the structural sense" and "sycophancy" carries forward intact.
+- **The cross-model arm does NOT establish that Opus is "more correct" or "more inversion-blind" than GPT-5.4** (see F014). The rubric distribution shape is what carries the P5 confirmation, not per-record verdict equivalence. The Opus 4.7 no-temperature sampling caveat is part of why per-record verdict comparability is not the right reading.
+- **E3 is not a multi-domain result.** The substrate is UK public-sector procurement; the policy is the same six-rule snapshot used at E1 + E2. The disambiguation findings may or may not transfer to AML / KYC / underwriting / clinical-decision domains. The methodology is portable; the findings are not.
+- **E3 is not a multi-substrate result.** The diagnostic_primary + diagnostic_claude record-matched 100-record subset is drawn from the same E1 fixture as E2. The cross-model verdict-style divergence is a finding on this corpus + this policy combination, not on the foundation-model task class in general.
+- **The receipt-anchored cost projection within 0.4% does not extrapolate to arbitrary corpus sizes.** The instrument validation is exact at this scale (n=1,332 receipts, six arms) and on this substrate's cost shape; cross-domain cost extrapolation is a separate empirical question.
+- **This writeup does not establish that signed receipts cause more decisive AI behaviour.** The corpus shows correlation between verdict-bearing precedent receipts (Arm A) and directional verdict commitment under the locked policy snapshot only. Whether the same correlation reproduces under different policy snapshots, substrate domains, or receipt schemas is open.
+- **The κ-protocol catch on diagnostic_primary (F017) does NOT establish that human first-pass coding is unreliable in general.** It establishes that this human, on this rubric, under this cognitive load, on this boundary, drifted. The reconciliation methodology under the strict rubric default produced κ=+1.000; the discipline worked. Whether the same boundary trips other coders is an open empirical question.
+- **The F015 + F016 anchor drifts do NOT change any P1-P6 disposition.** They adjust a 3-count ALLOW field on arm_c (F015) and a one-record DENY→ALLOW shift on diagnostic_claude (F016). The substantive readings carry through unchanged; the discipline of provisional-vs-canonical reconciliation as the first move at each phase boundary is what F015 + F016 register, not a substantive correction to any finding.
+
+## §10 — Conclusion
 
 <!-- ~2 paragraphs. The synthesis section. What E3 closes; what it opens for
      E4; what the trilogy capstone inherits. Mirrors E2's §10 (Synthesis)
@@ -458,7 +564,7 @@
 - The methodology substrate — pre-registered predictions with locked falsification criteria, κ-check protocol with reconciliation methodology, disposition vocabulary (including the Under-tested honest call when locked spec only registers a confirm band), receipt-anchored cost projection — is the durable contribution and carries forward to the trilogy methods note
 - E4 is the operational receipt-as-memory experiment; the design-partner shape is named but the design is not yet locked
 
-## §10 — Acknowledgments
+## §11 — Acknowledgments
 
 <!-- ~1 paragraph. Standard acks plus the AI assistance declaration matching
      E2's style. -->
@@ -466,7 +572,7 @@
 - <!-- TODO: collaborators, reviewers, design-partner contacts as appropriate -->
 - AI tools were used during ideation, drafting, and editorial refinement; pre-registration, design, locked content, corpus collection, and analytical conclusions were directed and reviewed by the author. The methodology this paper studies is also the disclosure discipline this paper applies to its own production
 
-## §11 — References
+## §12 — References
 
 <!-- Cross-references to E1, E2, and the methods note. Plus the procurement
      regulatory references (PA23, PCR 2015), Sigstore Rekor, and any
