@@ -211,10 +211,13 @@ The methods caveat: Opus 4.7 removed the `temperature` parameter. The cross-mode
 
 ### Pre-registration catching the surprising mechanism, not the predicted one
 
-- P1's interpretive note explicitly anticipated the accumulation-amplifies reading: *"Arm A landing in the 20–30% band (below E2's L3 37.8%) confirms P1 directionally but signals that accumulation amplifies… That's a real, reportable third shading, not a clean A-vs-B binary."*
-- The corpus landed far below even the 20–30% band — at Arm A DENY 3.5% — but the third-shading frame was on the page before the data was collected; the falsification is unambiguous and starker than the directional band anticipated
-- The discipline: predictions don't just bind the falsification threshold; they bind the interpretive frame the writeup uses to make sense of the result
-- This is what pre-registration is for. The mechanism the writeup commits to is one that was anticipated in the predictions' own language, not invented to fit the data
+P1's interpretive note explicitly anticipated an accumulation-amplifies reading. The locked text, written before data collection, stated: *"Arm A landing in the 20–30% band (below E2's L3 37.8%) confirms P1 directionally but signals that accumulation amplifies… That's a real, reportable third shading, not a clean A-vs-B binary."* The observed result was substantially lower than even that anticipated range: Arm A produced a DENY rate of 3.5%. Under the locked criterion, P1 is therefore unambiguously falsified. The importance of the interpretive note is not that it rescues the prediction; it does not. Its importance is that it pre-specifies a mechanism frame in which accumulation, rather than precedents alone, may be carrying the effect.
+
+The distinction matters. A post-hoc interpretation would begin with the observed result and then construct a mechanism to explain it. Here, the mechanism frame existed before the result was known. The data ultimately landed outside the anticipated directional range, but they landed within a mechanism family the predictions had already identified as plausible.
+
+This illustrates a broader function of pre-registration. Predictions do not merely constrain success and failure criteria; they also constrain the range of interpretations available to the writeup. The mechanism advanced in §4.1 — that precedents alone do not reach the commitment floor and that effects emerge through accumulation across governance layers — is therefore not introduced after the fact. It is a pre-specified interpretive frame surviving contact with a stronger-than-expected falsification.
+
+The result is unusual but informative. The prediction failed more decisively than anticipated, yet the mechanism family identified before data collection remained the one most consistent with the observed pattern. Pre-registration therefore caught not only the prediction outcome, but also the surprising form the underlying mechanism took.
 
 ### Inter-coder κ check surfaced drift; reconciliation produced Confirmed
 
