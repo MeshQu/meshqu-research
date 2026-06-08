@@ -135,22 +135,15 @@ The magnitude of that policy effect remains substantial. `l4_without_nudge` prod
 
 ### §4.5 — P4 under-tested: inversion-blindness substantively holds at scale; locked spec specifies confirm band only
 
-<!-- ~2 paragraphs. P4 predicted ≥90% same-as-unperturbed verdict on the n=100
-     Permuted-Policy subset. E2's n=14 hit 92.9%. The corpus reports 88% —
-     2pp below the 90% confirm threshold. predictions.md locked the confirm
-     band but did NOT lock a falsification band; per analysis.py
-     disposition_methodology["P4"], the honest disposition is Under-tested.
-     The substantive reading is that inversion-blindness is overwhelmingly
-     present at scale; the methods-note discipline refinement is that future
-     "robustness at scale" predictions should pre-register both confirm and
-     falsify bands. -->
+On 88 of 100 records in the n=100 Permuted-Policy diagnostic, the agent reached the same verdict whether or not the policy operators had been inverted. The inversion-blindness pattern is overwhelmingly present in the corpus.
 
-- diagnostic_primary same-as-unperturbed-L4 rate: 88% (88/100)
-- Locked confirm band: ≥ 90%. Locked falsification band: **none registered** (see analysis.py disposition_methodology["P4"])
-- Disposition: **Under-tested** — 88% is 2pp below the confirm floor; no falsification band locked, so the locked spec doesn't admit a categorical Falsified call
-- Reading: **the architectural-property reading is substantively present at scale.** 88% is high; 12 records out of 100 emitted a different verdict than they did at unperturbed L4. The substantive read carries into P5: even on the 12 records where the verdict shifted, the rubric coding shows the rule-intent prior still dominates the reasoning
-- Methods-note discipline refinement: P4 is the cleanest example of why "confirm-band-only" predictions force Under-tested dispositions on near-misses. The 88% finding is substantively informative but the locked vocabulary can't categorize it as Falsified without a pre-registered falsification band — future "robustness at scale" predictions should pre-register both bands explicitly
-- Anti-claim: this is NOT "narrowly falsified" — calling it Falsified would be a post-hoc rule introduction the locked vocabulary disallows. The discipline of leaving it Under-tested is itself a methods-note contribution
+P4 was pre-registered with a confirmation band only. If inversion-blindness reproduced robustly at scale, the same-as-unperturbed-L4 verdict rate would equal or exceed 90%. The locked specification did not register a falsification band on the lower side. The observed rate is 88% — two percentage points below the 90% confirmation floor. Because the locked specification did not define a lower-band falsification condition, the appropriate disposition under the pre-registered vocabulary is Under-tested.
+
+The pre-registered ≥90% threshold was set with reference to E2's n=14 result of 92.9%. The n=100 corpus reduces the observed magnitude slightly while leaving the underlying pattern overwhelmingly intact. The reasoning-axis evidence — examined in §4.6 — reinforces this directly: on the 12 records where verdicts shifted, the rubric coding records the same Cat 2 "reasons against rule intent" pattern that dominates both diagnostic arms. The phenomenon is present in the reasoning trace whether or not the verdict happens to shift.
+
+P4 is the cleanest example in this experiment of why confirmation-band-only predictions force Under-tested dispositions on near-misses. The locked vocabulary does not admit a categorical Falsified call without a pre-registered falsification band, and calling P4 "narrowly falsified" would be a post-hoc rule introduction the discipline disallows. We don't get to claim formal confirmation because we missed our own threshold by 2 percentage points. That is the discipline working as designed.
+
+What the result establishes is that the inversion-blindness pattern reproduces overwhelmingly in this corpus. What the locked vocabulary, with its confirmation-band-only structure, will not allow us to say is whether the small residual is meaningful or noise. That is the methods-note finding: when robustness-at-scale predictions matter, both bands must be locked from the outset.
 
 ### §4.6 — P5 confirmed on both diagnostic arms: rubric Cat 2 dominance
 
