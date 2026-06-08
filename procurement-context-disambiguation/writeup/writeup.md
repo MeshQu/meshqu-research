@@ -113,12 +113,13 @@ P2's locked-band asymmetry collapsed a two-dimensional commitment pattern onto a
 
 ### §4.3 — Arm C asymmetric-control caveat (methods reading)
 
-<!-- ~1 paragraph. Honest disclosure section, matching E2's §6 style of
-     reporting both the strict and the structural reading. -->
+The Arm C density-control payload was 16.43% shorter than the Arm A precedents-with-verdicts payload, a parity asymmetry locked at PR #93 and pre-registered as a documented methods caveat. The asymmetry eliminates one potential confound — Arm C cannot have failed to commit because it contained more content than Arm A — but introduces another: Arm C may have failed to commit because it contained less content than Arm A.
 
-- Arm C token parity vs Arm A: −16.43% (locked at PR #93, pre-registered as documented methods caveat)
-- The asymmetry rules out one family of confounds (Arm C did not commit because it had more volume than precedents) and introduces another (Arm C may not have committed because it had less volume than Arm A)
-- P1's Arm C ≤12% DENY threshold is comfortably cleared (Arm C DENY 0%, observed even sharper than the original draft suggested), so the volume-alone (Reading B) explanation is falsified even granting the asymmetry — but the writeup names the caveat explicitly rather than burying it
+The asymmetry therefore limits what Arm C can establish regarding exact volume equivalence. It does not, however, affect the pre-registered test criterion for Reading B. P1's locked falsification condition specified that Reading B (raw content density drives commitment) would be rejected if Arm C's DENY rate was 12% or lower, irrespective of whether perfect payload parity had been achieved.
+
+Arm C's observed DENY rate is 0%, comfortably below the 12% threshold. Under the pre-registered criterion, Reading B is therefore falsified.
+
+The caveat remains important for interpretation. Arm C cannot establish that volume has no effect whatsoever on commitment behaviour; it can only establish that the observed commitment pattern is not explained by raw content density at the magnitude required by Reading B. The asymmetry is recorded explicitly so that subsequent comparisons involving Arm C remain clear about both their evidentiary strength and their limits.
 
 ### §4.4 — P3 falsified, Framing A.2 confirmed: the policy text drove the backoff
 
