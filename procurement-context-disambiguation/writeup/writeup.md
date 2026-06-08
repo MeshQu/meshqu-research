@@ -147,32 +147,17 @@ What the result establishes is that the inversion-blindness pattern reproduces o
 
 ### §4.6 — P5 confirmed on both diagnostic arms: rubric Cat 2 dominance
 
-<!-- ~3 paragraphs. The load-bearing positive finding in the experiment. P5
-     is the rubric-axis confirmation of inversion-blindness; both arms produce
-     >90% Cat 2 ("reasons solely against rule intent") and ≤15% Cat 1 ("names
-     the inversion"). This is the result the experiment was most carefully
-     instrumented for. The cross-model arm strengthens the finding beyond what
-     a single-arm replication would. -->
+On both diagnostic arms, the same Cat 2 reasoning pattern — "reasons solely against rule intent" — dominates the n=100 distribution. P5 is the only prediction in the experiment confirmed against its locked bands, and it is confirmed under two model-protocols rather than one.
 
-<!-- ~1 short paragraph + bullets. Names the rubric as the hand-coded
-     operationalisation of E2's D4 axis, the piece E2 explicitly deferred to
-     E3 in Appendix C. This is the place to name the mapping so the trilogy
-     reader sees D4 (the E2 axis) and Cat 1/2/3 (the E3 rubric) as the same
-     construct, two scopes apart. Sam's prose pass can lift this paragraph
-     verbatim or rewrite — the mapping itself is the load-bearing piece. -->
+P5 was pre-registered with both confirmation and falsification bands. Confirmation required Cat 2 ≥ 60% and Cat 1 ≤ 15% per arm; falsification required Cat 1 > 25%. The locked bands were derived from E2's n=14 result, which produced no contradiction-naming under the lexicon-strict reading and the structural inversion-blind pattern under the v1.1 reading.
 
-- **The rubric is the hand-coded operationalisation of D4 deferred from E2's Appendix C.** E2 operationalised D4 *Policy resistance* against the n=14 Permuted-Policy diagnostic on two readings — lexicon-strict (0/14 contradiction-naming fires) and v1.1 structural (inversion-blind authority-conditioned alignment) — and explicitly named the hand-coded refinement as an E3 ask. The three rubric categories are that refinement:
-  - **Cat 1 ("names the inversion")** = lexicon-strict D4 contradiction-naming, at n=100 per arm
-  - **Cat 2 ("reasons solely against rule intent")** = v1.1 structural D4 inversion-blind authority-conditioned alignment, at n=100 per arm
-  - **Cat 3 ("partial recognition")** = the gray zone E2's binary D4 reading did not admit — the agent partially registers the inversion but applies the rule's training-prior anyway
-- The mapping makes the n=14 → n=100 scale shift legible against the E2 axis it sharpens, not against a fresh construct introduced in E3
-- diagnostic_primary: Cat 1 = 7 (7.0%), Cat 2 = 93 (93.0%), Cat 3 = 0 (0.0%) → **Confirmed**
-- diagnostic_claude: Cat 1 = 0 (0.0%), Cat 2 = 100 (100.0%), Cat 3 = 0 (0.0%) → **Confirmed**
-- Cross-model robustness: P5 confirmed under two model-protocols. The Cat 1 rate varies by model (Opus 0%, GPT-5.4 7%) in the direction the verdict-axis already suggested
-- Inter-coder κ between blind AI second-coder and final canonical sheet: +1.0000 on both arms
-- Reading: **inversion-blindness is a property of the task class, not a property of either specific model**, sharpened from E2's n=14 signal to a 200-record metric
-- E2 reading carried forward: "authority-conditioned alignment in the structural sense" — the agent's reasoning is shaped by what it has learned a procurement rule should look like, not by the specific policy text in front of it. The pinpoint claim ("sycophancy") is still NOT what the corpus shows; the agent ignores the inversion rather than agreeing with it
-- The 6 borderlines the blind agent flagged on `diagnostic_claude` were all missing-evidence hedges, which the rubric's default rule unambiguously excludes from Cat 3. P5 robustness check: even if all 6 had shifted to Cat 3, the distribution would have been 0/94/6 — still Confirmed
+On `diagnostic_primary` (GPT-5.4), the rubric distribution is Cat 1 = 7%, Cat 2 = 93%, Cat 3 = 0%. On `diagnostic_claude` (Claude Opus 4.7), it is Cat 1 = 0%, Cat 2 = 100%, Cat 3 = 0%. Both arms confirm P5 under the locked criterion. The result is particularly notable because confirmation occurs under two independent model-protocols: GPT-5.4 and Claude Opus 4.7. The inversion-blindness pattern therefore appears to be a property of the task class rather than an artefact of either individual model. The Cat 1 rate differs in the direction the verdict-axis result already suggested — Opus produces no contradiction-naming, GPT-5.4 produces a small fraction — but the dominant Cat 2 pattern is the same across both.
+
+The rubric is the hand-coded operationalisation of D4 *Policy resistance* that E2 explicitly deferred to E3 in Appendix C. Cat 1 ("names the inversion") corresponds to the lexicon-strict D4 contradiction-naming reading at n=100. Cat 2 ("reasons solely against rule intent") corresponds to the v1.1 structural inversion-blind authority-conditioned alignment reading. Cat 3 ("partial recognition") is the gray zone the binary D4 reading at E2 did not admit — the agent partially registers the inversion but applies the rule's training-prior anyway.
+
+The agent's reasoning is shaped by what it has learned a procurement rule should look like, not by the specific policy text in front of it. This is what E2 named "authority-conditioned alignment in the structural sense" in its Appendix C — and the n=100 corpus confirms the pattern reproduces across both model arms. The pinpoint claim ("sycophancy" as a description of the agent's behaviour) is not what the corpus shows: the agent ignores the inversion rather than agreeing with it.
+
+Inter-coder κ between the blind AI second-coder pass and the final canonical sheet is +1.0000 on both arms after reconciliation. The six borderlines the blind agent flagged on `diagnostic_claude` were all missing-evidence hedges that the rubric's default rule unambiguously excludes from Cat 3. The Cat 2 dominance survives a robustness check: even if all six borderlines had been classified as Cat 3, the diagnostic_claude distribution would have been 0/94/6 — still Confirmed.
 
 ### §4.7 — Cross-model arm: verdict-style divergence + rubric-axis coherence
 
