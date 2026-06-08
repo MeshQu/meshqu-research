@@ -78,47 +78,24 @@ The three-arm verdict distribution therefore reveals a finding sharper than the 
 
 ### §4.2 — P2 under-tested; Piece 1 mechanism refinement: verdict-bearing precedents enable directional commitment (mostly ALLOW)
 
-<!-- ~3 paragraphs. SUBSTANTIVE REFRAME. P2 was pre-registered on
-     DENY-rate-anchoring specifically (Arm A DENY − Arm B DENY ≥ 15pp).
-     The observed gap is 3.5pp — well below the 15pp confirm band, and
-     no falsification band was locked. Disposition is therefore
-     Under-tested per analysis.py disposition_methodology["P2"].
+P2 was pre-registered as a DENY-rate anchoring prediction: if verdict-bearing precedents were load-bearing for DENY commitment, Arm A's DENY rate would exceed Arm B's by at least 15 percentage points. The observed gap is 3.5 percentage points (Arm A 3.5%, Arm B 0%), well below the 15pp confirmation threshold. Because the locked specification did not define a lower-band falsification condition, the appropriate disposition under the pre-registered vocabulary is Under-tested. P2 is one of two predictions where the locked-band asymmetry is itself a methods observation — examined in §5.
 
-     BUT the underlying finding is sharper than P2's confirm/falsify binary
-     captured. Re-cut by the full verdict distribution (ALLOW/REVIEW/DENY)
-     instead of by DENY rate alone, a substantively richer Piece 1 mechanism
-     emerges:
+The verdict distribution across the three arms reveals a finding sharper than P2's DENY-rate binary captured.
 
-       arm_a (precedents-with-verdicts):    34 ALLOW,  239 REVIEW, 10 DENY
-       arm_b (precedents-no-verdict):        9 ALLOW,  274 REVIEW,  0 DENY
-       arm_c (density-control):             10 ALLOW,  273 REVIEW,  0 DENY
+| arm | ALLOW | REVIEW | DENY | any commitment (ALLOW + DENY) |
+|---|---:|---:|---:|---:|
+| arm_a (precedents with verdicts) | 34 | 239 | 10 | 44 (15.5%) |
+| arm_b (precedents-no-verdict) | 9 | 274 | 0 | 9 (3.2%) |
+| arm_c (density-control) | 10 | 273 | 0 | 10 (3.5%) |
+| **all three arms combined** | 53 | 786 | 10 | 63 (7.4%) |
 
-     Arm A is the ONLY condition producing any DENY commitment at all.
-     Arms B and C produce zero DENYs. AND across all three arms, ALLOW
-     commitment dominates DENY commitment by 3.4× (53 ALLOW vs 10 DENY).
-     The mechanism isn't "DENY precedents anchor new DENYs" (the pre-
-     registered framing) — it's verdict-bearing precedents enable
-     directional commitment in both directions, with ALLOW the dominant
-     direction in this corpus + policy combination. The §10 governance-
-     memory mechanism from E2 holds, but operates symmetrically, not
-     DENY-asymmetrically. -->
+Strip the verdict signal from precedents, and the agent never commits to DENY in this experimental condition.
 
-- Arm A − Arm B DENY rate gap: **3.5pp** (3.5% − 0%) — below the 15pp confirm band; no falsification band locked
-- Honest disposition: **Under-tested** (locked-band failure, per analysis.py disposition_methodology["P2"])
-- **Substantively interesting** Piece 1 mechanism refinement: verdict distribution across the three arms
+Arm A is the only condition producing any DENY commitment across the three arms: 10 records from precedents-with-verdicts, compared with zero from precedents-no-verdict and zero from density-control. Across all three arms combined, ALLOW commitment dominates DENY commitment by 3.4× (53 ALLOW vs 10 DENY). Any-direction commitment — ALLOW or DENY — rises from 3.2% in Arm B to 15.5% in Arm A: a 4.8× lift, well above what the DENY-only slice captured.
 
-  | arm | ALLOW | REVIEW | DENY | any commitment (ALLOW + DENY) |
-  |---|---:|---:|---:|---:|
-  | arm_a (precedents with verdicts) | 34 | 239 | 10 | 44 (15.5%) |
-  | arm_b (precedents-no-verdict) | 9 | 274 | 0 | 9 (3.2%) |
-  | arm_c (density-control) | 10 | 273 | 0 | 10 (3.5%) |
-  | **all three arms combined** | 53 | 786 | 10 | 63 (7.4%) |
+The data are consistent with a mechanism P2 did not anticipate: verdict-bearing precedents increase directional commitment in either direction, with ALLOW the dominant direction in this corpus and policy combination. The finding refines the governance-memory hypothesis by identifying verdict-bearing precedent as the active component while rejecting the stronger claim that the effect operates primarily through DENY anchoring.
 
-- **Arm A is the only arm to produce any DENY commitment (10 records). Arms B and C produce zero DENYs.** Strip the verdict signal from precedents and the agent never commits to DENY in this experimental condition
-- **Across all three arms, ALLOW commitment dominates DENY commitment by 3.4× (53 ALLOW vs 10 DENY).** The mechanism isn't "DENY precedents anchor new DENYs" (the pre-registered framing). It's: **verdict-bearing precedents enable directional commitment in both directions — with ALLOW the dominant direction in this corpus + policy combination**
-- The mechanism is sharper than P2 anticipated: any-direction commitment (ALLOW + DENY) rises from 3.2% (Arm B) → 15.5% (Arm A) — a 4.8× lift, well above what the DENY-only slice captured
-- Anti-claim: **the §10 governance-memory mechanism from E2 holds — but operates symmetrically, not DENY-asymmetrically as P2 anticipated.** The bundle schema's verdict field carries the load (verdict-bearing precedents differ from verdict-stripped ones); the polarity does not (ALLOW-bearing precedents are not specifically anchoring DENYs in this corpus)
-- Methods-note discipline refinement: P2's pre-registered DENY-rate framing collapsed onto a single axis a mechanism that the data reveals is two-dimensional (any-direction commitment vs verdict-stripped non-commitment). The locked vocabulary's Under-tested disposition is the honest call; the substantive finding is reported here as a Piece 1 mechanism refinement, not as a post-hoc rescue of P2
+P2's locked-band asymmetry collapsed a two-dimensional commitment pattern onto a single DENY-rate axis. Under the locked vocabulary the disposition remains Under-tested; the substantive result is therefore recorded as F013, a Piece 1 mechanism refinement rather than a post-hoc rescue of P2.
 
 #### F013 — Piece 1 verdict-distribution refinement (Discovered)
 
@@ -131,7 +108,7 @@ The three-arm verdict distribution therefore reveals a finding sharper than the 
 - **Status**: Discovered
 - **Evidence (n=283 per arm, all three L3 arms)**: Arm A produces 100% of observed DENYs across the three L3 arms (10 of 10). Arms B and C produce zero DENYs. Across all three arms, ALLOW commitment dominates DENY commitment 3.4× (53 ALLOW vs 10 DENY)
 - **Mechanism**: verdict-bearing precedents enable directional commitment in both directions; ALLOW is the dominant direction in this corpus + policy combination
-- **Anti-claim**: F013 does NOT show the §10 governance-memory mechanism from E2 is wrong — it shows the mechanism operates symmetrically rather than DENY-asymmetrically as P2 anticipated
+- **Anti-claim**: F013 does NOT show the §10 governance-memory interpretation from E2 is wrong — it shows the same interpretation is consistent with the corpus, but operates symmetrically rather than DENY-asymmetrically as P2 anticipated
 - **E4 design implications**: the operational receipt-as-memory experiment should anticipate ALLOW-bearing precedents anchoring ALLOW commitments at least as strongly as DENY-bearing precedents anchor DENYs
 
 ### §4.3 — Arm C asymmetric-control caveat (methods reading)
