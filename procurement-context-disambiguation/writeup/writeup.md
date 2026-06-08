@@ -89,6 +89,8 @@ The verdict distribution across the three arms reveals a finding sharper than P2
 | arm_c (density-control) | 10 | 273 | 0 | 10 (3.5%) |
 | **all three arms combined** | 53 | 786 | 10 | 63 (7.4%) |
 
+**Figure 1 — Piece 1 verdict distribution per L3 arm.** *Stacked bar chart of ALLOW / REVIEW / DENY counts across the three L3 decomposition arms (Arm A precedents-with-verdicts, Arm B precedents-no-verdict, Arm C density-control) on the 283-record corpus. The figure visualises the headline Piece 1 finding recorded as F013: Arm A is the only condition producing any DENY commitment (10 of 10), while ALLOW commitment dominates DENY commitment 3.4× across all three arms combined. Data: `results/analysis_charts/verdict_distribution_per_arm.png` (analysis notebook §"Piece 1 verdict distribution").*
+
 Strip the verdict signal from precedents, and the agent never commits to DENY in this experimental condition.
 
 Arm A is the only condition producing any DENY commitment across the three arms: 10 records from precedents-with-verdicts, compared with zero from precedents-no-verdict and zero from density-control. Across all three arms combined, ALLOW commitment dominates DENY commitment by 3.4× (53 ALLOW vs 10 DENY). Any-direction commitment — ALLOW or DENY — rises from 3.2% in Arm B to 15.5% in Arm A: a 4.8× lift, well above what the DENY-only slice captured.
@@ -127,6 +129,8 @@ P3 was pre-registered with both confirmation and falsification bands. Under Fram
 
 The observed retention is 60.7% (65/107), below the falsification threshold and close to E2's L4-with-nudge retention of 57.0% (61/107). The difference between the two conditions is approximately 3.7 percentage points, far smaller than would be expected if the anti-sycophancy clause were carrying the primary causal load.
 
+**Figure 2 — L3-DENY retention across nudge conditions.** *Side-by-side bar chart of retention on the 107-record L3-DENY set under three conditions: E2's L4-with-nudge (57.0%, 61/107), E3's `l4_without_nudge` (60.7%, 65/107), and the locked 80% confirmation / 65% falsification bands annotated as horizontal lines. The figure visualises P3's falsification under the locked criterion: the 3.7pp delta between nudge and no-nudge conditions is far too small for the anti-sycophancy clause to be carrying the structural backoff work. Data: analysis notebook §"P3 disposition" — chart needs generation.*
+
 P3 is therefore falsified under the locked criterion. By the pre-registered design, this result confirms Framing A.2: the policy text itself drove the L3→L4 backoff. Explicit rule clauses, threshold tests, and structured field expectations were sufficient to produce the reduction in DENY commitment observed at L4.
 
 This result should not be interpreted as evidence that the anti-sycophancy clause is ineffective. Rather, it rejects the stronger claim that the clause was load-bearing for the backoff observed in E2. The clause may still provide behavioural discipline in adversarial or edge-case settings not represented in the diagnostic corpus. What the experiment establishes is that the structural effect was already present in the policy layer.
@@ -138,6 +142,8 @@ The magnitude of that policy effect remains substantial. `l4_without_nudge` prod
 On 88 of 100 records in the n=100 Permuted-Policy diagnostic, the agent reached the same verdict whether or not the policy operators had been inverted. The inversion-blindness pattern is overwhelmingly present in the corpus.
 
 P4 was pre-registered with a confirmation band only. If inversion-blindness reproduced robustly at scale, the same-as-unperturbed-L4 verdict rate would equal or exceed 90%. The locked specification did not register a falsification band on the lower side. The observed rate is 88% — two percentage points below the 90% confirmation floor. Because the locked specification did not define a lower-band falsification condition, the appropriate disposition under the pre-registered vocabulary is Under-tested.
+
+**Figure 3 — Scaled Permuted-Policy: same-verdict rate at n=100.** *Single-panel bar chart of the diagnostic_primary same-as-unperturbed-L4 rate (88%, 88/100) plotted against the locked 90% confirmation band; E2's n=14 anchor result (92.9%, 13/14) shown as a reference annotation. The figure visualises P4's near-miss-but-substantive landing and the discipline finding that confirmation-band-only predictions force Under-tested dispositions on near-misses. Data: `results/analysis_charts/same_verdict_comparison.png` (analysis notebook §"P4 same-verdict comparison").*
 
 The pre-registered ≥90% threshold was set with reference to E2's n=14 result of 92.9%. The n=100 corpus reduces the observed magnitude slightly while leaving the underlying pattern overwhelmingly intact. The reasoning-axis evidence — examined in §4.6 — reinforces this directly: on the 12 records where verdicts shifted, the rubric coding records the same Cat 2 "reasons against rule intent" pattern that dominates both diagnostic arms. The phenomenon is present in the reasoning trace whether or not the verdict happens to shift.
 
@@ -152,6 +158,8 @@ On both diagnostic arms, the same Cat 2 reasoning pattern — "reasons solely ag
 P5 was pre-registered with both confirmation and falsification bands. Confirmation required Cat 2 ≥ 60% and Cat 1 ≤ 15% per arm; falsification required Cat 1 > 25%. The locked bands were derived from E2's n=14 result, which produced no contradiction-naming under the lexicon-strict reading and the structural inversion-blind pattern under the v1.1 reading.
 
 On `diagnostic_primary` (GPT-5.4), the rubric distribution is Cat 1 = 7%, Cat 2 = 93%, Cat 3 = 0%. On `diagnostic_claude` (Claude Opus 4.7), it is Cat 1 = 0%, Cat 2 = 100%, Cat 3 = 0%. Both arms confirm P5 under the locked criterion. The result is particularly notable because confirmation occurs under two independent model-protocols: GPT-5.4 and Claude Opus 4.7. The inversion-blindness pattern therefore appears to be a property of the task class rather than an artefact of either individual model. The Cat 1 rate differs in the direction the verdict-axis result already suggested — Opus produces no contradiction-naming, GPT-5.4 produces a small fraction — but the dominant Cat 2 pattern is the same across both.
+
+**Figure 4 — Rubric category breakdown across diagnostic arms.** *Stacked bar chart of rubric Cat 1 / Cat 2 / Cat 3 distributions for both n=100 diagnostic arms — diagnostic_primary (GPT-5.4) at 7/93/0 and diagnostic_claude (Claude Opus 4.7) at 0/100/0 — with the locked confirmation bands (Cat 2 ≥ 60% and Cat 1 ≤ 15%) marked as reference annotations. The figure visualises P5's confirmation under two independent model-protocols and the cross-axis-coherent Opus thoroughness pattern (no contradiction-naming on either axis). Data: `results/analysis_charts/rubric_category_breakdown.png` (analysis notebook §"P5 rubric breakdown").*
 
 The rubric is the hand-coded operationalisation of D4 *Policy resistance* that E2 explicitly deferred to E3 in Appendix C. Cat 1 ("names the inversion") corresponds to the lexicon-strict D4 contradiction-naming reading at n=100. Cat 2 ("reasons solely against rule intent") corresponds to the v1.1 structural inversion-blind authority-conditioned alignment reading. Cat 3 ("partial recognition") is the gray zone the binary D4 reading at E2 did not admit — the agent partially registers the inversion but applies the rule's training-prior anyway.
 
@@ -169,6 +177,8 @@ P6 was pre-registered with a 15-percentage-point verdict-axis agreement band. If
 |---|---:|---:|---:|---:|
 | diagnostic_primary (GPT-5.4) | 0 | 77 | 23 | 23% |
 | diagnostic_claude (Opus 4.7) | 36 | 20 | 44 | 80% |
+
+**Figure 5 — Cross-model verdict-axis divergence.** *Side-by-side grouped bar chart of ALLOW / REVIEW / DENY distributions for diagnostic_primary (GPT-5.4: 0/77/23) and diagnostic_claude (Claude Opus 4.7: 36/20/44) on the n=100 record-matched Permuted-Policy diagnostic. The decisive-rate annotation (23% vs 80%) and the 46-percentage-point same-as-unperturbed gap (88% vs 42%) overlay the verdict-distribution columns. The figure visualises the cross-axis-coherent finding recorded as F014: same inversion-blind reasoning pattern, materially different verdict shapes — reasoning evaluations may generalise across models while verdict evaluations may not. Data: analysis notebook §"Cross-model verdict distribution" — chart needs generation from §4.7 source numbers.*
 
 Opus commits on 80 of 100 records, splitting fairly evenly between ALLOW and DENY. GPT-5.4 commits on 23 of 100, never producing an ALLOW. The divergence is cross-axis-coherent: the same Opus tendency that produces verdict decisiveness also produces Cat 2 thoroughness on the rubric. Confident application of the rule-as-stated IS inversion-blindness, and Opus does this more consistently. GPT-5.4's hedging creates surface area for occasional inversion-registration (the 7% Cat 1 rate on diagnostic_primary) that Opus's decisiveness eliminates entirely.
 
@@ -302,7 +312,9 @@ The cross-model arm is asymmetric by design. The same 100 OCIDs ran on `gpt-5.4-
 
 The cross-model arm was specified as a distribution-shape comparison rather than a per-record equivalence test. Differences in sampling controls, verdict style, and commitment behaviour make direct verdict-for-verdict agreement a weaker comparison than aggregate distributional patterns. The methodology therefore evaluates whether the same behavioural structure appears across models, rather than whether identical verdicts are produced on identical records. The worked-example divergence discussed in §4.7 remains useful as an illustrative case but does not alter the comparison scope.
 
-<!-- TODO: identify the OCID from Phase 2 receipts; pull the Opus reasoning text for the worked-example callout referenced above and in §4.7 -->
+**Figure 6 — Bundle verification for the cross-model worked example.** *Browser screenshot of verify.meshqu.com confirming that the bundle for the single Opus ALLOW-on-engine-DENY record passes all cryptographic checks (Ed25519 signature against the published kid, Rekor anchor on the public transparency log, policy snapshot SHA, prompt SHA, schema-versioned envelope). The figure illustrates that the divergent verdict is anchored to the same provenance discipline as the agreeing verdicts; the divergence is auditable, not silent. Data: bundle TBD — see worked-example TODO.*
+
+<!-- TODO: identify the OCID from Phase 2 receipts; pull the Opus reasoning text for the worked-example callout referenced above and in §4.7; capture verify.meshqu.com screenshot for Figure 6 -->
 
 ## §7 — Implications
 
@@ -384,11 +396,11 @@ E3 was designed to resolve two structural findings carried forward from E2 — t
 
 What E3 leaves to the trilogy is its methodology substrate. The pre-registration discipline survived two narrow falsifications by forcing categorical reporting rather than narrative softening; the κ-check protocol caught coder drift on diagnostic_primary before the writeup committed to the wrong P5 disposition; the locked vocabulary's Under-tested category turned out to be the only honest call for the two predictions whose pre-registration was asymmetric; receipt-anchored cost projection landed within 0.4% of actual on a 1,332-receipt corpus and within 1.2% of the dry-run preceding it. These are the durable methodological contributions, and they carry forward into the trilogy methods note unchanged. E4 — the operational receipt-as-memory experiment, named but not yet locked — inherits both the substrate findings about when precedents matter and the discipline by which those findings were established. The methodology is portable across domains; the substrate findings, on present evidence, are not.
 
-## §11 — Acknowledgments
+## §11 — Declaration of AI assistance
 
-<!-- TODO: collaborators, reviewers, design-partner contacts as appropriate -->
+<!-- TODO: optional collaborators / reviewers / design-partner acknowledgments — Sam's discretion -->
 
-AI tools were used during ideation, drafting, and editorial refinement; pre-registration, design, locked content, corpus collection, and analytical conclusions were directed and reviewed by the author. The methodology this paper studies is also the disclosure discipline this paper applies to its own production.
+AI tools were used during ideation, drafting, and editorial refinement of this paper. The pre-registration, experimental design, locked-prompt SHA fingerprints, corpus collection, inter-coder reconciliation, and analytical conclusions were directed and reviewed by the author. In a paper on AI evaluation methodology, disclosing the assistance trail is the same primitive the paper advocates for — making the work legible at the point of the work.
 
 ## §12 — References
 
