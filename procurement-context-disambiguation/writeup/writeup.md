@@ -161,31 +161,20 @@ Inter-coder κ between the blind AI second-coder pass and the final canonical sh
 
 ### §4.7 — Cross-model arm: verdict-style divergence + rubric-axis coherence
 
-<!-- ~3 paragraphs. The substantive cross-model finding, on two axes.
-     Verdict-axis (Phase 2 receipts): Opus 80% decisive (36 ALLOW + 44 DENY)
-     vs GPT-5.4 23% decisive (0 ALLOW + 23 DENY + 77 REVIEW). Rubric-axis:
-     Opus 0% Cat 1 vs GPT-5.4 7% Cat 1. The direction of the divergence is
-     cross-axis-coherent: Opus is more thorough on both axes simultaneously.
-     This is the real cross-model contribution for the writeup, and it lands
-     above the methods caveat about Opus 4.7's removed temperature parameter. -->
+P6 is falsified on the verdict axis but supported on the reasoning axis. The two models reach substantially different verdict distributions while exhibiting the same inversion-blind reasoning pattern. The cross-model arm therefore yields a cross-axis-coherent finding with direct operational implications for how AI evaluation in regulated decisioning should be framed: reasoning evaluations may generalise across models while verdict evaluations may not.
 
-- **Verdict-axis cross-model divergence (Phase 2 receipts, n=100 each)**:
+P6 was pre-registered with a 15-percentage-point verdict-axis agreement band. If the inversion-blindness pattern was a property of the task class rather than of either specific model, Claude Opus 4.7's same-as-unperturbed verdict rate would fall within 15 percentage points of GPT-5.4's rate. The observed gap is 46 percentage points (GPT-5.4 88%, Opus 42%). P6 is therefore falsified under the locked criterion. By the pre-registered design, this corresponds to the model-specific outcome — which predictions.md:53 explicitly named as *"a strong finding, not a failure."*
 
-  | arm | ALLOW | REVIEW | DENY | decisive rate |
-  |---|---:|---:|---:|---:|
-  | diagnostic_primary (GPT-5.4) | 0 | 77 | 23 | 23% |
-  | diagnostic_claude (Opus 4.7) | 36 | 20 | 44 | 80% |
+| arm | ALLOW | REVIEW | DENY | decisive rate |
+|---|---:|---:|---:|---:|
+| diagnostic_primary (GPT-5.4) | 0 | 77 | 23 | 23% |
+| diagnostic_claude (Opus 4.7) | 36 | 20 | 44 | 80% |
 
-- **Rubric-axis cross-model divergence (Phase 2.5 canonical sheets, n=100 each)**:
+Opus commits on 80 of 100 records, splitting fairly evenly between ALLOW and DENY. GPT-5.4 commits on 23 of 100, never producing an ALLOW. The divergence is cross-axis-coherent: the same Opus tendency that produces verdict decisiveness also produces Cat 2 thoroughness on the rubric. Confident application of the rule-as-stated IS inversion-blindness, and Opus does this more consistently. GPT-5.4's hedging creates surface area for occasional inversion-registration (the 7% Cat 1 rate on diagnostic_primary) that Opus's decisiveness eliminates entirely.
 
-  | arm | Cat 1 | Cat 2 | Cat 3 |
-  |---|---:|---:|---:|
-  | diagnostic_primary | 7 (7.0%) | 93 (93.0%) | 0 (0.0%) |
-  | diagnostic_claude | 0 (0.0%) | 100 (100.0%) | 0 (0.0%) |
+The directional alignment with the policy engine confirms the pattern from a third angle. On engine-ALLOW records (52/100), both models reach non-DENY verdicts at 100% (52/52 GPT-5.4 non-DENY, 52/52 Opus non-DENY). On engine-DENY records (48/100), both models reach non-ALLOW verdicts at 99% (0/48 GPT-5.4 ALLOW, 1/48 Opus ALLOW). The engine evaluates the policy as authored, including the inversions; both models track that evaluation directionally regardless of which specific verdicts they reach.
 
-- Reading: **Opus's verdict decisiveness translates into rubric Cat 2 thoroughness.** Confident application of the rule-as-stated IS Cat 2 inversion-blindness. GPT-5.4's hedging creates surface area for occasional inversion-registration that Opus's decisiveness eliminates
-- Engine-ALLOW vs engine-DENY directional alignment at n=100: 100% LLM-non-DENY on engine-ALLOW records (52/52 GPT-5.4, 52/52 Opus); 99.0% LLM-non-ALLOW on engine-DENY records (0/48 GPT-5.4 ALLOW, 1/48 Opus ALLOW). Cross-evaluator + cross-model directional alignment at scale
-- **Methods caveat: Opus 4.7 removed the `temperature` parameter.** The cross-model arm cannot match the primary agent's temperature-0 setting; `effort: low` is the closest near-deterministic equivalent. The verdict-axis comparison is NOT verdict-for-verdict comparability; the reading is on the rubric distribution shape, not on per-record verdict equivalence. This is a documented methods caveat, not a confound — see §8
+The methods caveat: Opus 4.7 removed the `temperature` parameter. The cross-model arm cannot match GPT-5.4's temperature-0 setting; `effort: low` is the closest near-deterministic configuration available. The reading is therefore on the rubric distribution shape rather than per-record verdict equivalence — verdict-for-verdict comparability is not claimed. The Opus 4.7 sampling difference is recorded explicitly in §8.
 
 #### F014 — Cross-model verdict-style divergence (Discovered)
 
