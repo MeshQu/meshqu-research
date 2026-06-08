@@ -386,11 +386,9 @@ What E3 leaves to the trilogy is its methodology substrate. The pre-registration
 
 ## §11 — Acknowledgments
 
-<!-- ~1 paragraph. Standard acks plus the AI assistance declaration matching
-     E2's style. -->
+<!-- TODO: collaborators, reviewers, design-partner contacts as appropriate -->
 
-- <!-- TODO: collaborators, reviewers, design-partner contacts as appropriate -->
-- AI tools were used during ideation, drafting, and editorial refinement; pre-registration, design, locked content, corpus collection, and analytical conclusions were directed and reviewed by the author. The methodology this paper studies is also the disclosure discipline this paper applies to its own production
+AI tools were used during ideation, drafting, and editorial refinement; pre-registration, design, locked content, corpus collection, and analytical conclusions were directed and reviewed by the author. The methodology this paper studies is also the disclosure discipline this paper applies to its own production.
 
 ## §12 — References
 
