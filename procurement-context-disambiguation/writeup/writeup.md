@@ -312,46 +312,21 @@ The cross-model arm was specified as a distribution-shape comparison rather than
 
 ### §7.1 — For AI deployment in regulated contexts
 
-<!-- ~2 paragraphs. The 88% silent application of inverted policies is the
-     practitioner takeaway. A team putting an AI agent into a regulated
-     workflow should not assume the agent reads the policy in front of it —
-     should assume the agent reads what it has learned a policy of this
-     class should say. -->
+The practitioner takeaway from E3 is that an AI agent operating against a regulated policy does not, in this corpus, reliably read the policy text in front of it. On 88% of records the diagnostic emitted the same verdict whether or not the policy operators had been inverted, and the rubric coding shows the agent's reasoning cited the rule it thought it was applying — not the rule it had been shown. The agent was reading its learned conception of what a procurement rule should say. Confidence in the verdict was unchanged.
 
-- 88% of records under the permuted policy emitted the same verdict as under unperturbed L4 — the agent applied the rule's training-prior intent rather than the policy text in front of it
-- The Cat 2 dominance (93% primary, 100% claude) means the reasoning *cited* the rule the agent thought it was applying — not the rule it was actually shown
-- Practitioner implication: **silent application of inverted policies is the failure mode.** Policy version drift, policy-update lag, or even copy-paste errors in deployment can leave the agent applying yesterday's rule confidently, with reasoning that names the correct rule citation while emitting the wrong verdict
-- The receipt-anchored mitigation: every receipt binds a policy snapshot SHA-256. If the policy version drifts, the snapshot binding makes the drift visible at audit; the receipt does not lie about which policy the agent thought it was applying
+The deployment failure mode is silent application of inverted policies. Policy version drift, policy-update lag, copy-paste errors in deployment configuration — any of these can leave an agent applying yesterday's rule confidently, with reasoning text that names the correct rule citation while producing the wrong verdict. The mitigation is structural rather than behavioural: every Decision Receipt binds a SHA-256 hash of the policy snapshot the agent was shown. If the policy version drifts, the snapshot binding makes the drift visible at audit time. The receipt does not lie about which policy the agent thought it was applying; the operator sees both the policy hash bound at evaluation and the rule the agent's reasoning cited, and the divergence is auditable.
 
 ### §7.2 — For the methods note (Receipt-Anchored Evaluation)
 
-<!-- ~2 paragraphs. E3 is the third experiment in the trilogy. The methods
-     substrate is what carries forward to the methods note: signed receipts,
-     locked prompts, pre-registered predictions with falsification criteria,
-     disposition vocabulary, anti-claims as first-class, F-series two-readings
-     discipline, inter-coder κ checks with reconciliation protocol, and the
-     dispatch-architecture discipline (per-agent worktree isolation). -->
+The methodology substrate carried forward from E2 to E3 worked under stress. The pre-registration discipline survived two consecutive narrow falsifications (P2 at a 3.5pp confirm-band miss, P4 at a 2pp confirm-band miss) by forcing categorical reporting rather than narrative softening. The locked vocabulary's Under-tested category, which would have looked like an awkward sixth label at lock time, turned out to be the only honest category for the two predictions whose pre-registration was asymmetric. The κ-check and reconciliation protocol caught coder drift on diagnostic_primary before the writeup committed to the wrong P5 disposition; the AI-first review-and-adjudication protocol on diagnostic_claude is itself a methodological contribution surfaced from primary's reconciliation rather than introduced post-hoc.
 
-- The pre-registration discipline survived two consecutive narrow falsifications (P2, P4) by forcing categorical reporting rather than narrative softening
-- The κ-check + reconciliation protocol caught coder drift before the writeup committed; the AI-first review-and-adjudication protocol on the second arm is itself a methodological contribution
-- The per-agent git worktree isolation discipline (Wave 2 → Wave 3) for parallel-dispatch waves is the dispatch-architecture lesson that carries forward to any agent-orchestrated experimental work
-- Cost projection accuracy to within 0.4% on a signed-receipt corpus is the dry-run-as-instrument-validation primitive; the methods note should make this a first-class claim
-- The lock-in test discipline (`tests/test_handler_record_composition.py`) — every arm-handler PR includes a parametrized "record A and record B render to distinct prompts containing their respective markers" assertion — is the small but real piece of the discipline that future agent-orchestrated experiments inherit
+Several additional discipline pieces are worth naming for the trilogy methods note. The per-agent git worktree isolation discipline (Wave 2 → Wave 3) is the dispatch-architecture lesson that carries forward to any agent-orchestrated experimental work running parallel writes. Cost projection accuracy to within 0.4% on a signed-receipt corpus is the dry-run-as-instrument-validation primitive — budgeting as an empirical question with a calibrated answer rather than a leap of faith. The lock-in test discipline — every arm-handler PR includes a parametrised assertion that distinct records render to distinct prompts containing their respective markers — is the small but load-bearing piece of the discipline that future agent-orchestrated experiments inherit.
 
 ### §7.3 — For E4 (operational receipt-as-memory experiment)
 
-<!-- ~1 paragraph. E4 is the design-partner-shape experiment. The L3 break
-     (now disambiguated) is the empirical evidence the design-partner pitch
-     needs: precedents anchor commitment, but only in the right governance
-     context. E4 turns this around — instead of synthesising precedents from
-     a frozen archive, E4 wires up live receipt-anchored memory into an
-     investigative agent and tests whether the same anchoring mechanism
-     produces operational governance. -->
+E4 is the operational follow-on the trilogy points toward: a receipt-as-memory experiment that wires live receipt-anchored memory into an investigative agent and tests whether the same anchoring mechanism produces operational governance. E3's contribution to E4 is empirical evidence about when precedents matter: the L3 decomposition shows precedent receipts amplify commitment when they sit on top of an accumulated governance-context substrate, and produce essentially no DENY commitment when they sit alone. An operational receipt-as-memory deployment needs to provide that substrate operationally — precedents alone will not carry the governance load. The cross-model finding tightens the deployment story further: on the reasoning axis the inversion-blindness pattern reproduces across both model arms, suggesting that the operational governance need is not addressable by changing models. The behaviour is a property of the task class. The methodological design space for E4 is therefore about the substrate the agent operates against, not about which model sits inside the agent.
 
-- E4 design intent: receipt-as-memory experiment with a design partner. Live receipt-anchored memory, investigative-agent format shift (not one-shot record review)
-- E3's contribution to E4: the L3 decomposition shows precedents amplify commitment when they sit on top of a governance-context substrate, not when they sit alone. E4 needs to provide that substrate operationally
-- The cross-model finding tightens the deployment story: on the rubric axis (the reasoning trace) inversion-blindness reproduces under two model-protocols (P5 confirmed both arms); on the verdict axis, P6 falsified with a 46pp gap — verdict style is model-specific (Opus decisive, GPT-5.4 hedging) but the underlying inversion-blindness pattern is task-class. E4's design-partner conversation can lean on this — the operational governance need is not "pick a better model"
-- <!-- TODO: confirm with Sam the exact framing of the E4 design-partner pitch before locking this section -->
+<!-- TODO: confirm with Sam the exact framing of the E4 design-partner pitch before locking this section -->
 
 ## §8 — Limitations + caveats
 
