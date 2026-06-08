@@ -30,31 +30,15 @@ The methodological discipline carries forward from E2 unchanged. Every AI decisi
 
 ## §3 — E3 design recap
 
-<!-- ~2 paragraphs + the predictions table. Mirrors E2's §2 (Methodology) +
-     parts of §3 (Predictions vs. outcomes). Walks the reader through what
-     was locked at v0.3-predictions-locked and what each piece was designed to
-     resolve.
+The pre-registration was locked on 2026-05-28 as `v0.3-predictions-locked` (commit `ba4ebfb`). The locked content includes the Arm C density-control payload, the Arm B precedent-no-verdict format, the L4-without-nudge prompt variant, the hand-coded rubric protocol, the diagnostic subset selection rule (sha256(ocid) sort, first 100 records), and the Claude version pin (`claude-opus-4-7`, no `temperature`, `effort: low`). The substrate is inherited from E2 unchanged: the same 283-record OCDS corpus, the same policy snapshot (`5d7d800186…`), the same primary agent configuration (`gpt-5.4-2026-03-05`, temperature 0), and the same signing kid (`meshqu-experiment-procurement-2026-05`).
 
-     Argues: the design is three pieces (L3 decomposition, L4-without-nudge,
-     scaled Permuted-Policy diagnostic + cross-model arm), and each piece is targeted at one
-     of E2's open readings. The predictions are segment-level (the E2
-     retrospective lesson) and condition-specific. Several predictions stated
-     the reading E2 leaned toward as the directional hypothesis — the design
-     distinguishes outcomes regardless of which way they break, so a
-     falsification is as informative as a confirmation here. -->
+The design consists of three experimental pieces, each targeted at one of E2's unresolved structural readings. Piece 1 — L3 decomposition — runs Arm A (precedents-only), Arm B (precedents-no-verdict), and Arm C (density-control) at n=283 each. It isolates whether precedents drove the L3 commitment break, whether any sufficiently rich governance context would have produced the same effect, and whether verdict exemplars are load-bearing or informational concreteness alone is sufficient. This directly tests the governance-memory interpretation proposed in E2 §10.
 
-### What was locked
+Piece 2 — L4 decomposition — runs an L4-without-nudge variant at n=283. It isolates whether the explicit anti-sycophancy clause drove E2's L3→L4 backoff or whether the policy text itself was responsible for most of the effect.
 
-- Lock tag: `v0.3-predictions-locked`, commit `ba4ebfb`
-- Locked content: Arm C density-control payload, Arm B precedent-no-verdict format, L4-without-nudge prompt variant, hand-coded rubric protocol, diagnostic subset selection rule (sha256(ocid) sort, first 100), Claude version pin (`claude-opus-4-7`, no `temperature`, `effort: low`)
-- Substrate frozen from E2: same 283-record OCDS corpus, same policy snapshot (`5d7d800186…`), same primary agent (`gpt-5.4-2026-03-05`, temperature 0), same signing kid (`meshqu-experiment-procurement-2026-05`)
-- Locked-prompt SHA-256 fingerprints <!-- TODO: lift from manifest at results/runs/phase-2-20260529T092611-Z/manifest.json -->
+Piece 3 — the scaled Permuted-Policy diagnostic and cross-model arm — runs `diagnostic_primary` and `diagnostic_claude` at n=100 each on a record-matched subset. It evaluates whether the inversion-blindness signal observed in E2 survives at corpus scale and whether the pattern is model-specific or a property of the task class itself.
 
-### The three pieces
-
-- **Piece 1 — L3 decomposition** (Arms A / B / C, n=283 each): isolates whether precedents drove the L3 break (Reading A) or any sufficient content density did (Reading B), and whether verdict exemplars are load-bearing (the governance-memory mechanism) or concreteness alone is enough
-- **Piece 2 — L4 decomposition** (L4-without-nudge, n=283): isolates whether the explicit anti-sycophancy nudge clause drove E2's L3→L4 backoff (Framing A.1) or the full policy text alone did (A.2)
-- **Piece 3 — Scaled Permuted-Policy diagnostic + cross-model arm** (diagnostic_primary + diagnostic_claude, n=100 each, record-matched): establishes whether inversion-blindness is real at scale (vs E2's n=14 signal) and whether it is model-specific or a property of the task class
+Predictions P1–P6 are specified at the segment level, incorporating the primary methodological lesson from E2. Several predictions carry forward the directional readings E2 leaned toward, but the design is constructed to distinguish among competing explanations regardless of which direction the corpus ultimately supports.
 
 ### Predictions table
 
