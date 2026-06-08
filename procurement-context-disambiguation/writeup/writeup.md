@@ -24,24 +24,9 @@ Across six pre-registered predictions, one was confirmed, three were falsified, 
 
 ## §2 — Programme context
 
-<!-- ~2 paragraphs. Position E3 inside the E1 → E2 → E3 arc and point at the
-     forthcoming methods note. This is the section the trilogy capstone
-     cross-references; keep the framing tight so the capstone can lift it.
+E3 is the third experiment in a pre-registered programme on governance-context effects in AI decision agents, conducted on a UK public procurement substrate. E1 (MRP-2026-02) established the baseline — a single-condition evaluation on 283 OCDS records, validating the Decision Receipt primitive at corpus scale. E2 (MRP-2026-03) introduced a five-rung additive ladder from L0 baseline through L4 full policy, and produced two structural findings the additive design could not mechanistically isolate: an L3 commitment break and an inversion-blindness signal on an n=14 Permuted-Policy diagnostic. E3's job was to separate those effects directly.
 
-     Argues: E3 is the third in a pre-registered trilogy of applied research
-     experiments on governance-context effects. E1 established the corpus and
-     baseline; E2 established the ladder shape and surfaced two structural
-     findings it could not mechanistically isolate; E3's job was to slice
-     those confounds. The methodology — receipt-anchored evaluation,
-     pre-registered predictions with locked falsification criteria, anti-claims
-     as first-class output, F-series two-readings discipline — carries forward
-     unchanged. -->
-
-- E1 (MRP-2026-02): single-condition baseline on 283 OCDS procurement records
-- E2 (MRP-2026-03): five-rung additive ladder; L3 break + inversion-blindness signal at n=14
-- E3 (this paper): disambiguation experiment — L3 decomposition + L4-without-nudge + scaled Permuted-Policy diagnostic (n=100) + cross-model arm (Opus 4.7)
-- Methods substrate inherited unchanged: signed Ed25519 receipts + Rekor anchoring, locked-prompt SHAs, pre-registered predictions with the locked disposition vocabulary, anti-claims, F-series structure
-- Pointer to the trilogy methods note (*Receipt-Anchored Evaluation*) <!-- TODO: confirm whether this writeup forward-references the methods note or whether the methods note is published first; per decision_log Phase 4 is post-E3 capstone -->
+The methodological discipline carries forward from E2 unchanged. Every AI decision in the corpus is bound to a cryptographically signed Decision Receipt — Ed25519 signature, public Sigstore transparency-log anchor, schema-versioned envelope — together with the policy snapshot, prompt SHA, and reasoning text. Predictions are pre-registered with locked confirmation and falsification bands. P-series predictions and F-series findings are reported using their pre-defined disposition vocabularies. Anti-claims are first-class output, reported alongside findings and aggregated in §9. The methodology itself is documented separately in the companion methods note, *Receipt-Anchored Evaluation*.
 
 ## §3 — E3 design recap
 
