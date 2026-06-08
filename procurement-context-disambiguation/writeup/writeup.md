@@ -337,32 +337,23 @@ E4 is the operational follow-on the trilogy points toward: a receipt-as-memory e
 
 ### Arm C asymmetric-control caveat
 
-- Arm C token parity vs Arm A: −16.43% (PR #93, documented at pre-registration)
-- The asymmetry rules out one family of confounds (Arm C did not have excess volume) and introduces another (Arm C may not have had enough volume)
-- P1's Arm C ≤12% DENY threshold is comfortably cleared (Arm C DENY 0% observed), so the volume-alone Reading B explanation is falsified even granting the asymmetry — but the writeup names the caveat explicitly
-- Pre-registration commitment (`v0.3-predictions-locked`) unchanged; a documented caveat was preferred over a post-tag amendment
+The Arm C density-control payload was 16.43% shorter than the Arm A precedents-with-verdicts payload, a parity asymmetry locked at PR #93 and pre-registered as a documented methods caveat. The asymmetry rules out one family of confounds — Arm C cannot have failed to commit because it contained more content than Arm A — and introduces another: Arm C may not have committed because it contained less content. P1's pre-registered falsification criterion for Reading B was specified at the DENY-rate level rather than at the volume-equivalence level, and Arm C's observed 0% DENY rate clears the criterion regardless of the parity gap. The full treatment of this caveat is in §4.3; the pre-registration commitment was held in place, and a documented caveat was preferred over a post-tag amendment.
 
 ### Opus 4.7 no-temperature sampling difference
 
-- Opus 4.7 removed the `temperature` parameter; sending `temperature=0` returns HTTP 400
-- The cross-model arm cannot match the primary agent's temperature-0 setting; `effort: low` is the closest near-deterministic equivalent
-- The verdict-axis comparison is **not** verdict-for-verdict comparability; the comparison is on the rubric distribution shape (the reasoning-axis P5 confirmation) and the verdict-style divergence
-- Documented at lock; reproducibility is carried by the signed receipt, not by temp-0 byte-determinism
+Opus 4.7 removed the `temperature` parameter; sending `temperature=0` returns HTTP 400. The cross-model arm cannot match the primary agent's temperature-0 setting, and `effort: low` is the closest near-deterministic configuration available. The verdict-axis cross-model comparison is therefore not verdict-for-verdict comparability — the comparison was specified at the distribution-shape level (the reasoning-axis P5 confirmation and the verdict-style divergence) rather than at the per-record level. The caveat was documented at lock and is treated in full at §6. Reproducibility is carried by the signed receipt, which binds the model version, the sampling configuration, and the prompt SHA at evaluation time; it is not carried by per-record byte-determinism.
 
 ### Inter-coder reconciliation methodology
 
-- Primary's drift on the missing-evidence / rule-itself boundary was caught by the κ check (κ = −0.0369 on first pass vs blind agent)
-- Reconciliation methodology is **reconciliation with rubric anchor**, NOT blind re-coding — the reviewer saw both the first-pass call AND the blind agent's call alongside the rubric's default rule when re-adjudicating
-- Claude's coding methodology is **AI-first + human review-and-adjudication**, NOT blind first pass — the reviewer walked all 100 records with the agent's call visible
-- Both protocols are honestly named in the methods section; neither is described as "independent re-coding" because neither was
-- The 100% adoption rate on claude is rubric-aligned (orthogonal regex-sweep + per-borderline audit confirm), not fatigue-driven
-- See `results/rubric_inter_coder_analysis_primary.md` and `results/rubric_inter_coder_analysis_claude.md` for the full protocol disclosure
+The reconciliation protocol on diagnostic_primary is reconciliation with rubric anchor, not blind re-coding. The reconciler walked the 79 disagreement records with both the first-pass human call AND the blind agent's call visible, alongside the rubric's locked default rule. The reconciled distribution is the result of that adjudication, not of a second independent pass.
+
+The diagnostic_claude coding protocol is AI-first plus human review-and-adjudication, also not a blind first pass. The reviewer walked all 100 records with the agent's call visible from the outset. The 100% adoption rate on diagnostic_claude should therefore be interpreted as review-and-adjudication against a locked rubric rather than as evidence of independent coder agreement.
+
+Both protocols are named honestly in §5.3 and in the per-arm inter-coder analysis files. Neither protocol is described as independent re-coding because neither was independent re-coding. The trade-off was deliberate: the κ-check protocol surfaced a measurement-instrument question on primary that a second blind pass would have been unlikely to resolve quickly, and a reconciler with both calls plus the rubric's default rule visible could close it definitively. The methodology is honest about what the protocol supports — adjudicated rubric consistency — and about what it does not support: independent coder replication.
 
 ### Single-domain, single-substrate, single-policy-snapshot
 
-- E3 inherits E2's substrate constraints: 283 UK procurement records, one policy snapshot, one substrate adapter version
-- The disambiguation results may not transfer to AML / KYC / underwriting / clinical-decision domains; the methodology is portable, the findings are not
-- Cross-domain replication is E4-shaped, not E3-shaped
+E3 inherits E2's substrate constraints: 283 UK procurement records, one policy snapshot, one substrate adapter version. The disambiguation findings — accumulation-amplifies, policy-text-drives-backoff, inversion-blindness-reproduces-at-scale, verdict-style-is-model-specific — may not transfer to AML, KYC, underwriting, or clinical-decision domains. The methodology is portable; the substrate findings are not. Cross-domain replication is E4-shaped, not E3-shaped: a new substrate adapter and a domain-specific policy authoring pass are the minimum prerequisites, and neither was in scope for the pre-registered E3 design.
 
 ## §9 — Anti-claims
 
