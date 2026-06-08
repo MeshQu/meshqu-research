@@ -123,20 +123,15 @@ The caveat remains important for interpretation. Arm C cannot establish that vol
 
 ### §4.4 — P3 falsified, Framing A.2 confirmed: the policy text drove the backoff
 
-<!-- ~2 paragraphs. The cleanest single result in the experiment after P5.
-     E2's L3→L4 backoff was 57% retention on the 107-record L3-DENY set.
-     P3 predicted ≥80% retention under L4-without-nudge (nudge driving the
-     backoff). The corpus shows 60.7% — essentially identical to E2's 57%,
-     well below the ≥80% threshold and below the ≤65% falsification floor.
-     The nudge clause was incidental; the policy text alone produces the
-     backoff. -->
+P3 was pre-registered with both confirmation and falsification bands. Under Framing A.1, the anti-sycophancy nudge clause was hypothesised to be load-bearing for E2's L3→L4 backoff. If so, L4-without-nudge retention on the 107-record L3-DENY set would equal or exceed 80%. Under Framing A.2, the backoff was hypothesised to arise from the policy text itself — the explicit rule clauses, threshold tests, and field expectations introduced at L4. If so, retention would fall at or below 65%.
 
-- Retention on the 107-record L3-DENY set under L4-without-nudge: 60.7% (65/107)
-- E2's L4-with-nudge retention on the same set: 57% (61/107)
-- Delta: ~+3.7pp — within noise band; the nudge clause is incidental
-- Reading: **Framing A.2 confirmed.** The policy text alone — its explicit enumeration of rule clauses, threshold tests, and field expectations — drove the backoff. The anti-sycophancy nudge ("if a required field is absent, do not assume it satisfies the rule") was a small refinement on a mechanism that was already working
-- Anti-claim: this does NOT mean the nudge is useless. It means the L3→L4 reversion on E2's PROC-005 ambiguous-rule axis was already being driven by the policy text's structural cues; the nudge is a discipline reinforcement, not the causal agent
-- l4_without_nudge DENY rate is 27.2% (77/283) vs Arm A DENY 3.5% (10/283) — the policy text continues to do substantially more DENY-direction work than precedents alone produce
+The observed retention is 60.7% (65/107), below the falsification threshold and close to E2's L4-with-nudge retention of 57.0% (61/107). The difference between the two conditions is approximately 3.7 percentage points, far smaller than would be expected if the anti-sycophancy clause were carrying the primary causal load.
+
+P3 is therefore falsified under the locked criterion. By the pre-registered design, this result confirms Framing A.2: the policy text itself drove the L3→L4 backoff. Explicit rule clauses, threshold tests, and structured field expectations were sufficient to produce the reduction in DENY commitment observed at L4.
+
+This result should not be interpreted as evidence that the anti-sycophancy clause is ineffective. Rather, it rejects the stronger claim that the clause was load-bearing for the backoff observed in E2. The clause may still provide behavioural discipline in adversarial or edge-case settings not represented in the diagnostic corpus. What the experiment establishes is that the structural effect was already present in the policy layer.
+
+The magnitude of that policy effect remains substantial. `l4_without_nudge` produces DENY commitment on 27.2% of records (77/283), compared with 3.5% in Arm A (10/283). Even with the nudge removed, the policy condition continues to produce an order-of-magnitude increase in DENY commitment relative to precedents alone. The policy text is doing the structural work.
 
 ### §4.5 — P4 under-tested: inversion-blindness substantively holds at scale; locked spec specifies confirm band only
 
