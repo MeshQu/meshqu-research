@@ -4,6 +4,38 @@ Reverse-chronological. Most recent decision at the top. Each entry: date, decisi
 
 ---
 
+## 2026-06-08 — Post-Phase-3 re-tally: corrected arm_c + diagnostic_claude verdict mixes
+
+**Decision**: PR #114's corrected `SANITY_ANCHORS` block (`8b91259`) surfaced two in-session anchor drifts when the analysis notebook re-tallied verdicts from the 1,332 signed receipts under `results/runs/phase-2-20260529T092611-Z/`. The signed receipts are canonical; the prior decision_log entries (2026-05-29) were in-session anchors that the canonical re-count corrected. The drifts are disclosed here rather than silently fixed in the historical entries — the audit trail discipline is that prior entries stand as written.
+
+### The two drifts
+
+**`arm_c` — 13 commits → 10 commits.** The 2026-05-29 "Substantive verdict distributions — Piece 1" table recorded `arm_c (density-control): 13 commits (4.6%) / 270 REVIEW (95.4%)`. Canonical re-tally from the 283 signed receipts at `results/runs/phase-2-20260529T092611-Z/arm_c/`: **10 ALLOW + 273 REVIEW + 0 DENY = 10 commits**. The 3-count drift is entirely in the ALLOW field; DENY=0 is unchanged from anchor. Surfaces as two warnings in `results/analysis_outputs.json`: `arm_c ALLOW count: observed=10 anchor=13` and `arm_c REVIEW count: observed=273 anchor=270`.
+
+**`diagnostic_claude` — 35/20/45 → 36/20/44.** The 2026-05-29 "Cross-model verdict-style divergence" table recorded `diagnostic_claude (Opus 4.7): ALLOW=35, REVIEW=20, DENY=45`. Canonical re-tally: **ALLOW=36, REVIEW=20, DENY=44**. One-record shift from DENY → ALLOW; REVIEW unchanged. Surfaces as two warnings: `diagnostic_claude ALLOW count: observed=36 anchor=35` and `diagnostic_claude DENY count: observed=44 anchor=45`.
+
+### Surfacing mechanism
+
+PR #114's first cut of `SANITY_ANCHORS` hard-coded the script's own freshly-computed outputs — which made the drift_check tautological (the script can never disagree with itself). The corrected `SANITY_ANCHORS` at commit `8b91259` re-sourced anchors from this decision_log, with each anchor citing the entry it was copied from. That re-sourcing is what made the divergence fire. The comment block at `results/analysis.py:102-119` documents the drift explicitly — the anchors are deliberately set to the (drifted) decision_log figures so the warnings continue to fire on every re-run, preserving the correction trail in the analysis output.
+
+### Downstream corrections
+
+- **PR #115 writeup scaffold** already carries the corrected `diagnostic_claude` 36/20/44 numbers (see `writeup/writeup.md:168, 244, 256`) and the corrected `arm_c` 10 ALLOW / 273 REVIEW / 0 DENY row (`writeup.md:168`). The decisive-rate column for Opus is unchanged: `(36 ALLOW + 44 DENY) / 100 = 80%`, byte-identical to the 2026-05-29 figure.
+- **Substantive interpretation is unchanged.** The Piece 1 reframe — *"Arm A is the only DENY-producing arm; verdict-bearing precedents enable directional commitment, ALLOW dominant"* — holds on the corrected numbers. The correction makes Arm C cleaner, not different in kind: 0 DENYs cleanly, not 0 DENYs with a 3-count ALLOW shift muddying the row.
+- **Cross-model rubric-axis finding is unchanged.** The Phase 2.5 rubric distributions (7/93/0 for primary, 0/100/0 for claude) sit on the hand-coded reasoning texts, not on the verdict re-tally; nothing flows from this drift into the P5 disposition.
+
+### Methodology working as designed
+
+The audit trail caught the drift before it propagated into published artifacts. The corrected SANITY_ANCHORS was the active mechanism: by sourcing anchors from the decision_log rather than from the script's own outputs, the analysis notebook gave the canonical re-count a chance to disagree — which it did. Silent revision of the 2026-05-29 entries would have been the methodology failure mode. Disclosure here is the discipline.
+
+The general shape — *"signed receipts are canonical; in-session anchors are best-effort and get reconciled when the canonical re-count fires"* — is exactly the receipt-anchored evaluation discipline that the trilogy capstone note (PR #113) names. This entry is one worked example of it.
+
+### What's next
+
+The corrected numbers are already in the writeup scaffold (PR #115); no further code changes flow from this. Future Phase-3 edits that touch the Piece-1 or cross-model-divergence tables should anchor on the canonical re-tally in `results/analysis_outputs.json` directly, not on the 2026-05-29 decision_log row.
+
+---
+
 ## 2026-06-07 — Phase 2.5 closed: diagnostic_claude via AI-first; P5 Confirmed on both arms; cross-model rubric-axis finding
 
 **Decision**: `diagnostic_claude` coded via AI-first + human review-and-adjudication protocol (PR #110's `review_all.py`). Blind agent pass (PR #111) produced 0/100/0 distribution. Reviewer walked all 100 records with agent's call + rubric refresher + default-rule sentence visible per record; accepted agent's call on all 100 (`review_action`: 100 `agent-accepted`, 0 `human-overridden`). κ between blind agent and final = +1.0000. Final canonical sheet: 0 Cat 1 / 100 Cat 2 / 0 Cat 3 → **P5 Confirmed**.
