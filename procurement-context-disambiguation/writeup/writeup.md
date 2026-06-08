@@ -184,6 +184,8 @@ Opus commits on 80 of 100 records, splitting fairly evenly between ALLOW and DEN
 
 The directional alignment with the policy engine confirms the pattern from a third angle. On engine-ALLOW records (52/100), both models reach non-DENY verdicts at 100% (52/52 GPT-5.4 non-DENY, 52/52 Opus non-DENY). On engine-DENY records (48/100), both models reach non-ALLOW verdicts at 99% (0/48 GPT-5.4 ALLOW, 1/48 Opus ALLOW). The engine evaluates the policy as authored, including the inversions; both models track that evaluation directionally regardless of which specific verdicts they reach.
 
+The single Opus ALLOW-on-engine-DENY record provides a worked example of the reasoning pattern that underlies the verdict-axis divergence. Decision `54d702ac-8c51-4d59-948f-76293f731fa0` (OCID `ocds-b5fd17-54ed0ae6-…`) is a £5.6M contract with `above_threshold: true` and `governed_by_pa23: false`. The engine, evaluating the permuted policy, fires `PROC-002-AUTHORITY` (`VALUE_ABOVE_MAX`: contract value 5,626,967.5 exceeds the inverted threshold) and produces DENY. Opus's reasoning text reads, in full: *"Contract predates PA23 commencement so s.53 publication rule doesn't apply; open competition was used, supplier not on listed sanctions IDs, not a modification. COI field absent from substrate schema is a known data limitation rather than evidence of non-declaration."* The reasoning walks through five rules (s.53, PROC-005, PROC-003, PROC-006, PROC-004) under their unperturbed semantics and reaches ALLOW. `PROC-002` — the rule the engine fired on under the permuted policy — is not addressed in the reasoning at all. The receipt nonetheless binds the permuted policy snapshot SHA, the agent's reasoning, and the engine's `PROC-002` violation into a single signed envelope; the divergence is auditable from the bundle directly. The bundle path is `results/runs/phase-2-20260529T092611-Z/diagnostic_claude/54d702ac-8c51-4d59-948f-76293f731fa0.bundle.json`.
+
 The methods caveat: Opus 4.7 removed the `temperature` parameter. The cross-model arm cannot match GPT-5.4's temperature-0 setting; `effort: low` is the closest near-deterministic configuration available. The reading is therefore on the rubric distribution shape rather than per-record verdict equivalence — verdict-for-verdict comparability is not claimed. The Opus 4.7 sampling difference is recorded explicitly in §8.
 
 #### F014 — Cross-model verdict-style divergence (Discovered)
@@ -312,9 +314,9 @@ The cross-model arm is asymmetric by design. The same 100 OCIDs ran on `gpt-5.4-
 
 The cross-model arm was specified as a distribution-shape comparison rather than a per-record equivalence test. Differences in sampling controls, verdict style, and commitment behaviour make direct verdict-for-verdict agreement a weaker comparison than aggregate distributional patterns. The methodology therefore evaluates whether the same behavioural structure appears across models, rather than whether identical verdicts are produced on identical records. The worked-example divergence discussed in §4.7 remains useful as an illustrative case but does not alter the comparison scope.
 
-**Figure 6 — Bundle verification for the cross-model worked example.** *Browser screenshot of verify.meshqu.com confirming that the bundle for the single Opus ALLOW-on-engine-DENY record passes all cryptographic checks (Ed25519 signature against the published kid, Rekor anchor on the public transparency log, policy snapshot SHA, prompt SHA, schema-versioned envelope). The figure illustrates that the divergent verdict is anchored to the same provenance discipline as the agreeing verdicts; the divergence is auditable, not silent. Data: bundle TBD — see worked-example TODO.*
+**Figure 6 — Bundle verification for the cross-model worked example.** *Browser screenshot of verify.meshqu.com confirming that the bundle for the single Opus ALLOW-on-engine-DENY record passes all cryptographic checks (Ed25519 signature against the published kid `meshqu-experiment-procurement-2026-05`, Rekor anchor on the public transparency log, policy snapshot SHA `5d7d800186…`, prompt SHA, schema-versioned envelope). The figure illustrates that the divergent verdict is anchored to the same provenance discipline as the agreeing verdicts; the divergence is auditable, not silent. Bundle: `results/runs/phase-2-20260529T092611-Z/diagnostic_claude/54d702ac-8c51-4d59-948f-76293f731fa0.bundle.json` (decision `54d702ac-…`; integrity_hash `cf62d0c8…`); see §4.7 worked example for the substrate facts and the Opus reasoning text.*
 
-<!-- TODO: identify the OCID from Phase 2 receipts; pull the Opus reasoning text for the worked-example callout referenced above and in §4.7; capture verify.meshqu.com screenshot for Figure 6 -->
+<!-- TODO: capture verify.meshqu.com screenshot for the worked-example bundle (decision 54d702ac-8c51-4d59-948f-76293f731fa0) and embed at Figure 6 — OCID + reasoning text already filled in at §4.7 and §6 -->
 
 ## §7 — Implications
 
@@ -421,23 +423,23 @@ AI tools were used during ideation, drafting, and editorial refinement of this p
 
 <!-- Mirror E2's Appendix A exactly. Lift from results/runs/phase-2-…/manifest.json. -->
 
-- **Git tag**: `v0.3-predictions-locked`
-- **Tag commit SHA**: `ba4ebfb` <!-- TODO: confirm full SHA from git -->
-- **Locked-prompt SHA-256 fingerprints** (from `runs/phase-2-20260529T092611-Z/manifest.json`):
-  - Arm A (precedents-only) <!-- TODO -->
-  - Arm B (precedents-no-verdict) <!-- TODO -->
-  - Arm C (density-control), SHA `07abb32f…c1824134` per Wave 2 close-out
-  - L4-without-nudge <!-- TODO -->
-  - diagnostic_primary <!-- TODO -->
-  - diagnostic_claude <!-- TODO -->
+- **Git tag** (annotated): `v0.3-predictions-locked`
+- **Tag commit SHA**: `ba4ebfb3233b819e15428de51fe39a27dea87ce2` (PR #83 — Claude second-model feasibility harness + pre-lock pin decision)
+- **Locked-content SHA-256 fingerprints** (computed against the v0.3-locked tree):
+  - `armB_precedent_no_verdict_format.md`: `66b746546c8cccf926fce1559440657ce78ee17aafcae44e5bb360f186f4bee8`
+  - `armC_density_control.md`: `07abb32fc97418d2fc327c7db235b73ab3d9ae67ec7842ff609fdfd0c1824134`
+  - `L4_without_nudge.md`: `4152247fabc0553e9b28c6204b3c82eddf51e87875e29669e7967b9f6da42cdb`
+  - `diagnostic_rubric.md`: `f162953e13e4b15b644bfd96ef7e1e85c2f812816d098b34274615f70322bbc5`
+  - `diagnostic_subset.json` (n=100 OCID selection): `a08570709f70daceaae8e87e48b74bc4152956bfbccdab20aa325147e94ae2d0`
+  - Arm A locked content is the baseline composed by the `precedent_selector` at the runner commit; no separate prompt template
 - **Agent prompt scaffold SHA-256**: `690c50b5fb2ba5b820e42d781aec51c6216483c07ed5a4be2273b2d2e3517be2` (unchanged from E2)
 - **Policy snapshot SHA-256**: `5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d` (unchanged from E2)
+- **System prompt SHA-256**: `db60d6f297b0a97ab43988bdd8163a49c6e050afb81ff7379c8a1ff4fd932aa2`
 - **Tenant ID** (public, staging): `243f19a5-4d4f-4070-9ec1-8170e8260e26`
 - **Receipt signing kid** (public): `meshqu-experiment-procurement-2026-05`
 - **Primary model**: `gpt-5.4-2026-03-05`, temperature 0
 - **Cross-model arm model**: `claude-opus-4-7`, no `temperature`, `output_config.effort: low`
-- **Runner commit**: <!-- TODO: lift from manifest -->
-- **System prompt SHA**: `db60d6f297b0a97ab43988bdd8163a49c6e050afb81ff7379c8a1ff4fd932aa2`
+- **Runner commit**: `1b6136ac816e8adea80c8dde8b14df113ea9e50b` (manifest reports dirty tree; the source-tree state at this commit is what produced the run)
 
 ## Appendix B — Corpus citation
 
