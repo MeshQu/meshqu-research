@@ -162,19 +162,38 @@ references_layout: numbered
 ### 3.2 The disposition vocabulary
 
 <!--
-  Intent: name the six dispositions as a closed vocabulary. The vocabulary
-  is the contract — it forces honest reporting because no "partial
-  confirmation" escape valve exists.
+  Intent: name the disposition vocabularies as closed registers. Two
+  sixth-disposition tokens coexist in the trilogy: P-series predictions
+  (registered at lock-time) close with Under-tested; F-series findings
+  (registered at write-time) close with Discovered. Both are legitimate;
+  they apply to different registers. The methods note must enumerate
+  both side-by-side, not silently drop one.
 -->
+
+The trilogy carries **two** disposition registers — one bound to pre-registered predictions, one bound to post-data findings. They share five tokens and diverge on the sixth. Cross-register conflation is a discipline failure.
+
+**P-series (predictions, registered at lock-time):**
 
 - **Confirmed** — the corpus produced a value inside the confirmation band.
 - **Falsified** — the corpus produced a value inside the falsification band.
 - **Inverted** — the corpus produced a value in the opposite direction to the prediction (a sharper form of falsification; the signal exists but ran the other way).
 - **Refuted** — the corpus produced a value that rules out the prediction's underlying mechanism.
 - **Deferred** — measurement instrument inadequate; the prediction is unresolved on this experiment.
-- **Under-tested** — sample size or design did not permit a disposition; not a passive "inconclusive".
+- **Under-tested** — observed value sits between the confirmation and falsification bands, or no falsification band was registered at lock time. A positive disposition for under-specified gray zones, not a passive "inconclusive".
 
-<!-- cite: procurement-context-disambiguation/planning/predictions.md §"Definition of 'report honestly'" for the locked vocabulary contract -->
+**F-series (findings, registered at write-time):**
+
+- **Confirmed** — same definition as P-series.
+- **Falsified** — same definition as P-series.
+- **Inverted** — same definition as P-series.
+- **Refuted** — same definition as P-series.
+- **Deferred** — same definition as P-series.
+- **Discovered** — the finding did not pre-exist as a P-series prediction but surfaced from the corpus during analysis. The post-data analogue of Under-tested: a positive disposition for a finding the lock did not anticipate, not a backdoor "we predicted this all along".
+
+The two sixth-disposition tokens are not interchangeable. A P-series prediction whose observed value falls in the gray zone is **Under-tested** (the lock did not pre-register what the gray-zone landing means). An F-series finding that surfaced from the corpus without a pre-registered prediction is **Discovered** (no lock to grade it against). Reporting a Discovered finding as Confirmed-from-prediction is post-hoc smoothing; reporting an Under-tested prediction as Discovered is escape-hatch backfill. The trilogy carries both registers; pre-registered predictions get the P-vocabulary; post-data findings get the F-vocabulary.
+
+<!-- cite: procurement-context-disambiguation/planning/predictions.md §"Definition of 'report honestly'" for the locked P-series vocabulary contract (Confirmed / Falsified / Inverted / Refuted / Deferred / Under-tested) -->
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md §7 paragraph "F-series structure as a methodological contribution" for the F-series vocabulary contract (Confirmed / Falsified / Inverted / Refuted / Deferred / Discovered) -->
 <!-- cite: programme/PROCESS.md "Honest falsification" paragraph for the no-post-hoc-smoothing principle -->
 
 ### 3.3 Why this matters: confirmation-bias reduction + honest measurement
@@ -186,6 +205,53 @@ references_layout: numbered
 - Without SHA-binding of prompts and policy snapshot, the experiment is not replayable — predictions and evidence drift apart in the time between lock and report.
 
 <!-- cite: programme/PROCESS.md "Discipline is the contribution" framing -->
+
+### 3.4 The inherited discipline registers
+
+<!--
+  Intent: enumerate the five discipline registers the trilogy carries
+  forward. The disposition vocabulary (§3.2) is one register among five.
+  Naming all five explicitly is what stops the methods note from
+  silently dropping half the discipline that the trilogy ran on. Each
+  register is a closed, named contract; together they are what
+  "Receipt-Anchored Evaluation" inherits beyond the receipt primitive
+  itself.
+
+  Style: intent-brief + bullets matching §3.1–§3.3. Each register names
+  its load-bearing definition, names the canonical citation, and notes
+  how the trilogy operationalised it.
+-->
+
+The trilogy inherits five named registers beyond the receipt primitive. Each is a closed contract — a vocabulary or shape pre-committed-to before the artefact is authored. The discipline is the sum of all five, not the disposition vocabulary alone.
+
+**Register 1 — F-series register for post-data findings.** Each finding follows the same shape, lifted verbatim from E2 writeup-DRAFT.md §7: *"an explicit status label (Confirmed / Falsified / Inverted / Refuted / Deferred / Discovered), a numbered evidence block with denominators, two interpretive readings where the corpus admits two, an explicit anti-claims section that lists what the finding does not establish, and an E3-design implications block"*. E2 used F001–F012; E3 introduces F013–F017 (Piece 1 verdict-distribution refinement; cross-model verdict-style divergence; arm_c and diagnostic_claude anchor drift; κ-check coder drift catch). The F-series is the post-data analogue of the pre-data P-series — the same restraint discipline, applied to interpretation.
+
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md §7 paragraph "F-series structure as a methodological contribution" (the canonical definition lifted verbatim above) -->
+<!-- cite: procurement-context-disambiguation/writeup/writeup.md for F013–F017 once the E3 writeup lands -->
+
+**Register 2 — P-series register for pre-registered predictions.** Each prediction states (a) a confirmation band, (b) a falsification band where the experimental hypothesis structure supports it, and (c) the interpretive note bound to each direction. Disposition vocabulary locked at lock-time: {Confirmed / Falsified / Inverted / Refuted / Deferred / Under-tested} — see §3.2. The §5.6 observation refines this: predictions for cross-axis and robustness-at-scale claims should pre-register **both** bands, with the gray zone mapped explicitly to Under-tested. Cross-reference §5.6 for the worked example; §6.6 for the prescriptive carry-forward.
+
+<!-- cite: procurement-context-disambiguation/planning/predictions.md §"Definition of 'report honestly'" for the locked vocabulary contract -->
+<!-- cite: §3.2 of this note for the side-by-side P-series + F-series vocabulary -->
+
+**Register 3 — D-series register for behavioural axes spanning experiments.** Named axes carried across experiments. E2 Appendix C established D1–D9; the principal load-bearing axes are **D4 Policy resistance**, **D6 Precedent sensitivity**, and **D7 Uncertainty markers**. New D-axes get added at experiment-level as the corpus reveals them, not retrofitted post-hoc to flatter the result. E3's three-category rubric (Cat 1 names-inversion / Cat 2 reasons-against-intent / Cat 3 hybrid) is the hand-coded operationalisation of D4 — deferred from E2 Appendix C's lexicon-strict measurement (which surfaced 0/14 contradiction-naming fires) into E3's larger-n hand-coded protocol. The D-series register makes the cross-experiment continuity machine-checkable: D4 in E3 is **the same axis** as D4 in E2, just under a sharper instrument.
+
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md Appendix C "Behavioural taxonomy v1.1 reference" for the D1–D9 enumeration -->
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md §8 paragraph "Larger Permuted-Policy diagnostic" for the deferred-from-E2-into-E3 hand-coded rubric design -->
+<!-- cite: procurement-context-disambiguation/planning/predictions.md for the locked three-category rubric protocol (E3's D4 operationalisation) -->
+<!-- cite: §6.7 of this note for the carry-forward -->
+
+**Register 4 — Reading X / Framing X.Y discipline for naming alternative interpretations.** When a finding admits two interpretive readings, both are explicitly named: E3 P1's **Reading A** (precedents-only drives commitment) vs **Reading B** (full E2 ladder drives commitment); E3 P3's **Framing A.1** (nudge load-bearing for L4 backoff) vs **Framing A.2** (policy text load-bearing); E2 F008's **Reading A** vs **Reading B**; E2 F012's methodological **Reading (i)** vs substantive **Reading (ii)**. The receipt-anchored audit trail preserves which Reading was carried into the writeup as the leaned-toward interpretation; the un-leaned-toward reading is not suppressed but explicitly named and dated. Preservation-of-alternatives — not collapse-to-a-single-reading — is the voice the trilogy commits to.
+
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md §7 paragraph "Two-readings discipline as a programme method" for the canonical statement -->
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md §4 "Two readings" subsection for the worked example -->
+<!-- cite: procurement-context-disambiguation/writeup/writeup.md for E3's P1 Reading A/B and P3 Framing A.1/A.2 -->
+
+**Register 5 — Anti-claims as first-class output.** Each F-series finding carries inline anti-claims (proximity discipline — the reader sees what a finding does not establish at the point it is established). The writeup also aggregates anti-claims into a dedicated §9 (audit-lens discipline — the reader sees the full ledger of un-established claims in one place). The trilogy's refinement, adopted as canonical: **both** registers — inline-per-finding AND aggregated-§9 — not either-or. This is the §5/§6 discipline-refinement contribution the trilogy lifts forward; do not collapse to one register at lock or write time.
+
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md §9 "Anti-claims" for the aggregated §9 worked example -->
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md §7 (F012 inline anti-claims block within the finding) for the proximity-discipline worked example -->
+<!-- cite: §5.6 and §6.6 of this note for the discipline-refinement framing this register sits inside -->
 
 ---
 
@@ -512,6 +578,29 @@ references_layout: numbered
 <!-- cite: procurement-context-disambiguation/planning/predictions.md — current state showing which predictions locked both bands and which did not; the prescription removes the latter pattern for E4 -->
 <!-- cite: procurement-context-disambiguation/results/analysis.py disposition_methodology block — the rule_source / confirmation_band / falsification_band structure to lift into every future runner's analysis layer -->
 <!-- cite: §5.6 of this note for the worked example -->
+
+### 6.7 D-series behavioural taxonomy as a cross-experiment register
+
+<!--
+  Intent: name the D-series as a discipline carry-forward in its own
+  right, alongside receipt-anchored signing, locked-prompt SHAs,
+  pre-registered predictions, anti-claims, and F-series. E2 Appendix C
+  established D1–D9 as named axes; E3 inherits them and operationalises
+  D4 as the hand-coded three-category rubric. Future experiments add new
+  D-axes at experiment-level as the corpus reveals them, not retrofitted
+  post-hoc. The register is what makes cross-experiment continuity
+  machine-checkable.
+-->
+
+- Named axes spanning experiments. E2 Appendix C established D1–D9 (D1 Ambiguity handling, D2 Escalation behaviour, D3 Policy obedience, D4 Policy resistance, D5 Evidence sensitivity, D6 Precedent sensitivity, D7 Uncertainty acknowledgement, D8 Governance-context susceptibility, D9 reserved). E3 inherits the same D-numbers under the same definitions; cross-experiment comparison is by axis, not by ad-hoc metric.
+- D4 (Policy resistance) is the worked example. E2 measured D4 lexicon-strict against the 14-record Permuted-Policy diagnostic (0/14 contradiction-naming fires); E3 hand-coded D4 as the three-category Cat 1 / Cat 2 / Cat 3 rubric on the n=100 Permuted-Policy diagnostic subset — the same axis, sharper instrument. The Cat 1/2/3 rubric was deferred from E2 Appendix C as the planned refinement and locked at E3's `v0.3-predictions-locked` tag.
+- New D-axes get added at experiment-level as the corpus reveals them. E2 introduced D8 (Governance-context susceptibility) as a cumulative cross-axis aggregate after the L3 break surfaced; E3 may introduce additional axes around cross-model verdict-style divergence pending Phase 3 analysis. New axes get a number and a definition before they are measured, not after.
+- The trilogy commits to D-series as the cross-experiment behavioural-taxonomy register. Future applications of Receipt-Anchored Evaluation inherit the D-numbers and their definitions; substrate transfer (banking KYC, complaints, credit per §7.2) introduces domain-specific D-axes alongside the inherited ones rather than renumbering.
+
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md Appendix C "Behavioural taxonomy v1.1 reference" for the D1–D9 enumeration -->
+<!-- cite: procurement-context-gradient/planning/behavioural_taxonomy.md §1.5 (v1.1 restraint amendment) for the lock-time taxonomy contract -->
+<!-- cite: procurement-context-disambiguation/planning/predictions.md for the locked Cat 1/2/3 rubric protocol that operationalises D4 in E3 -->
+<!-- cite: §3.4 of this note (Register 3) for the discipline-register definition -->
 
 ---
 
