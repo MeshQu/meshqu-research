@@ -221,39 +221,41 @@ The result is unusual but informative. The prediction failed more decisively tha
 
 ### Inter-coder κ check surfaced drift; reconciliation produced Confirmed
 
-- `diagnostic_primary` first pass distribution: 8/25/67 → Under-tested
-- Blind AI second-coder pass: 7/93/0 → Confirmed
-- κ between first pass and blind agent: −0.0369 (less than chance)
-- Reconciler walked the 79 disagreements with rubric default rule visible; adopted agent's call on 79/79 (`second-coder-adopted`); 0 `first-pass-kept`; 0 `override`
-- Reconciled distribution: 7/93/0 → Confirmed; κ between reconciled and blind agent = +1.0000
-- Drift characterisation (verbatim from Sam, 2026-06-07): *"I misinterpreted the categories first pass and was fatigued."*
-- **The κ protocol worked exactly as designed**: a measurement-instrument check caught a coder drift before the writeup committed to the wrong P5 disposition
+The blind AI second-coder pass on diagnostic_primary surfaced systematic disagreement with the first pass at the rubric's missing-evidence boundary. The first-pass coding sheet recorded 8/25/67 across Cat 1/2/3; the blind agent recorded 7/93/0. The κ between the two was −0.0369 — worse than chance agreement. Under that first pass alone, the diagnostic_primary P5 disposition would have been Under-tested, with Cat 1 within the confirmation band but Cat 2 below the 60% floor.
 
-### Verbatim methods-section disclosure (lift directly, do not paraphrase)
+The reconciler walked all 79 disagreement records with both calls visible alongside the rubric's locked default rule: missing-evidence hedging is the normal nudge behaviour the policy itself was designed to produce, and is not inversion-recognition. Applied explicitly, the rule resolved every disagreement in the same direction; the reconciler adopted the agent's call on 79 of 79 records, recorded in the per-record `review_action` audit field as `second-coder-adopted`. No records were kept as first-pass; no overrides were applied. The reconciled distribution is 7/93/0, the same as the agent's. κ between the reconciled sheet and the blind agent is +1.0000.
 
-- **For diagnostic_primary** (verbatim from `results/rubric_inter_coder_analysis_primary.md`):
-  > *"First pass: human coder coded blind. Second pass: AI second-coder coded blind. κ check surfaced systematic disagreement at the missing-evidence/rule-itself boundary. Reconciliation: human coder re-examined the 79 disagreement records with both calls visible alongside the rubric's default rule, applied the rule explicitly, and produced the final coding sheet."*
+The drift characterisation, recorded verbatim by the reconciler: *"I misinterpreted the categories first pass and was fatigued."* The protocol caught this before the writeup committed to the wrong P5 disposition. The κ-check is the kind of instrument validation that exists for exactly this case — not because the human coder is unreliable in general, but because a hand-coded rubric step under cognitive load is a measurement instrument like any other, and instruments deserve their own check.
 
-- **For diagnostic_claude** (verbatim from `results/rubric_inter_coder_analysis_claude.md`):
-  > *"diagnostic_primary was coded via blind human first pass + blind AI second-coder + reconciliation; diagnostic_claude was coded via AI-first + human review-and-adjudication of all 100 records with rubric visible. The protocol change for claude was made in response to a methodological observation surfaced during primary's reconciliation (see decision_log entry 2026-06-07)."*
+### Verbatim methods-section disclosure
 
-- One sentence explaining why the protocols differ between arms: the primary arm's first-pass drift (fatigue + categorisation from memory under cognitive load) motivated the switch to AI-first + human review-and-adjudication on claude. The per-record `review_action` audit field documents the change end-to-end; the methodological observation is itself part of what the methods note can lift
+The protocol for each arm and the protocol change between arms are documented verbatim in the per-arm inter-coder analysis files. For diagnostic_primary, from `results/rubric_inter_coder_analysis_primary.md`:
+
+> *"First pass: human coder coded blind. Second pass: AI second-coder coded blind. κ check surfaced systematic disagreement at the missing-evidence/rule-itself boundary. Reconciliation: human coder re-examined the 79 disagreement records with both calls visible alongside the rubric's default rule, applied the rule explicitly, and produced the final coding sheet."*
+
+For diagnostic_claude, from `results/rubric_inter_coder_analysis_claude.md`:
+
+> *"diagnostic_primary was coded via blind human first pass + blind AI second-coder + reconciliation; diagnostic_claude was coded via AI-first + human review-and-adjudication of all 100 records with rubric visible. The protocol change for claude was made in response to a methodological observation surfaced during primary's reconciliation (see decision_log entry 2026-06-07)."*
+
+The protocols differ between arms because the primary arm's first-pass drift — fatigue plus categorisation from memory under cognitive load — motivated the switch to AI-first plus human review-and-adjudication on claude. The per-record `review_action` audit field documents the change end-to-end; the methodological observation itself is part of what the methods note can lift.
 
 ### Cost projection accuracy as instrument validation
 
-- Phase 2 projected cost: $25.21 base
-- Phase 2 actual cost: $25.23 — within 0.4% of projection on all six arms (worst arm_a ratio 1.004; best arm_c ratio 1.000)
-- The dry-run-as-instrument validation: dry-run rates predicted Phase 2 within 1.2%; smoke→dry-run within ±15%. **Extrapolation is exact at this scale.**
-- This is the cost-projection-as-receipt-anchored-evaluation point: signed receipts give you per-call cost provenance, and a small dry-run at the cost-projection-confidence-interval scale predicts production cost to within rounding error
+Phase 2 cost projection landed within 0.4% of actual on all six arms. The projected base cost was $25.21; actual cost was $25.23. Per-arm ratios ranged from 1.000 (arm_c) to 1.004 (arm_a). The dry-run preceding Phase 2 predicted Phase 2 within 1.2%; the smoke run before the dry-run predicted dry-run rates within ±15%.
+
+Cost-projection-as-instrument-validation is one of the quieter discipline contributions of receipt-anchored evaluation. Signed receipts carry per-call cost provenance: the token counts and the model rate at the time of evaluation are bound into the receipt envelope. A small dry-run produces per-arm rate estimates that, scaled up, predict the production run's cost to within rounding error. The methodology turns budgeting into an empirical question with a calibrated answer, rather than an estimate with error bars wide enough to make Phase 2 launch a leap of faith.
 
 ### Disposition vocabulary as honest-reporting discipline
 
-- The locked vocabulary {Confirmed / Falsified / Inverted / Refuted / Deferred / Under-tested} forces categorical reporting
-- **P2 Under-tested (gap 3.5pp, confirm threshold 15pp, no falsification band locked)** — the locked spec specifies only a confirmation band; the gap is well below confirm but the vocabulary doesn't admit a Falsified call without a pre-registered falsification band. The writeup names this Under-tested and reports the substantively richer Piece 1 mechanism refinement (verdict-bearing precedents enable directional commitment, mostly ALLOW) as a finding the locked P2 framing collapsed onto a too-narrow axis
-- **P4 Under-tested (88%, confirm threshold 90%, no falsification band locked)** — same shape as P2. The writeup names this Under-tested and reads the result as inversion-blindness substantively holding at scale with 2pp degradation from E2's n=14
-- **P1 and P3 and P6 falsified cleanly against locked falsification bands** — P1 trips the locked "Arm A < 20%" clause (observed 3.5%); P3 trips the locked "retention ≤ 65%" clause (observed 60.7%); P6 trips the locked ">15pp gap" clause (observed 46pp). These are clean locked-spec dispositions
-- Methods-note discipline refinement: the P2 / P4 pattern is the strongest argument for pre-registering both confirm AND falsify bands on every prediction. Without the locked vocabulary, P2 and P4 would have been reported as "narrowly falsified" or "broadly confirmed" — both phrasings invent post-hoc rules the pre-registration didn't carry. Under-tested is the honest call; the methods note inherits the discipline lift
-- Without the locked vocabulary, the headline ("1 confirmed, 3 falsified cleanly, 2 under-tested") would have collapsed to "4 of 6 falsified" — and the reader would not see the discipline working
+The locked disposition vocabulary forces categorical reporting. Six tokens are available: Confirmed, Falsified, Inverted, Refuted, Deferred, and Under-tested. Each prediction's disposition follows from the locked bands and the observed result; the writeup does not get to choose between adjacent categories.
+
+P1 trips the locked *Arm A DENY < 20%* clause at an observed 3.5%. P3 trips the locked *retention ≤ 65%* clause at 60.7%. P6 trips the locked *>15pp gap* clause at 46pp. Three clean falsifications, all against pre-registered falsification bands.
+
+P5 confirms with Cat 2 ≥ 60% and Cat 1 ≤ 15% on both arms. One confirmation, against the only prediction in the experiment with both confirmation and falsification bands fully exercised by the corpus.
+
+P2 and P4 land Under-tested. P2's observed gap (3.5pp) is well below the 15pp confirmation band, but no falsification band was locked at pre-registration. P4's observed rate (88%) is two percentage points below the 90% confirmation band, but no falsification band was locked. Under the locked vocabulary, the appropriate disposition in both cases is Under-tested. Calling either "narrowly falsified" would be a post-hoc rule introduction the discipline disallows. Calling either "broadly confirmed" would be the same kind of move in the opposite direction.
+
+The disposition mix — one Confirmed, three Falsified cleanly, two Under-tested — is what an honest pre-registration produces when its bands are asymmetric. A vocabulary without the Under-tested category would have collapsed P2 and P4 into "narrowly falsified" or "broadly confirmed", and the headline would read "4 of 6 falsified" or "3 of 6 confirmed". Neither of those is what the corpus shows. What the corpus shows is that two predictions could not be categorically resolved under their own locked specifications. The methods-note discipline refinement follows directly: any prediction worth a band is worth both bands; asymmetric pre-registration produces Under-tested dispositions on near-misses, and the locked vocabulary is what makes the discipline visible.
 
 ### Methodological findings (F-series)
 
