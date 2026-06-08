@@ -380,28 +380,9 @@ The findings in this writeup do *not* establish the following. Each item names a
 
 ## §10 — Conclusion
 
-<!-- ~2 paragraphs. The synthesis section. What E3 closes; what it opens for
-     E4; what the trilogy capstone inherits. Mirrors E2's §10 (Synthesis)
-     shape — patterns are real, mechanisms are open, methodology substrate is
-     the durable contribution.
+E3 was designed to resolve two structural findings carried forward from E2 — the L3 commitment break and inversion-blindness on the n=14 Permuted-Policy diagnostic — and to disambiguate the L3→L4 backoff. The corpus resolved all three questions, with several outcomes landing in mechanism interpretations that the pre-registration had identified as plausible alternatives. The L3 break is accumulation-amplified, not precedent-driven: Arm A produced 3.5% DENY against the locked 20% confirmation floor, while remaining the only condition in Piece 1 to produce any DENY commitment at all. The L3→L4 backoff is policy-text-driven, not nudge-driven: `l4_without_nudge` retained 60.7% of E2's L3-DENY set against a 65% falsification floor, a 3.7-percentage-point delta from E2's nudge condition too small for the anti-sycophancy clause to carry the structural work. Inversion-blindness reproduces at scale on the n=100 diagnostic and confirms under two independent model-protocols on the rubric axis, while the verdict axis shows a 46-percentage-point cross-model gap that the locked pre-registration explicitly named as substantively interesting. The disposition mix is one confirmed (P5), three falsified cleanly (P1, P3, P6), and two under-tested (P2, P4). The Piece 1 refinement recorded as F013 — verdict-bearing precedents enable directional commitment in either direction, with ALLOW the dominant direction in this corpus and policy combination — is the corpus-level finding the locked P2 framing collapsed onto a narrower axis.
 
-     Argues: E3 was designed to resolve two structural findings from E2; the
-     resolutions came in a form the predictions explicitly anticipated as
-     third readings, not in the form the predictions stated as the
-     directional hypothesis. The L3 break is accumulation-amplified (not
-     precedents alone). The L3→L4 backoff is policy-text-driven (not nudge-
-     driven). Inversion-blindness reproduces at scale across two models with
-     directionally-coherent cross-axis evidence. The pre-registration
-     discipline, the κ-check protocol, the disposition vocabulary, and the
-     receipt-anchored cost projection are the durable methodological
-     contributions. E4 is the next experiment. -->
-
-- E3 was designed to resolve E2's two open structural findings (L3 break, inversion-blindness) and to disambiguate the L3→L4 backoff (nudge vs policy text)
-- The corpus resolved all three in forms the predictions explicitly anticipated as third readings: accumulation amplifies (not precedents alone); policy text drives the backoff (not the nudge); inversion-blindness reproduces at scale on the primary model with a substantive verdict-style divergence on the cross-model arm (P6 falsified — the model-specific outcome pre-registered as "a strong finding, not a failure")
-- Disposition mix: **P5 confirmed on both diagnostic arms; P1, P3, P6 falsified cleanly against locked falsification bands; P2 and P4 under-tested (confirm-band only; no locked falsify band)** — the falsifications + under-tested dispositions are the story, and each names either a sharpened mechanism or a methods-note discipline refinement rather than a refuted finding
-- Piece 1 substantive refinement (recovered by re-cutting on verdict distribution rather than DENY rate alone): verdict-bearing precedents enable directional commitment in both directions, with ALLOW dominant in this corpus + policy combination; the §10 governance-memory mechanism from E2 holds but operates symmetrically rather than DENY-asymmetrically as P2 anticipated
-- The methodology substrate — pre-registered predictions with locked falsification criteria, κ-check protocol with reconciliation methodology, disposition vocabulary (including the Under-tested honest call when locked spec only registers a confirm band), receipt-anchored cost projection — is the durable contribution and carries forward to the trilogy methods note
-- E4 is the operational receipt-as-memory experiment; the design-partner shape is named but the design is not yet locked
+What E3 leaves to the trilogy is its methodology substrate. The pre-registration discipline survived two narrow falsifications by forcing categorical reporting rather than narrative softening; the κ-check protocol caught coder drift on diagnostic_primary before the writeup committed to the wrong P5 disposition; the locked vocabulary's Under-tested category turned out to be the only honest call for the two predictions whose pre-registration was asymmetric; receipt-anchored cost projection landed within 0.4% of actual on a 1,332-receipt corpus and within 1.2% of the dry-run preceding it. These are the durable methodological contributions, and they carry forward into the trilogy methods note unchanged. E4 — the operational receipt-as-memory experiment, named but not yet locked — inherits both the substrate findings about when precedents matter and the discipline by which those findings were established. The methodology is portable across domains; the substrate findings, on present evidence, are not.
 
 ## §11 — Acknowledgments
 
