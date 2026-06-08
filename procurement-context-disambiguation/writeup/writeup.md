@@ -298,24 +298,11 @@ The disposition mix — one Confirmed, three Falsified cleanly, two Under-tested
 
 ## §6 — Cross-model arm: full treatment
 
-<!-- ~2 paragraphs. Stands alone (above the §4.7 bullets) because the cross-
-     model arm is a methodologically distinct piece of the experiment with its
-     own caveats. The §4.7 bullets are the results; this section is the
-     framing.
+The cross-model arm is asymmetric by design. The same 100 OCIDs ran on `gpt-5.4-2026-03-05` (temperature 0) and `claude-opus-4-7` (no temperature parameter, `effort: low`), and only the n=100 Permuted-Policy diagnostic was instrumented on the cross-model arm — the full L0/L1/L2/L3/L4 grid was not. The asymmetry was a deliberate design choice: it buys two pieces of cross-model evidence the n=14 result could not — whether inversion-blindness reproduces at corpus scale, and whether the pattern is model-specific or a property of the task class — without the cost of a full second-model corpus. The Opus 4.7 sampling caveat is locked at pre-registration: Opus 4.7 removed the `temperature` parameter, and sending `temperature=0` returns HTTP 400. The closest near-deterministic configuration available is `effort: low`. The caveat is documented in `runner/spike/claude_spike.py` and `planning/feasibility_spike_claude.md`.
 
-     Argues: the cross-model arm is asymmetric by design (diagnostic-only on
-     Claude; full grid on the primary). The asymmetry buys "real at scale" +
-     "model-specific or task-class" without the cost of a full second-model
-     corpus. The Opus 4.7 sampling caveat (no temperature) is a known and
-     documented methods caveat, not a confound — the comparison is on the
-     reasoning-axis rubric distribution, not on per-record verdict
-     comparability. -->
+The cross-model arm was specified as a distribution-shape comparison rather than a per-record equivalence test. Differences in sampling controls, verdict style, and commitment behaviour make direct verdict-for-verdict agreement a weaker comparison than aggregate distributional patterns. The methodology therefore evaluates whether the same behavioural structure appears across models, rather than whether identical verdicts are produced on identical records. The worked-example divergence discussed in §4.7 remains useful as an illustrative case but does not alter the comparison scope.
 
-- Cross-model arm design: same 100 OCIDs run on both `gpt-5.4-2026-03-05` (temperature 0) and `claude-opus-4-7` (no temperature, effort low)
-- The Opus 4.7 sampling caveat is locked at pre-registration (`runner/spike/claude_spike.py` + `planning/feasibility_spike_claude.md`): Opus 4.7 removed the `temperature` parameter; sending `temperature=0` returns HTTP 400
-- The cross-model comparison is **not** verdict-for-verdict comparability — the comparison is the rubric distribution shape (the reasoning-axis P5 confirmation) and the verdict-style divergence (the substantive cross-model finding)
-- Verdict-style divergence is direction-coherent with the rubric-axis Cat 1 difference: Opus is more thorough on both axes; GPT-5.4 is more REVIEW-heavy on both axes
-- The one exception (one OCID where Opus said ALLOW but engine said DENY) is worth a worked-example callout <!-- TODO: identify the OCID from Phase 2 receipts; pull the Opus reasoning text -->
+<!-- TODO: identify the OCID from Phase 2 receipts; pull the Opus reasoning text for the worked-example callout referenced above and in §4.7 -->
 
 ## §7 — Implications
 
