@@ -345,17 +345,17 @@ What remains is to show the discipline travels. It has been stress-tested three 
 
 <!-- Verify each per programme/PROCESS.md gate #9 before promoting to STABLE. -->
 
-12. UK Procurement Policy Notice 02/24 (May 2024). LLM-generated bid content.
-13. UK Procurement Policy Notice 017 (2025). AI-augmented contract decisions.
+12. UK Procurement Policy Note 02/24 — _Improving Transparency of AI use in Procurement_ (Cabinet Office, March 2024). Names LLM "hallucination" as an accuracy risk in AI-assisted bids.
+13. UK Procurement Policy Note 017 (from 24 February 2025) — the Procurement Act 2023 renumbering of PPN 02/24; same AI-transparency policy, updated terminology, no policy change.
 14. UK Government AI Playbook (February 2025). Meaningful human control principle.
 15. EU AI Act, high-risk provisions on automated decision-making.
 
 ### 10.5 Methodological precedent
 
-16. _Pre-registration in clinical trials_ — ClinicalTrials.gov as direct precedent.
-17. _Cohen's κ_ — Cohen, J. (1960). _Educational and Psychological Measurement_, 20(1), 37–46.
-18. _κ interpretation bands_ — Landis, J.R. & Koch, G.G. (1977). _Biometrics_, 33(1), 159–174.
-19. _Inspect AI evaluation framework_ — UK AISI. <https://inspect.ai-safety-institute.org.uk/>.
+16. _Pre-registration in clinical trials_ — ClinicalTrials.gov and the Open Science Framework (OSF) as direct precedent.
+17. Cohen, J. (1960). _A coefficient of agreement for nominal scales._ _Educational and Psychological Measurement_, 20(1), 37–46.
+18. Landis, J.R. & Koch, G.G. (1977). _The measurement of observer agreement for categorical data._ _Biometrics_, 33(1), 159–174. (κ bands: < 0 poor … 0.81–1.00 almost perfect.)
+19. _Inspect_ — LLM evaluation framework, UK AI Security Institute (AISI). <https://inspect.aisi.org.uk/>.
 
 ---
 
