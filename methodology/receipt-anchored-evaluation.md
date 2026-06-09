@@ -224,73 +224,54 @@ The discipline does not assume the analyst is reliable. It measures whether they
 
 ## 6 · Lessons and carry-forwards from the trilogy
 
-<!--
-  AUTHORING NOTE (§6 skeleton): the front pillars (§3 pre-registration incl.
-  bidirectional locking, §4 registers incl. D-series, §5 reconciliation)
-  already carry the methodological lessons. §6 collects (a) the three
-  applications as grounding, and (b) the runner-engineering carry-forwards
-  that did not fit a pillar. Author each subsection from the cited sources.
--->
+The three pillars define the methodology; this section records what three applications taught about operating it.
 
-### 6.1 The three applications
+### 6.1 Stress-testing the methodology
 
-- **E1 — procurement-decisions (MRP-2026-02).** 283-record UK Contracts Finder OCDS corpus, frozen pre-run; a locked GPT-5.4 agent reviews each record without policy visibility while MeshQu evaluates against executable policy; both emit signed receipts. Lock `v0.1-predictions-locked` at `bd7a795`; published 2026-05-18.
-- **E2 — procurement-context-gradient (MRP-2026-03).** Same corpus, agent, policy; a five-rung governance-context ladder (L0→L4), 1,415 signed receipts. Headline: non-monotonic commitment — first scaled DENY at L3 (37.8%, 107/283), with L4 reverting 46. Lock `v0.2-predictions-locked`; published 2026-05-27.
-- **E3 — procurement-context-disambiguation (MRP-2026-04).** Same corpus + a locked 100-record diagnostic subset; six arms, 1,332 signed receipts. Disposition mix: 1 Confirmed (P5, both arms), 3 Falsified (P1/P3/P6), 2 Under-tested (P2/P4). Lock `v0.3-predictions-locked`; published 2026-06-09.
-- **Aggregate.** ~3,061 signed decisions (283 + 1,415 + 1,332 + 31 smoke/dry-run), every receipt anchored in the public Rekor log under kid `meshqu-experiment-procurement-2026-05` (verified — IA-2026-01).
+The methodology was stress-tested — not merely exercised — across three experiments over a fixed 283-record procurement substrate, each raising the methodological demand: E1 validated the receipt primitive at corpus scale; E2 added governance-context variation; E3 added disambiguation arms, inter-coder reconciliation, and cross-model evaluation. Across the programme, ~3,061 signed decisions were emitted and independently anchored to the public Rekor log (verified — IA-2026-01). Three substantively different research questions, one held-fixed corpus.
 
 <!-- cite: procurement-decisions/writeup/main.md; procurement-context-gradient/README.md; procurement-context-disambiguation/results/analysis_outputs.json disposition_table -->
 
-### 6.2 Pre-registration catches the surprising mechanism, not the expected one
+### 6.2 The falsifications were the payoff
 
-- E3's three clean falsifications (P1, P3, P6) are where the experiment paid off, not where it failed: without the lock they would have been reshaped into post-hoc confirmations. The single Confirmed prediction (P5) carries more weight precisely because it sits alongside them.
-- The two Under-tested outcomes (P2, P4) named the lock's own under-specification rather than rounding toward confirmation — the observation that produced the bidirectional-locking rule (§3.1).
+E3 made six pre-registered predictions; three were proven wrong against their locked bands. Reported under a closed vocabulary, those falsifications are _where the experiment paid off_ — each named a mechanism the expected story had wrong (precedents alone do not drive commitment; policy text, not the nudge, drives the backoff). The single confirmed prediction carries more weight precisely because it sits alongside three clean falsifications and two honestly-labelled Under-tested results in the same writeup. A methodology that reports its misses is not selecting for its hits.
 
-<!-- cite: procurement-context-disambiguation/planning/predictions.md (P1–P6 bands); results/analysis.py disposition_methodology block (rule_source disclosure) -->
+<!-- cite: procurement-context-disambiguation/planning/predictions.md (P1–P6 bands); results/analysis.py disposition_methodology block -->
 
-### 6.3 Cost projection as instrument validation
+### 6.3 Carry-forwards
 
-- A dry-run extrapolates per-arm token cost to corpus scale; Phase 2 recomputes against the same baseline. E3 landed within 0.4% on all six arms — evidence the runner is pinned, not a virtue claim.
-- Disclosed honestly: the headline figure is a _receipt-derived modeled estimate under embedded pricing_ (~2.6× the vendor-billed amount), not a billing reconciliation. The honest-disclosure pairing is the contribution, not the 0.4% alone.
+Four lessons an implementer inherits, each pulled from a concrete failure the programme caught:
 
-<!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-05-29 "Five-gate sign-off" (±0.4%); writeup/writeup.md §8 (~510–516) for the modeled-vs-billed caveat — in the WRITEUP, not the decision log -->
+- **Instrument validation through independent projection.** The experimental runner is itself an instrument, and an instrument can be silently miscalibrated. An independent pre-run projection that the production run then reproduces — in the trilogy, a per-arm cost projection the full run matched within tolerance — is evidence the runner is pinned. (The projected figure is disclosed as a modeled estimate, not a billing reconciliation; the honest pairing is the lesson, not the accuracy.)
+- **Runner validation through lock-in tests.** A run can pass every cryptographic check and still be substantively empty — one smoke run signed its receipts cleanly while feeding empty records to three arms (_cryptographically clean, operationally empty_). Validation therefore requires operational lock-in tests in addition to receipt verification: parametrized tests that assert the runner produces distinct inputs per record, and that observability is captured at runtime rather than merely configured, catch the class of failure a signature cannot.
+- **Parallel-execution isolation.** Parallel experimental execution requires isolation guarantees. Early E3 runs showed that a shared execution environment can cross-contaminate independent experimental branches; isolated workspaces eliminated the failure mode.
+- **Ambiguity preservation.** Several E2 and E3 findings admitted more than one defensible interpretation. Forcing a single narrative would have overstated the evidence, so the methodology treats alternative readings, anti-claims, and Under-tested outcomes as first-class outputs rather than editorial weaknesses — the same restraint surfacing in several places (§3's Under-tested, §4's two-readings and anti-claims), recognised here as one lesson: resolve ambiguity in the experiment, not in the prose.
 
-### 6.4 Lock-in tests for replicable runners
-
-- **Per-record SHA distinctness.** A parametrized test asserts two distinct records produce distinct rendered prompts — caught a smoke run that signed 14 receipts cleanly but fed empty records on three arms (cryptographically clean, operationally empty).
-- **Cross-record fingerprint check.** At run start/end, assert more than one unique prompt-SHA per arm where records differ — catches degenerate single-record runs the per-pair test misses.
-- **Observability captured-vs-configured.** The readiness gate distinguishes "dashboards exist" from "run-start + run-end captures landed," at item-level granularity.
-
-<!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-05-28 (PR #97 record-composition) + 2026-05-29 "(c) Readiness-item-14 caveat" -->
-
-### 6.5 Worktree-isolation for parallel agent dispatch
-
-- Parallel-agent dispatch uses physically isolated working trees (`git worktree add … -b feat/<task-id>` per agent); shared-workspace execution is opt-in and justified.
-- Worked example: E3's first Wave-2 dispatch ran 7 agents on one tree and only 1 of 7 committed cleanly; re-dispatched under isolation, 6 of 6 clean.
-
-<!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-05-28 "Wave 2 close-out"; programme/PROCESS.md gate #7 -->
+<!-- cite: decision_log.md 2026-05-29 "Five-gate sign-off" + writeup/writeup.md §8 (cost-as-instrument + modeled-vs-billed caveat); decision_log.md 2026-05-28 (PR #97 record-composition; Wave 2 isolation); programme/PROCESS.md gate #7 -->
 
 ---
 
 ## 7 · Threats to validity
 
-<!--
-  AUTHORING NOTE (§7 skeleton): the mature attitude to limitations is already
-  in the trilogy ("the methodology is designed to travel; the findings are
-  not"). Each threat below gets a short paragraph: state the threat, state
-  what the methodology does/does not do about it, and bound the claim.
--->
+> A methodology's credibility is partly in what it refuses to claim. The trilogy's own line — _the methodology is designed to travel; the findings are not_ — is the first entry on this list; the rest mark where the guarantees stop.
 
-The methodology is designed to travel; the findings are not. This section states what these results do _not_ support, and where the methodology's own guarantees stop.
+**Substrate dependence.** Every quantitative finding is bound to a single 283-record UK public-procurement corpus. The receipts make those findings _checkable_; they do not make them _general_. No result here transfers to another domain except as a hypothesis to be re-tested under the same discipline.
 
-- **Substrate dependence.** Every quantitative finding is bound to one 283-record UK-procurement corpus; nothing here generalises to other substrates on its own.
-- **Model-version dependence.** Verdict-axis findings are model-specific (E3's cross-model arm showed verdict behaviour diverges across models while reasoning patterns reproduced); a model change can move verdict conclusions.
-- **Rubric dependence.** Hand-coded behavioural categories are only as good as the rubric; a different rubric can produce a different coding even at κ = 1.
-- **Coder effects.** Reconciliation detects and bounds drift (§5) but does not eliminate the rubric author's framing choices.
-- **Transparency-log trust assumptions.** Verifiability rests on Sigstore Rekor's append-only guarantees and the published signing key; it inherits those trust assumptions.
-- **Public-record survivorship.** The substrate is what UK Contracts Finder published; records absent from the public feed are absent from the corpus.
-- **Reasoning-text limitations.** The agent's reasoning text is what it emitted, not a faithful trace of its computation; findings about reasoning are about the emitted text.
-- **External validity.** The methodology's portability is an argument, not yet a result — it has been stress-tested on one substrate, not transferred to another (see §9).
+**Model-version dependence.** Findings are specific to the locked model versions, and E3's cross-model arm is the cautionary case: the _verdict_ an agent emitted diverged across models, while the _reasoning pattern_ — applying a rule's intent over its inverted text — reproduced. An evaluation built only on verdict outputs may produce conclusions that do not survive a model change; reasoning-level findings travel further than verdict-level ones, but neither is guaranteed across versions.
+
+**Policy dependence.** The experiments measure the interaction between an agent and an _authored_ policy artefact — its rules, thresholds, decomposition, and drafting. E3 showed that policy structure is itself a major variable: which rung of the governance ladder carried the commitment signal, and whether policy text or an anti-sycophancy nudge drove the backoff, were the questions the experiment existed to disambiguate. The findings therefore attach to the policy as authored, not merely to the domain it governs; a different policy structure over the same records could produce different behaviour.
+
+**Rubric dependence.** Where behaviour is hand-coded (§5), the categories are only as good as the rubric that defines them. Reconciliation can drive agreement to κ = 1, but perfect agreement on a poorly-chosen rubric still measures the wrong thing — reliability is not validity. The rubric is pre-registered and published precisely so this dependence is auditable rather than hidden.
+
+**Coder effects.** Reconciliation detects and bounds an individual coder's drift; it does not remove the framing choices baked into the rubric by its author. The discipline measures whether the coding was applied consistently — not that the categories carve the behaviour at its joints.
+
+**Transparency-log trust assumptions.** "Verifiable without trusting the authors" is not "verifiable without trusting anything." Verification inherits Sigstore Rekor's append-only guarantees, the integrity of the published signing key, and the standard assumptions behind Ed25519 and SHA-256. These are widely held and well-scrutinised — but they are assumptions, and the methodology rests on them.
+
+**Public-record survivorship.** The substrate is what UK Contracts Finder published, not the full population of procurement decisions. Records withheld, delayed, or never filed are absent from the corpus, and any selection effect in the public feed is inherited by every finding.
+
+**Reasoning-text limitations.** The agent's reasoning text is what the model emitted, not a faithful trace of the computation that produced its verdict. Findings about reasoning are findings about the emitted text — its content, its drift, what it names and omits — not claims about the model's internal process.
+
+**External validity.** The methodology's portability is, at this point, an argument rather than a result. It has been stress-tested three times on one substrate; it has not been carried to a different evidential structure. Until it is (§9), "portable" describes a design property, not a demonstrated one.
 
 ---
 
@@ -312,11 +293,15 @@ Distilled, Receipt-Anchored Evaluation makes five commitments:
 
 ## 9 · Conclusion and future work
 
-<!-- AUTHORING NOTE (§9 skeleton): short conclusion that lands "evidence
-     preservation + interpretation constraints, neither alone sufficient",
-     then the three concrete next experiments below. -->
+Empirical claims about AI-governance behaviour are usually asked to be believed. Receipt-Anchored Evaluation asks instead to be checked — and builds the checking into the artefacts, not the reputation of the authors.
 
-_Conclusion prose pending._ Core thesis to land: a signed corpus without locked interpretation still permits narrative drift; locked interpretation without trustworthy artefacts still requires trust; the methodology needs both — evidence integrity, interpretive integrity, and analytical integrity together.
+The contribution is not the receipt alone. A signed corpus without locked interpretation still permits narrative drift: the evidence is trustworthy, but the story told over it is not constrained. A locked interpretation without trustworthy artefacts still requires trust: the discipline is sound, but the data behind it cannot be re-derived. The methodology needs both — and a third part besides, the audit of the judgment steps that neither receipts nor pre-registration reach. Evidence integrity, interpretive integrity, and analytical integrity are not alternatives; each is necessary, and only together do they let a reader who distrusts the conclusions still trust the process.
+
+The wider claim the trilogy makes is small to state and large in consequence: empirical AI-governance research should preserve the evidentiary artefacts its conclusions are built from, not merely publish the conclusions. A conclusion is a summary. An artefact can be audited. Preserving the artefact is what turns "trust us" into "check it."
+
+The trilogy's own results demonstrate why the distinction matters: predictions were falsified, coding drift was detected, and alternative readings were preserved — without requiring the reader to trust the authors' account of any of them.
+
+What remains is to show the discipline travels. It has been stress-tested three times on one substrate; its portability is, for now, an argument — and the next experiments are built to test it.
 
 ### 9.1 E4 — operational receipt-as-memory agent (design-partner shape)
 
