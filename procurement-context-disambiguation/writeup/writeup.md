@@ -443,24 +443,17 @@ The programme began as an evaluation of AI decision behaviour. It concludes with
 
 ## §11 — Declaration of AI assistance
 
-<!-- TODO: optional collaborators / reviewers / design-partner acknowledgments — Sam's discretion -->
-
 AI tools were used during ideation, drafting, and editorial refinement of this paper. The pre-registration, experimental design, locked-prompt SHA fingerprints, corpus collection, inter-coder reconciliation, and analytical conclusions were directed and reviewed by the author. In a paper on AI evaluation methodology, disclosing the assistance trail is the same primitive the paper advocates for — making the work legible at the point of the work.
 
 ## §12 — References
 
-<!-- Cross-references to E1, E2, and the methods note. Plus the procurement
-     regulatory references (PA23, PCR 2015), Sigstore Rekor, and any
-     literature citations Sam decides to keep (E2 referenced Chen & Zhang
-     2023 — E3 may or may not reuse depending on the framing). -->
-
+- **Chen, Q.Z. & Zhang, A.X.** *Case Law Grounding: Using Past Cases to Align Decision-Making for Humans and AI.* arXiv:2310.07019, 2023 (accepted ACM Collective Intelligence 2025). https://arxiv.org/abs/2310.07019 (Referenced in MRP-2026-03 §4 as the case-law-grounding anchor for verdict-bearing precedents; the present paper's F013 mechanism refinement sits in the same research thread.)
 - **MeshQu Research.** *MRP-2026-02 — When AI hedges and policy commits: Anatomy of agent–policy disagreement on UK procurement decisions, signed and verifiable.* 2026-05-18 — E1 baseline (DOI placeholder)
 - **MeshQu Research.** *MRP-2026-03 — When precedents commit AI and policy pulls it back: A five-rung governance-context ladder on 283 procurement decisions.* 2026-05-22 — E2 ladder shape (DOI placeholder)
 - **MeshQu Research.** *Receipt-Anchored Evaluation: a methodology note from a three-experiment programme.* Forthcoming — trilogy methods note (DOI placeholder)
 - **UK Parliament.** *Procurement Act 2023, s.53(1).* 2023
 - **UK Government.** *Public Contracts Regulations 2015 (PCR 2015).*
 - **Sigstore project.** *Rekor — transparency log for software artifacts.* https://docs.sigstore.dev/logging/overview/
-- <!-- TODO: optional literature anchor — Chen & Zhang 2023 (Case Law Grounding, arXiv:2310.07019) was used in E2 §4; E3 may or may not reference depending on whether the verdict-exemplar reading needs the lit anchor -->
 
 ## Appendix A — Pre-registration provenance
 
