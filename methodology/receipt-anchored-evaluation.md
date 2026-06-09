@@ -234,9 +234,9 @@ The trilogy inherits five named registers beyond the receipt primitive. Each is 
 <!-- cite: procurement-context-disambiguation/planning/predictions.md §"Definition of 'report honestly'" for the locked vocabulary contract -->
 <!-- cite: §3.2 of this note for the side-by-side P-series + F-series vocabulary -->
 
-**Register 3 — D-series register for behavioural axes spanning experiments.** Named axes carried across experiments. E2 Appendix C established D1–D9; the principal load-bearing axes are **D4 Policy resistance**, **D6 Precedent sensitivity**, and **D7 Uncertainty markers**. New D-axes get added at experiment-level as the corpus reveals them, not retrofitted post-hoc to flatter the result. E3's three-category rubric (Cat 1 names-inversion / Cat 2 reasons-against-intent / Cat 3 hybrid) is the hand-coded operationalisation of D4 — deferred from E2 Appendix C's lexicon-strict measurement (which surfaced 0/14 contradiction-naming fires) into E3's larger-n hand-coded protocol. The D-series register makes the cross-experiment continuity machine-checkable: D4 in E3 is **the same axis** as D4 in E2, just under a sharper instrument.
+**Register 3 — D-series register for behavioural axes spanning experiments.** Named axes carried across experiments. E2 Appendix C established D1–D8; the principal load-bearing axes are **D4 Policy resistance**, **D6 Precedent sensitivity**, and **D7 Uncertainty acknowledgement**. New D-axes get added at experiment-level as the corpus reveals them, not retrofitted post-hoc to flatter the result. E3's three-category rubric (Cat 1 names-inversion / Cat 2 reasons-against-intent / Cat 3 hybrid) is the hand-coded operationalisation of D4 — deferred from E2 Appendix C's lexicon-strict measurement (which surfaced 0/14 contradiction-naming fires) into E3's larger-n hand-coded protocol. The D-series register makes the cross-experiment continuity machine-checkable: D4 in E3 is **the same axis** as D4 in E2, just under a sharper instrument.
 
-<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md Appendix C "Behavioural taxonomy v1.1 reference" for the D1–D9 enumeration -->
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md Appendix C "Behavioural taxonomy v1.1 reference" for the D1–D8 enumeration -->
 <!-- cite: procurement-context-gradient/results/writeup-DRAFT.md §8 paragraph "Larger Permuted-Policy diagnostic" for the deferred-from-E2-into-E3 hand-coded rubric design -->
 <!-- cite: procurement-context-disambiguation/planning/predictions.md for the locked three-category rubric protocol (E3's D4 operationalisation) -->
 <!-- cite: §6.7 of this note for the carry-forward -->
@@ -383,7 +383,10 @@ The trilogy inherits five named registers beyond the receipt primitive. Each is 
   100 reasoning texts blind, then a blind AI second-coder re-coded;
   κ ≈ −0.04 surfaced systematic drift at one rubric boundary;
   reconciliation under fresh eyes produced 79/79 second-coder-adopted
-  on contested records; final κ = +1.00; P5 Confirmed.
+  on contested records; final reconciled↔agent κ = +1.0000 (verified vs
+  results/rubric_inter_coder_analysis_primary.md:36 — the +1.00 is the
+  reconciled-vs-agent agreement, NOT first-pass-vs-agent, which is −0.0369);
+  P5 Confirmed.
 
   This is a worked example of the discipline catching its own coder's
   fatigue. Without the κ check, the writeup would have committed to
@@ -414,8 +417,10 @@ The trilogy inherits five named registers beyond the receipt primitive. Each is 
 - Dry-run cost ratios are persisted per arm; Phase 2 cost ratios are computed against the same baseline at run end.
 - Five-gate sign-off includes a ±15% cost accuracy gate as one of five PASS conditions; Phase 2 hit ±0.4%.
 - The accuracy is not a virtue claim — it is what an instrument-validated runner produces when the substrate, agent, and policy are pinned.
+- The headline cost figure is disclosed as a *receipt-derived modeled estimate under embedded pricing* (~2.6× the vendor-billed amount), not a billing reconciliation. The honest-disclosure pairing — projection accuracy AND the modeled-vs-billed caveat — is the contribution, not the ±0.4% alone.
 
 <!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-05-29 entry §"Five-gate sign-off" for the ±0.4% figure -->
+<!-- cite: procurement-context-disambiguation/writeup/writeup.md §8 (~lines 510–516) "Cost figures are receipt-derived estimates, not vendor-billed amounts" for the modeled-vs-billed (~2.6×) caveat — this lives in the E3 WRITEUP, NOT the decision log -->
 
 ### 5.4 Disposition vocabulary as honest-reporting discipline
 
@@ -540,7 +545,8 @@ The trilogy inherits five named registers beyond the receipt primitive. Each is 
 - The ±15% accuracy gate is one of five PASS conditions on a Phase 2 readiness sign-off; deviation triggers re-baselining before fire.
 - Projection accuracy is itself evidence the runner is pinned correctly.
 
-<!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-05-29 §"Five-gate sign-off" -->
+<!-- cite: procurement-context-disambiguation/planning/decision_log.md 2026-05-29 §"Five-gate sign-off" for the ±0.4% projection-accuracy figure -->
+<!-- cite: procurement-context-disambiguation/writeup/writeup.md §8 (~lines 510–516) for the modeled-vs-billed (~2.6×) disclosure that must accompany the projection-accuracy figure — NOT in the decision log -->
 
 ### 6.5 Inter-coder reconciliation protocol
 
@@ -585,19 +591,19 @@ The trilogy inherits five named registers beyond the receipt primitive. Each is 
   Intent: name the D-series as a discipline carry-forward in its own
   right, alongside receipt-anchored signing, locked-prompt SHAs,
   pre-registered predictions, anti-claims, and F-series. E2 Appendix C
-  established D1–D9 as named axes; E3 inherits them and operationalises
+  established D1–D8 as named axes; E3 inherits them and operationalises
   D4 as the hand-coded three-category rubric. Future experiments add new
   D-axes at experiment-level as the corpus reveals them, not retrofitted
   post-hoc. The register is what makes cross-experiment continuity
   machine-checkable.
 -->
 
-- Named axes spanning experiments. E2 Appendix C established D1–D9 (D1 Ambiguity handling, D2 Escalation behaviour, D3 Policy obedience, D4 Policy resistance, D5 Evidence sensitivity, D6 Precedent sensitivity, D7 Uncertainty acknowledgement, D8 Governance-context susceptibility, D9 reserved). E3 inherits the same D-numbers under the same definitions; cross-experiment comparison is by axis, not by ad-hoc metric.
+- Named axes spanning experiments. E2 Appendix C established D1–D8 (D1 Ambiguity handling, D2 Escalation behaviour, D3 Policy obedience, D4 Policy resistance, D5 Evidence sensitivity, D6 Precedent sensitivity, D7 Uncertainty acknowledgement, D8 Governance-context susceptibility). E3 inherits the same D-numbers under the same definitions; cross-experiment comparison is by axis, not by ad-hoc metric. (Source: `writeup-DRAFT.md` Appendix C enumerates exactly D1–D8; do not reintroduce a D9 without a sourced definition.)
 - D4 (Policy resistance) is the worked example. E2 measured D4 lexicon-strict against the 14-record Permuted-Policy diagnostic (0/14 contradiction-naming fires); E3 hand-coded D4 as the three-category Cat 1 / Cat 2 / Cat 3 rubric on the n=100 Permuted-Policy diagnostic subset — the same axis, sharper instrument. The Cat 1/2/3 rubric was deferred from E2 Appendix C as the planned refinement and locked at E3's `v0.3-predictions-locked` tag.
 - New D-axes get added at experiment-level as the corpus reveals them. E2 introduced D8 (Governance-context susceptibility) as a cumulative cross-axis aggregate after the L3 break surfaced; E3 may introduce additional axes around cross-model verdict-style divergence pending Phase 3 analysis. New axes get a number and a definition before they are measured, not after.
 - The trilogy commits to D-series as the cross-experiment behavioural-taxonomy register. Future applications of Receipt-Anchored Evaluation inherit the D-numbers and their definitions; substrate transfer (banking KYC, complaints, credit per §7.2) introduces domain-specific D-axes alongside the inherited ones rather than renumbering.
 
-<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md Appendix C "Behavioural taxonomy v1.1 reference" for the D1–D9 enumeration -->
+<!-- cite: procurement-context-gradient/results/writeup-DRAFT.md Appendix C "Behavioural taxonomy v1.1 reference" for the D1–D8 enumeration -->
 <!-- cite: procurement-context-gradient/planning/behavioural_taxonomy.md §1.5 (v1.1 restraint amendment) for the lock-time taxonomy contract -->
 <!-- cite: procurement-context-disambiguation/planning/predictions.md for the locked Cat 1/2/3 rubric protocol that operationalises D4 in E3 -->
 <!-- cite: §3.4 of this note (Register 3) for the discipline-register definition -->
