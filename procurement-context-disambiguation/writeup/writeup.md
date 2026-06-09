@@ -583,7 +583,7 @@ AI tools were used during ideation, drafting, and editorial refinement of this p
      corpus re-derivable from on-disk bundles by any reader with no
      credentials required. -->
 
-- Branch / tag: writeup anchored to <!-- TODO: branch + commit at publication time --> ; v0.3 lock tag `v0.3-predictions-locked` carries the predictions / locked content / policy snapshot at pre-run state
+- Branch / tag: writeup anchored to release tag `v1.0-mrp-2026-04` on `meshqu-research` main; the v0.3 lock tag `v0.3-predictions-locked` carries the predictions, locked content, and policy snapshot at pre-run state, independent of the v1.0 release anchor
 - Re-derive verdict distributions: read the bundles at `results/runs/phase-2-20260529T092611-Z/<arm_name>/*.bundle.json`; spot-check against `phase-2-summary.md` in the run dir
 - Re-derive rubric distributions: read the canonical sheets at `results/rubric_coding_primary.jsonl` and `results/rubric_coding_claude.jsonl`; spot-check against the inter-coder analysis artefacts
 - Independent receipt verification: download any bundle, submit to verify.meshqu.com; the verifier recomputes the canonical signing-envelope bytes, verifies the Ed25519 signature against the published kid, and checks the Rekor anchor
