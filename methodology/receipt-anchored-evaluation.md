@@ -228,7 +228,7 @@ The three pillars define the methodology; this section records what three applic
 
 ### 6.1 Stress-testing the methodology
 
-The methodology was stress-tested — not merely exercised — across three experiments over a fixed 283-record procurement substrate, each raising the methodological demand: E1 validated the receipt primitive at corpus scale; E2 added governance-context variation; E3 added disambiguation arms, inter-coder reconciliation, and cross-model evaluation. Across the programme, ~3,061 signed decisions were emitted and independently anchored to the public Rekor log (verified — IA-2026-01). Three substantively different research questions, one held-fixed corpus.
+The methodology was stress-tested — not merely exercised — across three experiments over a fixed 283-record procurement substrate, each raising the methodological demand: E1 validated the receipt primitive at corpus scale; E2 added governance-context variation; E3 added disambiguation arms, inter-coder reconciliation, and cross-model evaluation. Across the programme, ~3,061 signed decisions were emitted and independently anchored to the public Rekor log (verified — IA-2026-01). Three research questions. One held-fixed corpus. Increasing methodological demand.
 
 <!-- cite: procurement-decisions/writeup/main.md; procurement-context-gradient/README.md; procurement-context-disambiguation/results/analysis_outputs.json disposition_table -->
 
@@ -275,7 +275,7 @@ Four lessons an implementer inherits, each pulled from a concrete failure the pr
 
 ---
 
-## 8 · Core methodological commitments
+## 8 · The five commitments of Receipt-Anchored Evaluation
 
 <!-- AUTHORING NOTE (§8 skeleton): one short page. The distilled methodology,
      plain language, no MUST/SHOULD, no conformance framing. Extracted from
