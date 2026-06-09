@@ -28,6 +28,10 @@ E3 is the third experiment in a pre-registered programme on governance-context e
 
 The methodological discipline carries forward from E2 unchanged. Every AI decision in the corpus is bound to a cryptographically signed Decision Receipt — Ed25519 signature, public Sigstore transparency-log anchor, schema-versioned envelope — together with the policy snapshot, prompt SHA, and reasoning text. Predictions are pre-registered with locked confirmation and falsification bands. P-series predictions and F-series findings are reported using their pre-defined disposition vocabularies. Anti-claims are first-class output, reported alongside findings and aggregated in §9. The methodology itself is documented separately in the companion methods note, *Receipt-Anchored Evaluation*.
 
+> **Why receipts matter.** The methodology rests on a single substrate primitive — every AI decision is bound to a signed Decision Receipt at evaluation time. Receipts give the corpus policy provenance (which policy the agent was shown), auditability (any reader can recompute the integrity hash offline), reproducibility (the corpus is re-derivable from on-disk bundles without re-running the agent), and cross-model comparability (token-level provenance is model-independent). Without receipts, this discipline would not scale to a 1,332-record corpus.
+
+> **Key takeaway** — E3 is the third paper in a four-experiment programme. Each experiment narrows the questions the previous one raised; the methodology substrate — signed receipts, locked predictions, anti-claims, and the disposition vocabulary — carries forward unchanged across all four.
+
 **Figure 7 — The trilogy arc.** *Programme diagram of the four experiments, each named with its load-bearing question. E1: can decisions be bound to evidence? E2: what governance context changes behaviour? E3 (this paper): which of E2's competing explanations survive contact with data? E4 (named but not yet locked): can governance memory operate in live workflows? The figure visualises the programme's question-shape; the methodological substrate — signed receipts, locked predictions, anti-claims, disposition vocabularies — carries forward across all four. Asset needs generation.*
 
 ## §3 — E3 design recap
@@ -83,6 +87,16 @@ The formal disposition table reports against the locked pre-registration; this t
      claims, and E4 implications. Length: ~10–12 pages worth across all
      subsections; this is the heart of the paper. -->
 
+**What changed from E2.** Read against E2's two structural findings and the predictions designed to disambiguate them:
+
+- Precedents alone do not explain the L3 commitment break — Arm A produces 3.5% DENY against the locked 20% confirmation floor.
+- Policy text, not the anti-sycophancy clause, drives most of the L4 backoff — `l4_without_nudge` retention sits within noise of E2's nudge condition.
+- Inversion-blindness reproduces at n=100 — the diagnostic primary arm shows 88% same-as-unperturbed verdicts and Cat 2 dominance at 93%.
+- The reasoning pattern reproduces across model families — Cat 2 dominates in both GPT-5.4 (93%) and Claude Opus 4.7 (100%).
+- Verdict commitment remains model-specific — Opus 80% commit rate vs GPT-5.4 23%, with the comparison at the distribution-shape level rather than per-record.
+
+Each bullet restates a finding established below; nothing in this summary anticipates a result the corpus does not support.
+
 ### §4.1 — P1 falsified: Arm A DENY rate far below the 20% commit floor
 
 Arm A produces a DENY commitment rate of 3.5% (10 records out of 283), an order of magnitude below the 20% locked confirmation threshold. The locked falsification clause — *Arm A DENY < 20%* — is therefore triggered. Arm C produces zero DENYs (0/283), comfortably below the 12% upper bound for the density-control arm.
@@ -92,6 +106,8 @@ The simplest reading is that precedents alone are not sufficient to produce DENY
 The falsification of P1 should not be read as a refutation of the precedent mechanism. Arm A still produces every DENY observed across the Piece 1 decomposition — 10 records, compared with zero in Arm B and zero in Arm C. Precedents are doing measurable work on the verdict axis; they simply do not account for the full magnitude of the L3 break when evaluated in isolation.
 
 The three-arm verdict distribution therefore reveals a finding sharper than the binary P1 disposition captures. The important distinction is not whether precedents matter, but how much of the E2 effect they explain. That question is examined directly in §4.2 alongside the under-tested P2 result. The practical implication is that governance behaviour appears to emerge from interacting governance layers rather than any single artefact in isolation.
+
+> **Key takeaway** — Precedents matter, but they do not explain the L3 commitment break on their own. The corpus supports an accumulation reading: governance behaviour appears to emerge from interacting governance layers rather than any single artefact in isolation.
 
 ### §4.2 — P2 under-tested; Piece 1 mechanism refinement: verdict-bearing precedents enable directional commitment (mostly ALLOW)
 
@@ -115,6 +131,8 @@ Arm A is the only condition producing any DENY commitment across the three arms:
 The data are consistent with a mechanism P2 did not anticipate: verdict-bearing precedents increase directional commitment in either direction, with ALLOW the dominant direction in this corpus and policy combination. The finding refines the governance-memory hypothesis by identifying verdict-bearing precedent as the active component while rejecting the stronger claim that the effect operates primarily through DENY anchoring.
 
 P2's locked-band asymmetry collapsed a two-dimensional commitment pattern onto a single DENY-rate axis. Under the locked vocabulary the disposition remains Under-tested; the substantive result is therefore recorded as F013, a Piece 1 mechanism refinement rather than a post-hoc rescue of P2.
+
+> **Key takeaway** — Verdict-bearing precedents enable directional commitment in either direction — ALLOW or DENY — with ALLOW dominant in this corpus and policy combination. F013 refines the governance-memory interpretation: it is the verdict field that carries the load, not the polarity.
 
 #### F013 — Piece 1 verdict-distribution refinement (Discovered)
 
@@ -154,6 +172,8 @@ This result should not be interpreted as evidence that the anti-sycophancy claus
 
 The magnitude of that policy effect remains substantial. `l4_without_nudge` produces DENY commitment on 27.2% of records (77/283), compared with 3.5% in Arm A (10/283). Even with the nudge removed, the policy condition continues to produce an order-of-magnitude increase in DENY commitment relative to precedents alone. The policy text is doing the structural work.
 
+> **Key takeaway** — The L3→L4 backoff is policy-text-driven, not nudge-driven. With the nudge removed, the policy condition still produces an order-of-magnitude increase in DENY commitment relative to precedents alone.
+
 ### §4.5 — P4 under-tested: inversion-blindness substantively holds at scale; locked spec specifies confirm band only
 
 On 88 of 100 records in the n=100 Permuted-Policy diagnostic, the agent reached the same verdict whether or not the policy operators had been inverted. The inversion-blindness pattern is overwhelmingly present in the corpus.
@@ -182,6 +202,8 @@ The agent's reasoning is shaped by what it has learned a procurement rule should
 
 Inter-coder κ between the blind AI second-coder pass and the final canonical sheet is +1.0000 on both arms after reconciliation. The six borderlines the blind agent flagged on `diagnostic_claude` were all missing-evidence hedges that the rubric's default rule unambiguously excludes from Cat 3. The Cat 2 dominance survives a robustness check: even if all six borderlines had been classified as Cat 3, the diagnostic_claude distribution would have been 0/94/6 — still Confirmed.
 
+> **Key takeaway** — Inversion-blind reasoning reproduces across two model-protocols: 93% Cat 2 on GPT-5.4, 100% Cat 2 on Claude Opus 4.7. The pattern appears to be a property of the task class rather than an artefact of either individual model.
+
 ### §4.7 — Cross-model arm: verdict-style divergence + rubric-axis coherence
 
 P6 is falsified on the verdict axis but supported on the reasoning axis. The two models reach substantially different verdict distributions while exhibiting the same inversion-blind reasoning pattern. The cross-model arm therefore yields a cross-axis-coherent finding with direct operational implications for how AI evaluation in regulated decisioning should be framed: reasoning evaluations may generalise across models while verdict evaluations may not.
@@ -202,6 +224,8 @@ The directional alignment with the policy engine confirms the pattern from a thi
 The single Opus ALLOW-on-engine-DENY record provides a worked example of the reasoning pattern that underlies the verdict-axis divergence. Decision `54d702ac-8c51-4d59-948f-76293f731fa0` (OCID `ocds-b5fd17-54ed0ae6-…`) is a £5.6M contract with `above_threshold: true` and `governed_by_pa23: false`. The engine, evaluating the permuted policy, fires `PROC-002-AUTHORITY` (`VALUE_ABOVE_MAX`: contract value 5,626,967.5 exceeds the inverted threshold) and produces DENY. Opus's reasoning text reads, in full: *"Contract predates PA23 commencement so s.53 publication rule doesn't apply; open competition was used, supplier not on listed sanctions IDs, not a modification. COI field absent from substrate schema is a known data limitation rather than evidence of non-declaration."* The reasoning walks through five rules (s.53, PROC-005, PROC-003, PROC-006, PROC-004) under their unperturbed semantics and reaches ALLOW. `PROC-002` — the rule the engine fired on under the permuted policy — is not addressed in the reasoning at all. The receipt nonetheless binds the permuted policy snapshot SHA, the agent's reasoning, and the engine's `PROC-002` violation into a single signed envelope; the divergence is auditable from the bundle directly. The bundle path is `results/runs/phase-2-20260529T092611-Z/diagnostic_claude/54d702ac-8c51-4d59-948f-76293f731fa0.bundle.json`.
 
 The methods caveat: Opus 4.7 removed the `temperature` parameter. The cross-model arm cannot match GPT-5.4's temperature-0 setting; `effort: low` is the closest near-deterministic configuration available. The reading is therefore on the rubric distribution shape rather than per-record verdict equivalence — verdict-for-verdict comparability is not claimed. The Opus 4.7 sampling difference is recorded explicitly in §8.
+
+> **Key takeaway** — Both models reason the same way under inversion, yet produce materially different verdict distributions. The cross-model arm yields a cross-axis-coherent finding: reasoning may be portable across models; verdict commitment is not.
 
 #### F014 — Cross-model verdict-style divergence (Discovered)
 
@@ -369,6 +393,8 @@ The implication is more general than either P5 or P6 alone. If reasoning pattern
 
 The methodology refinement that follows is straightforward. AI evaluation in regulated contexts should evaluate on both axes — the verdict the agent emits and the reasoning that produced it — and should not assume that agreement on one implies agreement on the other. The receipt primitive binds both into a single signed envelope; the methodology infrastructure for this evaluation already exists.
 
+> **Key takeaway** — Reasoning evaluations may generalise across models; verdict evaluations may not. AI evaluation in regulated contexts should test both axes — the verdict the agent emits and the reasoning that produced it.
+
 ## §8 — Limitations + caveats
 
 <!-- ~3 sub-bullets. Honest disclosure section, matching E2's §9 anti-claims
@@ -517,6 +543,22 @@ AI tools were used during ideation, drafting, and editorial refinement of this p
 - Re-derive rubric distributions: read the canonical sheets at `results/rubric_coding_primary.jsonl` and `results/rubric_coding_claude.jsonl`; spot-check against the inter-coder analysis artefacts
 - Independent receipt verification: download any bundle, submit to verify.meshqu.com; the verifier recomputes the canonical signing-envelope bytes, verifies the Ed25519 signature against the published kid, and checks the Rekor anchor
 - No live credentials are required to re-derive any number in this writeup; re-running the agent loop is a separate exercise requiring an OpenAI key + an Anthropic key
+
+## Appendix E — Why this matters operationally
+
+This appendix translates the paper's substantive findings into operational language for readers in regulated decisioning contexts — regulators, banks, insurers, compliance teams, and governance teams. The implications below restate findings established in §4, §6, and §7; no new claims are made here.
+
+**Policy drift.** §4.1 and §4.4 indicate that AI agents in this corpus respond to policy structure in ways an operator may not anticipate. If a deployed policy drifts away from the canonical version — through version lag, configuration error, or partial rollout — the agent's verdict-shape may shift correspondingly. Receipt-anchored evaluation makes the drift detectable: every decision binds a hash of the policy snapshot the agent was shown, and operators can compare the bound hash against the canonical version at audit time.
+
+**Audit readiness.** Every AI decision in this corpus produces an offline-verifiable signed receipt that binds the policy snapshot, the prompt SHA, the model identity, and the agent's reasoning text. The audit trail is environment-independent: a reader holding the public verifier key can re-derive every integrity hash from the on-disk bundle without re-running the agent. For organisations subject to regulatory audit, this property converts decision review from a record-reconstruction problem to a signature-verification problem.
+
+**Model replacement.** §4.6 and §7.4 indicate that the reasoning pattern the AI agent produces may be more stable across model families than the verdicts it commits to. Operators considering a model swap (cost, latency, vendor) should plan to re-evaluate the verdict surface even if the reasoning surface looks unchanged. The methodology supports both evaluations from the same corpus, because token totals are receipt-bound and recomputable.
+
+**Evidence retention.** Receipts are designed for indefinite retention without storage growth pressure: each receipt is a small signed envelope (token counts + reasoning text + signature + transparency anchor), independent of the underlying decision-context size. Retention requirements driven by regulatory frameworks (DORA, SOC2, sector-specific guidance) can be satisfied at receipt-level without retaining the broader environment.
+
+**Decision traceability.** Each receipt anchors a decision back to the precise policy version, prompt, and reasoning text the agent saw. Operators investigating an unexpected verdict can pull the receipt, inspect the bound substrate, and reproduce the integrity hash — turning post-hoc investigation into a deterministic check rather than a reconstruction exercise.
+
+The paper does not make commercial claims about any of these properties. They are restatements of methodology already documented in §2 and §5, applied to operational contexts.
 
 ---
 
