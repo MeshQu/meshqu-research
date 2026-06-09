@@ -22,6 +22,23 @@ The strongest cross-model finding is a separation between reasoning and verdict 
 
 Across six pre-registered predictions, one was confirmed, three were falsified, and two were under-tested due to confirmation-only lock criteria. All predictions, thresholds, and artefacts remained unchanged from the v0.3 pre-registration lock (`ba4ebfb`).
 
+## Executive Summary
+
+E3 tested whether governance artefacts actually influence AI decision-making. Three findings emerged:
+
+**1. Precedents matter less than expected.**
+A treatment that provided only precedent receipts (no policy text, no rules) produced DENY decisions on just 3.5% of records — against a 20% confirmation floor. Governance effects appear to emerge from accumulated context rather than isolated examples.
+
+**2. Policy text matters more than prompts.**
+Removing the anti-sycophancy instruction barely changed agent behaviour (a 3.7 percentage-point delta). The policy text itself drove the outcome; the nudge clause was incidental.
+
+**3. Models can reason similarly while deciding differently.**
+GPT-5.4 and Claude Opus 4.7 exhibited the same inversion-blind reasoning pattern (93% and 100% Cat 2 respectively). Yet they produced materially different verdict distributions — GPT-5.4 committed on 23% of records; Opus committed on 80% — on the same record-matched corpus.
+
+**Implication.** Governance cannot live inside the model alone. The surrounding decision environment — policy text, accumulated context, evaluation methodology — is what carries the load. AI evaluation in regulated contexts should test both the verdict an agent emits and the reasoning that produced it; the receipt-anchored evaluation methodology supports both from a single corpus.
+
+> **The methodology is portable across domains; the substrate findings are not.**
+
 ## §2 — Programme context
 
 E3 is the third experiment in a pre-registered programme on governance-context effects in AI decision agents, conducted on a UK public procurement substrate. E1 (MRP-2026-02) established the baseline — a single-condition evaluation on 283 OCDS records, validating the Decision Receipt primitive at corpus scale. E2 (MRP-2026-03) introduced a five-rung additive ladder from L0 baseline through L4 full policy, and produced two structural findings the additive design could not mechanistically isolate: an L3 commitment break and an inversion-blindness signal on an n=14 Permuted-Policy diagnostic. E3's job was to separate those effects directly.
@@ -29,6 +46,8 @@ E3 is the third experiment in a pre-registered programme on governance-context e
 The methodological discipline carries forward from E2 unchanged. Every AI decision in the corpus is bound to a cryptographically signed Decision Receipt — Ed25519 signature, public Sigstore transparency-log anchor, schema-versioned envelope — together with the policy snapshot, prompt SHA, and reasoning text. Predictions are pre-registered with locked confirmation and falsification bands. P-series predictions and F-series findings are reported using their pre-defined disposition vocabularies. Anti-claims are first-class output, reported alongside findings and aggregated in §9. The methodology itself is documented separately in the companion methods note, *Receipt-Anchored Evaluation*.
 
 > **Why receipts matter.** The methodology rests on a single substrate primitive — every AI decision is bound to a signed Decision Receipt at evaluation time. Receipts give the corpus policy provenance (which policy the agent was shown), auditability (any reader can recompute the integrity hash offline), reproducibility (the corpus is re-derivable from on-disk bundles without re-running the agent), and cross-model comparability (token-level provenance is model-independent). Without receipts, this discipline would not scale to a 1,332-record corpus.
+
+**Figure 8 — Anatomy of a Decision Receipt.** *Schematic diagram of the signed envelope produced at every AI decision in the corpus. The receipt binds, into one cryptographically signed object: the policy snapshot SHA-256 (which policy the agent was shown), the agent's model identity and version, the substrate facts the agent saw, the agent's verdict (ALLOW / REVIEW / DENY), the reasoning text SHA-256 (the agent's reasoning, bound by hash), the integrity hash over the canonical envelope, the Ed25519 signature from the published signing kid `meshqu-experiment-procurement-2026-05`, a UTC timestamp, and a public Sigstore Rekor transparency-log anchor. Any reader can download a bundle from the run directory, recompute the canonical envelope bytes, verify the signature against the published key, and check the Rekor anchor — all offline, no credentials. The receipt is the operational primitive that makes the rest of the methodology (pre-registration, anti-claims, cross-model comparison, audit-time policy provenance, cost extrapolation, F-series register) tractable at corpus scale. Asset needs generation.*
 
 > **Key takeaway** — E3 is the third paper in a four-experiment programme. Each experiment narrows the questions the previous one raised; the methodology substrate — signed receipts, locked predictions, anti-claims, and the disposition vocabulary — carries forward unchanged across all four.
 
@@ -402,6 +421,21 @@ The implication is more general than either P5 or P6 alone. If reasoning pattern
 The methodology refinement that follows is straightforward. AI evaluation in regulated contexts should evaluate on both axes — the verdict the agent emits and the reasoning that produced it — and should not assume that agreement on one implies agreement on the other. The receipt primitive binds both into a single signed envelope; the methodology infrastructure for this evaluation already exists.
 
 > **Key takeaway** — Reasoning evaluations may generalise across models; verdict evaluations may not. AI evaluation in regulated contexts should test both axes — the verdict the agent emits and the reasoning that produced it.
+
+### §7.5 — Why this matters for AI governance
+
+Traditional AI governance assumes that reviewing model outputs is sufficient. E3 suggests this assumption is incomplete in two ways. The verdict-only review misses the inversion-blindness failure mode entirely — 88% of records in this corpus produced the same verdict whether or not the policy had been inverted, and the agent's reasoning cited the rule it thought it was applying rather than the rule it had been shown. And two models can produce similar reasoning failures while arriving at different verdict distributions — the substrate, not the model, is the load-bearing variable.
+
+Governance therefore requires more than model evaluation. It requires:
+
+- **Model evaluation** — both the verdict surface (what the agent decides) and the reasoning surface (what the agent cites), per model.
+- **Policy provenance** — which version of the policy the agent was actually shown at evaluation time, bound cryptographically at the moment of decision.
+- **Decision traceability** — the substrate facts the agent saw, bound to the verdict it produced, in a form a later auditor can verify offline.
+- **Execution-time evidence** — a signed record at the moment of evaluation, independent of any later environment, so review is signature-verification rather than record-reconstruction.
+
+This motivates receipt-anchored evaluation as a methodology rather than as a logging convenience. The substrate, the policy, the prompt, the reasoning, and the verdict are bound into a single signed envelope at evaluation time (see Figure 8 in §2). The audit trail is environment-independent and verifier-checkable offline. The methodology is portable across domains; the substrate findings are not. What carries forward is the discipline of binding decisions to evidence at the moment of decision.
+
+The longer practitioner-lens treatment is in Appendix E.
 
 ## §8 — Limitations + caveats
 
