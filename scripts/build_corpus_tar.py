@@ -55,12 +55,21 @@ from pathlib import Path
 REPO_ROOT_DEFAULT = Path(__file__).resolve().parent.parent
 API_BASE = "https://meshqu-api-staging.up.railway.app"
 
-# Per-call sleep — be polite to the public endpoint's rate limiter
-SLEEP_BETWEEN_CALLS_SECONDS = 0.2
+# The public bundle endpoint enforces a 60 req / 60 s per-IP rate limit
+# (confirmed via response headers: rate-limit-limit: 60, rate-limit-reset: <s>).
+# Sleeping 1.05s between calls keeps us at ~57 req/min — comfortably under
+# the ceiling while leaving headroom for jitter.
+SLEEP_BETWEEN_CALLS_SECONDS = 1.05
 
-# Retry policy on transient failures (network blips, 5xx)
-MAX_RETRIES_PER_BUNDLE = 3
-RETRY_BACKOFF_SECONDS = 2
+# Retry policy on transient failures (network blips, 5xx, 429).
+# When 429s occur we honour rate-limit-reset from response headers; this
+# governs other transient errors.
+MAX_RETRIES_PER_BUNDLE = 5
+RETRY_BACKOFF_SECONDS = 3
+
+# Safety threshold — if rate-limit-remaining drops below this, pause until
+# the window resets. Prevents bursts from edging into 429 territory.
+RATE_LIMIT_FLOOR_REMAINING = 5
 
 EXPERIMENTS = {
     "e2": {
@@ -106,14 +115,23 @@ def enumerate_decision_ids(run_dir: Path) -> list[str]:
     return sorted(ids)
 
 
-def fetch_bundle(decision_id: str) -> bytes:
-    """GET the exported v2 bundle for one decision. Returns raw JSON bytes.
+def fetch_bundle(decision_id: str) -> tuple[bytes, int | None]:
+    """GET the exported v2 bundle for one decision.
 
-    Retries on transient failures (timeout, 5xx) with backoff; raises after
-    MAX_RETRIES_PER_BUNDLE failed attempts.
+    Returns (raw JSON bytes, rate_limit_remaining). The rate_limit_remaining
+    lets the caller pace itself against the response headers — None if the
+    server doesn't report it.
+
+    On 429, honours the rate-limit-reset header by sleeping for that many
+    seconds before retrying (the rate limiter is the bottleneck; backoff
+    against the rate-limit window, not against a fixed schedule).
+
+    On 4xx (404/410/422), raises immediately — those won't resolve on retry.
+    On 5xx / transient errors, backs off and retries up to MAX_RETRIES_PER_BUNDLE.
     """
     url = f"{API_BASE}/v1/receipts/{decision_id}/bundle"
     last_error: Exception | None = None
+
     for attempt in range(1, MAX_RETRIES_PER_BUNDLE + 1):
         try:
             req = urllib.request.Request(
@@ -122,15 +140,29 @@ def fetch_bundle(decision_id: str) -> bytes:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 if resp.status != 200:
                     raise RuntimeError(f"HTTP {resp.status}")
-                return resp.read()
+                body = resp.read()
+                remaining_raw = resp.headers.get("rate-limit-remaining")
+                remaining = int(remaining_raw) if remaining_raw is not None else None
+                return body, remaining
+
         except urllib.error.HTTPError as e:
+            if e.code == 429:
+                reset_raw = e.headers.get("rate-limit-reset") if e.headers else None
+                reset_seconds = int(reset_raw) if reset_raw and reset_raw.isdigit() else 60
+                # Sleep just over the reset window, then retry without
+                # incrementing toward the attempt limit (the request never
+                # actually executed against the rate-limited resource).
+                time.sleep(reset_seconds + 1)
+                continue
             if e.code in (404, 410, 422):
                 raise RuntimeError(f"HTTP {e.code}") from e
             last_error = e
         except (urllib.error.URLError, RuntimeError, TimeoutError) as e:
             last_error = e
+
         if attempt < MAX_RETRIES_PER_BUNDLE:
             time.sleep(RETRY_BACKOFF_SECONDS * attempt)
+
     raise RuntimeError(
         f"Failed to fetch after {MAX_RETRIES_PER_BUNDLE} attempts: {last_error}"
     )
@@ -302,13 +334,23 @@ def build_full_corpus(exp_key: str, repo_root: Path, limit: int | None = None) -
             eta = (len(decision_ids) - i) / rate if rate > 0 else 0
             print(
                 f"  [{i:,}/{len(decision_ids):,}] {decision_id} "
-                f"({rate:.1f}/s, ETA {eta/60:.1f}min)"
+                f"({rate:.2f}/s, ETA {eta/60:.1f}min)",
+                flush=True,
             )
         try:
-            bundles[decision_id] = fetch_bundle(decision_id)
+            body, remaining = fetch_bundle(decision_id)
+            bundles[decision_id] = body
+            # Honour the per-IP rate limit floor: if remaining is low, pause
+            # until the window resets so a burst doesn't tip us into 429s.
+            if remaining is not None and remaining <= RATE_LIMIT_FLOOR_REMAINING:
+                print(
+                    f"    rate-limit-remaining={remaining}; sleeping 60s",
+                    flush=True,
+                )
+                time.sleep(60)
         except Exception as e:  # noqa: BLE001
             failures.append((decision_id, str(e)))
-            print(f"  FAIL {decision_id}: {e}", file=sys.stderr)
+            print(f"  FAIL {decision_id}: {e}", file=sys.stderr, flush=True)
         time.sleep(SLEEP_BETWEEN_CALLS_SECONDS)
 
     print()
