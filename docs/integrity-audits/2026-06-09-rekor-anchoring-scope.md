@@ -53,7 +53,7 @@ Every receipt tested, in every experiment, is anchored in the public Sigstore Re
 The repository carries the receipt corpus at **two layers**, and only one is anchored:
 
 - **Run-directory emissions** (`results/runs/.../*.bundle.json`) — the runner's pre-export output. `transparency_anchor: null` **by design**: anchoring is applied by the export-and-anchor pipeline, not at emission time.
-- **Exported verification bundles** — the canonical, anchored artefact. E1 commits these as `corpus.tar` (283 / 283 anchored). E2 and E3 do **not** commit an equivalent tarball; their anchors are confirmable via the public Rekor log (§2) and via on-demand export.
+- **Exported verification bundles** — the canonical, anchored artefact. E1 has shipped these as `corpus.tar` since publication (283 / 283 anchored). As of this audit's closure, **E2 and E3 now commit equivalent `corpus.tar` archives at the same convention** (see §5 — `procurement-context-gradient/results/corpus.tar`, 1,429 bundles; `procurement-context-disambiguation/results/corpus.tar`, 1,332 bundles). The trilogy is now self-contained on the public side.
 
 E2's and E3's reproducibility sections instruct a reader to *"download any bundle from the run directory"* and verify it. Followed literally, that yields a **pre-export** bundle with a null anchor, from which a careful reader could reasonably — and wrongly — conclude the corpus is unanchored. That is exactly the inference this audit's own first pass made. **The gap is in the instructions, not the anchoring.**
 
@@ -96,7 +96,9 @@ A match proves the public log holds an anchor issued for *this* receipt. Where a
 
 - **Methods note** (`methodology/receipt-anchored-evaluation.md`). §2 / §9 state Rekor anchoring as **verified**, with `ca19e737`'s byte-match as the canonical demonstration, and carry the run-dir-vs-export reproducibility instruction so no future reader repeats the pre-export inference. *(In progress.)*
 - **Reproducibility-instruction fix.** E2 / E3 reproducibility sections to point readers at the exported/anchored bundle and the public-log retrieval above, rather than the pre-export run-dir file. *(Committed; lands with the next minor revision.)*
-- **Self-contained corpora** *(committed-deliverable, not urgent)*. Publish an anchored `corpus.tar` for E2 and E3 matching E1's pattern, so the repository is self-contained rather than relying on the export endpoint or the live log. Fold into a future minor revision (E2 → MRP-2026-03 v1.0.1, E3 → MRP-2026-04 v1.0.1) when engineering bandwidth opens. *(Tracked; closure does not gate current publication.)*
+- **Self-contained corpora** *(closed 2026-06-09)*. Anchored `corpus.tar` published for E2 and E3, matching E1's pattern. Built by `scripts/build_corpus_tar.py` against the public bundle endpoint (`GET /v1/receipts/<id>/bundle`), validated for `transparency_proof.json` presence on a sample bundle before tar assembly. Committed on branch `chore/corpus-tar-export-script` (commit `b596644`). The repository is now self-contained: any reader can `tar -xf corpus.tar`, drop a bundle into verify.meshqu.com or run the §3 worked retrieval against the public Rekor log, with no dependence on the export endpoint at all.
+  - E2: `procurement-context-gradient/results/corpus.tar` — 1,429 v2 bundles (1,415 main grid + 14 Permuted-Policy diagnostic), 23 MB. Sample anchor: receipt `006f8c86…` → entry `108e9186…21a6126a…`, log_index `1601967052`.
+  - E3: `procurement-context-disambiguation/results/corpus.tar` — 1,332 v2 bundles, 22.9 MB. Sample anchor: receipt `0000b095…` → entry `108e9186…266fded5…`, log_index `1668148599`.
 - **No errata.** The published anchoring claims are accurate; no correction notes are warranted.
 
 ## 6 · Audit trail
