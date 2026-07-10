@@ -2,6 +2,19 @@
 
 This guide is for anyone analysing the MeshQu research corpora. It assumes you can read a parquet file and nothing else about this repository.
 
+## The data in plain terms
+
+When a UK public body buys goods or services (a council resurfacing roads, an NHS trust buying software, a ministry hiring consultants), it must publish the contract award on Contracts Finder, the UK government's public procurement portal. Those published awards are the raw material of this dataset. Each award record says, roughly: who bought, from which supplier, for how much, and when the award notice was published. The records are open data, published in the Open Contracting Data Standard (OCDS) and licensed under the Open Government Licence.
+
+The experiments took 283 such award records and had two very different reviewers judge each one for compliance:
+
+- An LLM agent reads the record and recommends a verdict: ALLOW, REVIEW, or DENY.
+- MeshQu's rule engine evaluates the same record against a written policy of six rules drawn from the UK Procurement Act 2023 and related frameworks, and produces its own verdict: ALLOW or DENY.
+
+Two real records show the shape of the data. Record `ocds-b5fd17-d2f1100a-...` is a £165,000 contract whose award notice was published 68 days after the award. The Procurement Act gives public bodies 30 days, so the rule engine fires PROC-001-S53 and says DENY. The agent, reading the same record, said REVIEW and asked to verify the notice trail. Record `ocds-b5fd17-28aab079-...` is a £45,000 contract published after 21 days. No rule fires; the engine says ALLOW. The agent still said REVIEW. That pattern is the story of the whole corpus: on E1's 283 records the cautious agent said REVIEW 276 times and never DENY, while the decisive rule engine said DENY 139 times on the same evidence.
+
+E1 established that baseline gap. E2 asked whether showing the agent more governance context (policy text, precedent receipts, structured decision context, in five increasing rungs) closes it. E3 pulled apart which ingredient of that context actually drives the change. Every one of the 3,044 decisions across all three experiments produced a cryptographically signed receipt, so every number in the writeups can be re-derived from the files in this repository.
+
 ## What this dataset is
 
 Three pre-registered experiments studied how an LLM agent reviews UK public procurement records, and how a deterministic policy engine judges the same records. Every decision produced a cryptographically signed receipt anchored to a public transparency log. The receipts are the dataset.
@@ -34,6 +47,15 @@ The two verdict columns are different actors. `ai_verdict` is the LLM's recommen
 
 Join the two tables on `decision_id`. Join across experiments and conditions on `ocid`. The `ocid` identifies the underlying procurement record and is stable across all 3,044 rows.
 
+## Which layer to use
+
+The data exists in four layers. Use the highest one that answers your question.
+
+1. `data/receipts.parquet` is the analysis layer and the default for everything. It now carries the evidence fields as columns, so evidence-conditioned analysis does not need the tars.
+2. `data/source_records.json` is the normalised 283-record source table, one entry per OCID with per-field provenance notes. Use it for substrate-level joins and provenance questions. It is a verbatim, hash-verified copy of the E2/E3 runner fixtures; the originals remain in place under each runner's `tests/fixtures/`.
+3. Live Contracts Finder is for provenance checking only. The corpus is frozen; the live service may since have published new releases for the same OCIDs, so live data can differ from the substrate the receipts were evaluated against. Never substitute live data for the in-repo table.
+4. `results/runs/` directories are never analysis input. They are the pre-export execution trail, kept for audit.
+
 ## Facts that will save you a bad afternoon
 
 1. E1 attempted 300 records but the corpus holds 283. An OCID identifies a contracting process, and OCDS lets a publisher issue multiple releases for the same process. The feed returned 12 OCIDs more than once and the duplicates deduplicated on ingest. Use 283 as the denominator everywhere.
@@ -41,13 +63,16 @@ Join the two tables on `decision_id`. Join across experiments and conditions on 
 3. E3's `diagnostic_primary` and `diagnostic_claude` arms cover a selected 100-record subset, not the full 283. Do not compare their rates directly against the 283-record arms without accounting for the subset selection rule (documented in E3's planning directory).
 4. Every observed policy verdict is binary ALLOW or DENY, and every violation in the corpus is `severity: critical`. That is observed behaviour, not the whole authored policy: the snapshot also contains two high-severity rules (PROC-004-COI, PROC-006-MOD-CAP) that never fired on this corpus. The agent reasons in three verdicts. Naive verdict-equality agreement is therefore mechanically low and mostly meaningless. Read E1's finding 006 before computing agreement statistics.
 5. Boolean-shaped evidence fields inside the receipts are strings (`"true"` / `"false"`), not booleans. The parquet columns are already typed, but this matters the moment you parse bundles yourself.
-6. `procurement_method_open_flag` is present on only 19 of the 283 underlying records. That sparsity is a property of the public source data and it is analytically load-bearing for rule PROC-005-OPEN-TENDER.
+6. `procurement_method_open_flag` is present on only 19 of the 283 underlying records. In the parquet it is null where absent; no default was filled. That sparsity is a property of the public source data and it is analytically load-bearing for rule PROC-005-OPEN-TENDER.
+7. On 5 of the 12 duplicated OCIDs, E1's evidence differs from E2/E3's because the feed's multiple releases carried different values and the two pipelines resolved them differently. E2 and E3 always agree with each other and with `source_records.json`. The dictionary lists the 5 OCIDs. Handle them explicitly in any cross-experiment evidence join.
 
 ## Going deeper than the parquet files
 
-The parquet files carry the analysis-ready core. The full evidence lives in the bundles.
+The parquet files carry the analysis-ready core, including the evidence fields. What stays in the bundles is the cryptographic material and the agent surface.
 
-Each experiment's canonical corpus is `<experiment>/results/corpus.tar`. Unpack it and parse `bundles/<decision_id>.bundle.json`. The bundle format has two JSON layers; see the dictionary for the parsing pattern. Bundles carry the full evidence fields, the agent's recommended action, hashes of the agent's prompt and reasoning, the policy snapshot, the Ed25519 signature, and the Rekor transparency anchor.
+Each experiment's canonical corpus is `<experiment>/results/corpus.tar`. Unpack it and parse `bundles/<decision_id>.bundle.json`. The bundle format has two JSON layers; see the dictionary for the parsing pattern. Bundles carry the agent's recommended action, hashes of the agent's prompt and reasoning, the full policy snapshot, the Ed25519 signature, and the Rekor transparency anchor.
+
+One hard limit to know before you plan a project: the receipts bind SHA-256 hashes of the agent's reasoning, not the reasoning texts. The texts are not in the corpus and not in this export. If your project needs them, ask MeshQu. A verified supplement can be produced: reasoning texts from the production runs only, each tied to its `decision_id` and checked against the receipt's `agent_reasoning_sha256` so you can prove the text is the one the receipt signed. Do not go looking for texts in `results/runs/`; the audit-trail rule above still applies.
 
 The E1 tar also contains 285 AppleDouble `._` sidecar members (macOS metadata written at export time). They are binary, not JSON, and parsing one raises a UnicodeDecodeError. Skip any member whose basename starts with `._` (the receipt sidecars are named `bundles/._<decision_id>.bundle.json`, so test the filename part, not the full path). macOS `tar -tf` hides these members while Python's `tarfile` shows them, so do not be surprised when the two report different counts.
 
@@ -57,8 +82,8 @@ Ignore any `results/runs/` directory. Those are pre-export execution trails kept
 
 You do not have to trust this export. Every receipt is independently verifiable.
 
-- Recompute the tar and parquet digests and compare against `DATA_MANIFEST.json`.
-- Re-run `python data/build_export.py`. It re-reads the tars, re-asserts the counts, and reproduces the parquet files byte for byte.
+- Recompute the tar and output digests and compare against `DATA_MANIFEST.json`.
+- Re-run `python data/build_export.py` under the pinned pyarrow. It re-reads the tars, re-asserts the counts, re-verifies that the two source-record fixtures still match, and reproduces every output byte for byte.
 - Drop any single bundle JSON into <https://verify.meshqu.com>. The verifier checks the signature and the public Rekor log entry offline from this repository.
 
 ## Reading order for context

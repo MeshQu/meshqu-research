@@ -9,6 +9,8 @@
     "E1": {
       "path": "procurement-decisions/results/corpus.tar",
       "sha256": "1b6192df6eb5d3c38738b6abc5cea82c92d99d53ae890308569a4c240c232be0",
+      "tar_members": 570,
+      "appledouble_sidecars": 285,
       "receipts": 283,
       "conditions": {
         "baseline": 283
@@ -18,6 +20,8 @@
     "E2": {
       "path": "procurement-context-gradient/results/corpus.tar",
       "sha256": "2c77dac05b329c20d2d2cada22a54dc96f00f39e2ae3b46c14ffe10d4c0bcf36",
+      "tar_members": 1430,
+      "appledouble_sidecars": 0,
       "receipts": 1429,
       "conditions": {
         "L0": 283,
@@ -32,6 +36,8 @@
     "E3": {
       "path": "procurement-context-disambiguation/results/corpus.tar",
       "sha256": "96ca50d8e9f8f61b38032d1dcc4a18c95ed9d150215b3e0354761b423da5dda0",
+      "tar_members": 1333,
+      "appledouble_sidecars": 0,
       "receipts": 1332,
       "conditions": {
         "arm_a": 283,
@@ -56,7 +62,7 @@
   "outputs": {
     "receipts.parquet": {
       "rows": 3044,
-      "sha256": "60ef6af3ff29e95cf27212dda53c334416e976b0cf7d29d6dc10b120b9f61453"
+      "sha256": "a61bdab30b4d974ec650898523356e2111554e422a85ad1ecca81d2b89812fe1"
     },
     "violations.parquet": {
       "rows": 2740,
@@ -64,8 +70,13 @@
     },
     "receipts.csv": {
       "rows": 3044,
-      "sha256": "81daf8fb9fc92d984315f35e3d8e0d1c233f9a92492948ab0d15d7020bf4b109",
+      "sha256": "2f4762efef8803cf2747879f190bbc4376bc9bd544f6b83294e9d74ab5460198",
       "note": "convenience copy of receipts.parquet; parquet is canonical"
+    },
+    "source_records.json": {
+      "records": 283,
+      "sha256": "0bf225b8e5260bb76b954e3fafd60f132c163b643213b60b4926b855fb64ed6b",
+      "note": "verbatim copy of the byte-identical runner fixtures at procurement-context-gradient/runner/tests/fixtures/full_corpus_records.json and procurement-context-disambiguation/runner/tests/fixtures/full_corpus_records.json; originals remain in place"
     }
   }
 }

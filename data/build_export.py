@@ -25,10 +25,14 @@ Each tar member bundles/<decision_id>.bundle.json is a two-layer JSON document:
 
 Outputs, written next to this script:
 
-    receipts.parquet    one row per canonical receipt (3,044 rows)
-    receipts.csv        the same rows as a human-readable convenience
-    violations.parquet  one row per policy violation
-    DATA_MANIFEST.json  tar digests, row counts, invariants, output digests
+    receipts.parquet     one row per canonical receipt (3,044 rows),
+                         including the per-record evidence fields
+    receipts.csv         the same rows as a human-readable convenience
+    violations.parquet   one row per policy violation
+    source_records.json  verbatim copy of the normalised 283-record source
+                         table (the E2 and E3 runner fixtures are
+                         byte-identical; both originals stay in place)
+    DATA_MANIFEST.json   tar digests, row counts, invariants, output digests
 
 The script asserts the published row counts (283 / 1,429 / 1,332) and the
 shared policy snapshot. It fails loudly on any mismatch.
@@ -84,6 +88,27 @@ EXPECTED_CONDITIONS = {
 EXPECTED_SNAPSHOT_ID = "cbf12348-6248-48f7-a06f-4e0304cc237e"
 EXPECTED_SNAPSHOT_DIGEST = "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d"
 
+# Flat per-record evidence fields from context.fields, exported as columns.
+# procurement_method_open_flag is deliberately sparse; absence is meaningful
+# and lands as null, never a default.
+EVIDENCE_FIELDS = [
+    "contract_value",
+    "publication_delay_days",
+    "above_threshold",
+    "governed_by_pa23",
+    "is_modification",
+    "direct_award_justification_present",
+    "procurement_method_open_flag",
+    "supplier_id",
+]
+
+# The normalised 283-record source table ships as two byte-identical runner
+# fixtures. The export verifies they still match and copies one verbatim.
+SOURCE_RECORD_FIXTURES = [
+    "procurement-context-gradient/runner/tests/fixtures/full_corpus_records.json",
+    "procurement-context-disambiguation/runner/tests/fixtures/full_corpus_records.json",
+]
+
 
 def sha256_file(path):
     h = hashlib.sha256()
@@ -120,13 +145,17 @@ def derive_condition(experiment, fields):
 def read_corpus(experiment, tar_path):
     receipt_rows = []
     violation_rows = []
+    members = 0
+    sidecars = 0
     with tarfile.open(tar_path) as tf:
         for member in sorted(tf.getmembers(), key=lambda m: m.name):
+            members += 1
             basename = member.name.rsplit("/", 1)[-1]
-            if not member.isfile():
-                continue
             if basename.startswith("._"):
                 # AppleDouble metadata sidecar (macOS tar artefact). Not a bundle.
+                sidecars += 1
+                continue
+            if not member.isfile():
                 continue
             if not member.name.endswith(".bundle.json"):
                 continue
@@ -142,22 +171,23 @@ def read_corpus(experiment, tar_path):
             ocid = metadata["ocid"]
             violations = result.get("violations") or []
 
-            receipt_rows.append(
-                {
-                    "experiment": experiment,
-                    "condition": condition,
-                    "decision_id": decision_id,
-                    "ocid": ocid,
-                    "ai_verdict": fields.get("agent_recommended_verdict"),
-                    "policy_verdict": result["decision"],
-                    "violation_codes": [v["rule_code"] for v in violations],
-                    "violations_count": len(violations),
-                    "policy_snapshot_id": result["policy_snapshot_id"],
-                    "policy_snapshot_digest": result["policy_snapshot_digest"],
-                    "timestamp": result["timestamp"],
-                    "model_id": fields.get("agent_model_id") or fields.get("model_id"),
-                }
-            )
+            row = {
+                "experiment": experiment,
+                "condition": condition,
+                "decision_id": decision_id,
+                "ocid": ocid,
+                "ai_verdict": fields.get("agent_recommended_verdict"),
+                "policy_verdict": result["decision"],
+                "violation_codes": [v["rule_code"] for v in violations],
+                "violations_count": len(violations),
+                "policy_snapshot_id": result["policy_snapshot_id"],
+                "policy_snapshot_digest": result["policy_snapshot_digest"],
+                "timestamp": result["timestamp"],
+                "model_id": fields.get("agent_model_id") or fields.get("model_id"),
+            }
+            for name in EVIDENCE_FIELDS:
+                row[name] = fields.get(name)
+            receipt_rows.append(row)
             for v in violations:
                 violation_rows.append(
                     {
@@ -171,7 +201,7 @@ def read_corpus(experiment, tar_path):
                         "reason_code": v.get("reason_code"),
                     }
                 )
-    return receipt_rows, violation_rows
+    return receipt_rows, violation_rows, members, sidecars
 
 
 def check(label, actual, expected):
@@ -227,7 +257,8 @@ def main():
     for experiment, rel_path in CORPORA.items():
         tar_path = REPO / rel_path
         print("Reading %s (%s)" % (experiment, rel_path))
-        receipts, violations = read_corpus(experiment, tar_path)
+        receipts, violations, members, sidecars = read_corpus(experiment, tar_path)
+        print("  %s tar members: %d (%d AppleDouble sidecars skipped)" % (experiment, members, sidecars))
         check("%s receipt count" % experiment, len(receipts), EXPECTED_RECEIPTS[experiment])
         conditions = {}
         for row in receipts:
@@ -243,6 +274,8 @@ def main():
         manifest["corpora"][experiment] = {
             "path": rel_path,
             "sha256": sha256_file(tar_path),
+            "tar_members": members,
+            "appledouble_sidecars": sidecars,
             "receipts": len(receipts),
             "conditions": dict(sorted(conditions.items())),
             "unique_ocids": unique_ocids,
@@ -272,6 +305,16 @@ def main():
             ("policy_snapshot_digest", pa.string()),
             ("timestamp", pa.string()),
             ("model_id", pa.string()),
+            # Evidence fields. Wire values are preserved: string booleans stay
+            # strings, absent fields stay null.
+            ("contract_value", pa.float64()),
+            ("publication_delay_days", pa.int64()),
+            ("above_threshold", pa.string()),
+            ("governed_by_pa23", pa.string()),
+            ("is_modification", pa.string()),
+            ("direct_award_justification_present", pa.string()),
+            ("procurement_method_open_flag", pa.string()),
+            ("supplier_id", pa.string()),
         ]
     )
     violations_schema = pa.schema(
@@ -322,6 +365,32 @@ def main():
     )
 
     check("total receipts", len(all_receipts), 3044)
+
+    # Copy the normalised 283-record source table verbatim so data/ is
+    # self-contained. Both fixture originals stay in place.
+    fixture_paths = [REPO / p for p in SOURCE_RECORD_FIXTURES]
+    fixture_hashes = [sha256_file(p) for p in fixture_paths]
+    if len(set(fixture_hashes)) != 1:
+        sys.exit(
+            "MISMATCH: source-record fixtures differ:\n%s"
+            % "\n".join("  %s %s" % pair for pair in zip(fixture_hashes, SOURCE_RECORD_FIXTURES))
+        )
+    src_out = OUT_DIR / "source_records.json"
+    src_out.write_bytes(fixture_paths[0].read_bytes())
+    src_records = json.loads(src_out.read_text())["records"]
+    check("source_records.json record count", len(src_records), 283)
+    manifest["outputs"]["source_records.json"] = {
+        "records": len(src_records),
+        "sha256": sha256_file(src_out),
+        "note": (
+            "verbatim copy of the byte-identical runner fixtures at %s; "
+            "originals remain in place" % " and ".join(SOURCE_RECORD_FIXTURES)
+        ),
+    }
+    print(
+        "Wrote source_records.json: %d records, sha256 %s (matches both fixtures)"
+        % (len(src_records), manifest["outputs"]["source_records.json"]["sha256"])
+    )
 
     manifest_path = OUT_DIR / "DATA_MANIFEST.json"
     with open(manifest_path, "w") as f:
