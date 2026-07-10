@@ -4,6 +4,18 @@ Public research surface for [MeshQu](https://meshqu.com).
 
 This repository carries applied research on AI-assisted decision-making in regulated contexts. Each piece is a worked application of **Receipt-Anchored Evaluation** — an audit-grade, signed-receipt methodology — to a specific public-record substrate. The methodology layer is reusable across pieces and across future client engagements; it is documented in [`methodology/`](methodology/).
 
+## For data users
+
+Three published receipt corpora are available. Analysis-ready parquet exports, a data dictionary, licensing terms, and a build script live in [`data/`](data/). Start with [`data/GUIDE.md`](data/GUIDE.md).
+
+| Experiment | MRP id | Canonical corpus | Receipts | Conditions | Status |
+|---|---|---|---|---|---|
+| E1 `procurement-decisions/` | MRP-2026-02 | [`procurement-decisions/results/corpus.tar`](procurement-decisions/results/corpus.tar) | 283 | baseline | published 2026-05-18 |
+| E2 `procurement-context-gradient/` | MRP-2026-03 | [`procurement-context-gradient/results/corpus.tar`](procurement-context-gradient/results/corpus.tar) | 1,429 | L0, L1, L2, L3, L4, L4_PERMUTED | published 2026-05-27 |
+| E3 `procurement-context-disambiguation/` | MRP-2026-04 | [`procurement-context-disambiguation/results/corpus.tar`](procurement-context-disambiguation/results/corpus.tar) | 1,332 | arm_a, arm_b, arm_c, l4_without_nudge, diagnostic_primary, diagnostic_claude | published 2026-06-09 |
+
+The `corpus.tar` files are the canonical datasets. Directories named `results/runs/` are pre-export execution trails kept for audit and are not analysis input.
+
 ## What's here
 
 ```
@@ -12,7 +24,7 @@ meshqu-research/
 ├── programme/                   # Research-process discipline: PROCESS.md (gates) + STRUCTURAL-PARITY.md (publication checklist)
 ├── procurement-decisions/       # E1 — AI-assisted UK procurement compliance review (MRP-2026-02, published)
 ├── procurement-context-gradient/# E2 — governance-context ladder over E1's corpus (MRP-2026-03, published 2026-05-27)
-└── procurement-context-disambiguation/  # E3 — scaffolding only; scope locks at pre-registration
+└── procurement-context-disambiguation/  # E3 — disambiguation of E2's mechanisms (MRP-2026-04, published 2026-06-09)
 ```
 
 ## What this repo is
@@ -46,6 +58,12 @@ Status: published as MRP-2026-02 (2026-05-18). Planning trail, methodology docum
 The second worked application. Reuses E1's corpus, model, policy snapshot, and substrate adapter unchanged, and varies one thing — the governance context the agent sees — across a strictly additive five-rung ladder (L0 baseline → L4 full policy text). The headline finding is non-monotonic: the precedent-receipt rung (L3) is where the agent's verdicts first commit at scale, and the full-policy rung (L4) partially pulls that commitment back. Two pre-registered predictions were falsified in the inverted direction, and a 14-record adversarial Permuted-Policy diagnostic surfaced inversion-blindness (the agent reasons against a rule's semantic intent rather than the literal inverted operator).
 
 Status: published as MRP-2026-03 (2026-05-27) at [meshqu.com/research/when-precedents-commit-ai-and-policy-pulls-it-back](https://www.meshqu.com/research/when-precedents-commit-ai-and-policy-pulls-it-back). Corpus, analysis notebooks, findings, and writeup in [`procurement-context-gradient/`](procurement-context-gradient/).
+
+### procurement-context-disambiguation
+
+The third worked application. E2 left three interpretations open. E3 separates them: three L3 decomposition arms isolate what drives verdict commitment, an L4-without-nudge variant isolates the anti-sycophancy clause, and a scaled n=100 diagnostic plus a Claude Opus 4.7 replication arm test whether inversion-blindness is a task-class property. The corpus falsified the leading interpretations carried forward from E2.
+
+Status: published as MRP-2026-04 (2026-06-09), release tag `v1.0-mrp-2026-04`, pre-registration tag `v0.3-predictions-locked`. Corpus, diagnostic coding sheets, and writeup in [`procurement-context-disambiguation/`](procurement-context-disambiguation/).
 
 ## Methodology lineage
 

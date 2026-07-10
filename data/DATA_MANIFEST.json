@@ -1,0 +1,71 @@
+{
+  "generated_by": "data/build_export.py",
+  "regenerate_with": "pip install pyarrow==25.0.0 && python data/build_export.py",
+  "environment": {
+    "pyarrow": "25.0.0",
+    "note": "Output digests are reproducible under this pyarrow version. Other versions may serialise identical logical content to different parquet bytes."
+  },
+  "corpora": {
+    "E1": {
+      "path": "procurement-decisions/results/corpus.tar",
+      "sha256": "1b6192df6eb5d3c38738b6abc5cea82c92d99d53ae890308569a4c240c232be0",
+      "receipts": 283,
+      "conditions": {
+        "baseline": 283
+      },
+      "unique_ocids": 283
+    },
+    "E2": {
+      "path": "procurement-context-gradient/results/corpus.tar",
+      "sha256": "2c77dac05b329c20d2d2cada22a54dc96f00f39e2ae3b46c14ffe10d4c0bcf36",
+      "receipts": 1429,
+      "conditions": {
+        "L0": 283,
+        "L1": 283,
+        "L2": 283,
+        "L3": 283,
+        "L4": 283,
+        "L4_PERMUTED": 14
+      },
+      "unique_ocids": 283
+    },
+    "E3": {
+      "path": "procurement-context-disambiguation/results/corpus.tar",
+      "sha256": "96ca50d8e9f8f61b38032d1dcc4a18c95ed9d150215b3e0354761b423da5dda0",
+      "receipts": 1332,
+      "conditions": {
+        "arm_a": 283,
+        "arm_b": 283,
+        "arm_c": 283,
+        "diagnostic_claude": 100,
+        "diagnostic_primary": 100,
+        "l4_without_nudge": 283
+      },
+      "unique_ocids": 283
+    }
+  },
+  "policy_snapshot": {
+    "id": "cbf12348-6248-48f7-a06f-4e0304cc237e",
+    "digest": "5d7d800186d4eda4a05f926bcaa34b23d56b31d923016cc6467952ee8fc0cc9d",
+    "note": "All 3,044 receipts bind this one ratified snapshot."
+  },
+  "notes": {
+    "e1_dedup": "E1 attempted 300 releases. The Contracts Finder OCDS feed returned 12 OCIDs more than once in the sample window, and MeshQu's idempotency cache returned the same receipt for each duplicate POST. The canonical corpus therefore holds 283 unique decisions, not 300.",
+    "condition_normalisation": "E1 is single-condition (baseline). E2 uses governance_context_level as-is, including L4_PERMUTED for the 14 Permuted-Policy diagnostic receipts. E3 arms are derived from l3_arm, nudge_excised, diagnostic and model_id."
+  },
+  "outputs": {
+    "receipts.parquet": {
+      "rows": 3044,
+      "sha256": "60ef6af3ff29e95cf27212dda53c334416e976b0cf7d29d6dc10b120b9f61453"
+    },
+    "violations.parquet": {
+      "rows": 2740,
+      "sha256": "324107f9848b26967259fbf23c5870012e5f3a4cbac8c76ae387edea60c73ec4"
+    },
+    "receipts.csv": {
+      "rows": 3044,
+      "sha256": "81daf8fb9fc92d984315f35e3d8e0d1c233f9a92492948ab0d15d7020bf4b109",
+      "note": "convenience copy of receipts.parquet; parquet is canonical"
+    }
+  }
+}

@@ -1,8 +1,8 @@
 # Experiment 3 (E3) — results
 
-**Status**: empty. No corpus collected yet.
+**Status**: `[PUBLISHED]`. Released as MRP-2026-04 on 2026-06-09. The canonical dataset is [`corpus.tar`](corpus.tar): 1,332 signed receipts across six conditions. Analysis-ready exports live in [`../../data/`](../../data/). The run trail in [`runs/`](runs/) is audit material, not analysis input.
 
-Once a run completes, results live here per the convention:
+Results live here per the convention:
 
 ```
 results/
