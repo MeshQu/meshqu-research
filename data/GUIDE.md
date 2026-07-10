@@ -32,7 +32,9 @@ One boundary to hold on to: there are no human verdicts in this dataset. Every r
 ## Start here
 
 ```python
-# pip install pyarrow==25.0.0
+# Requires Python 3.10 or newer (pyarrow 25.0.0 does not install on 3.9).
+# Tested with Python 3.12 and 3.14.
+# pip install pyarrow==25.0.0 pandas
 import pyarrow.parquet as pq
 
 receipts = pq.read_table("data/receipts.parquet").to_pandas()
@@ -84,7 +86,7 @@ You do not have to trust this export. Every receipt is independently verifiable.
 
 - Recompute the tar and output digests and compare against `DATA_MANIFEST.json`.
 - Re-run `python data/build_export.py` under the pinned pyarrow. It re-reads the tars, re-asserts the counts, re-verifies that the two source-record fixtures still match, and reproduces every output byte for byte.
-- Drop any single bundle JSON into <https://verify.meshqu.com>. The verifier checks the signature and the public Rekor log entry offline from this repository.
+- Drop any single bundle JSON into <https://verify.meshqu.com/bundle>, the dedicated bundle verifier. The main page at verify.meshqu.com expects a bare receipt and rejects an exported bundle as an invalid receipt. The bundle verifier checks the signature and the public Rekor log entry offline from this repository.
 
 ## Reading order for context
 

@@ -1,6 +1,6 @@
 {
   "generated_by": "data/build_export.py",
-  "regenerate_with": "pip install pyarrow==25.0.0 && python data/build_export.py",
+  "regenerate_with": "Python >=3.10; pip install pyarrow==25.0.0 && python data/build_export.py",
   "environment": {
     "pyarrow": "25.0.0",
     "note": "Output digests are reproducible under this pyarrow version. Other versions may serialise identical logical content to different parquet bytes."

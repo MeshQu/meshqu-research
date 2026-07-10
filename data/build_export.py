@@ -41,7 +41,7 @@ The byte-identical reproducibility claim in DATA_MANIFEST.json holds under
 the pinned pyarrow version below. Other pyarrow versions may serialise the
 same logical content to different parquet bytes.
 
-Usage:
+Usage (Python 3.10 or newer; pyarrow 25.0.0 does not install on 3.9):
 
     pip install pyarrow==25.0.0
     python data/build_export.py
@@ -221,7 +221,7 @@ def main():
 
     manifest = {
         "generated_by": "data/build_export.py",
-        "regenerate_with": "pip install pyarrow==%s && python data/build_export.py" % PINNED_PYARROW,
+        "regenerate_with": "Python >=3.10; pip install pyarrow==%s && python data/build_export.py" % PINNED_PYARROW,
         "environment": {
             "pyarrow": pa.__version__,
             "note": (

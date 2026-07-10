@@ -124,6 +124,7 @@ The normalised 283-record source table, one entry per unique OCID in ascending o
 ## Reproducing the export
 
 ```
+# Requires Python 3.10 or newer
 pip install pyarrow==25.0.0
 python data/build_export.py
 ```
