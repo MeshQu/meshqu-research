@@ -49,7 +49,7 @@ The parquet files carry the analysis-ready core. The full evidence lives in the 
 
 Each experiment's canonical corpus is `<experiment>/results/corpus.tar`. Unpack it and parse `bundles/<decision_id>.bundle.json`. The bundle format has two JSON layers; see the dictionary for the parsing pattern. Bundles carry the full evidence fields, the agent's recommended action, hashes of the agent's prompt and reasoning, the policy snapshot, the Ed25519 signature, and the Rekor transparency anchor.
 
-The E1 tar also contains 285 AppleDouble `._` sidecar members (macOS metadata written at export time). They are binary, not JSON, and parsing one raises a UnicodeDecodeError. Skip any member whose name starts with `._`. macOS `tar -tf` hides these members while Python's `tarfile` shows them, so do not be surprised when the two report different counts.
+The E1 tar also contains 285 AppleDouble `._` sidecar members (macOS metadata written at export time). They are binary, not JSON, and parsing one raises a UnicodeDecodeError. Skip any member whose basename starts with `._` (the receipt sidecars are named `bundles/._<decision_id>.bundle.json`, so test the filename part, not the full path). macOS `tar -tf` hides these members while Python's `tarfile` shows them, so do not be surprised when the two report different counts.
 
 Ignore any `results/runs/` directory. Those are pre-export execution trails kept for audit. They contain smoke runs, aborted runs, and superseded data. They are not analysis input.
 
