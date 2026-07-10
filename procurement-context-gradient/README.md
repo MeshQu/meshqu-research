@@ -4,7 +4,7 @@ The second worked application of MeshQu's public-research methodology. Builds di
 
 ## Status
 
-`[PLANNING]`. Phase 0 artefacts drafted; predictions not yet locked.
+`[PUBLISHED]`. Released as MRP-2026-03 on 2026-05-27 at [meshqu.com/research/when-precedents-commit-ai-and-policy-pulls-it-back](https://www.meshqu.com/research/when-precedents-commit-ai-and-policy-pulls-it-back). Predictions locked at `v0.2-predictions-locked`. The canonical dataset is [`results/corpus.tar`](results/corpus.tar): 1,429 signed receipts (283 records at each of L0 to L4, plus the 14-record Permuted-Policy diagnostic). Analysis-ready exports live in [`../data/`](../data/).
 
 ## The research question
 

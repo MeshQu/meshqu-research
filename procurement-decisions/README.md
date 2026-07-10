@@ -4,7 +4,7 @@ The first worked application of MeshQu's public-research methodology: an LLM age
 
 ## Status
 
-`[PLANNING]`. Predictions not yet locked. Build phase has not started.
+`[PUBLISHED]`. Released as MRP-2026-02 on 2026-05-18. The canonical dataset is [`results/corpus.tar`](results/corpus.tar): 283 signed receipts, one per unique procurement record. The run attempted 300 releases; the source feed returned 12 OCIDs more than once, so the corpus deduplicates to 283 unique decisions. Analysis-ready exports live in [`../data/`](../data/).
 
 ## Layout
 
