@@ -10,10 +10,9 @@ Three L3 decomposition arms test whether precedent receipts or accumulated conte
 
 The canonical dataset is [`results/corpus.tar`](results/corpus.tar): 1,332 signed receipts across six conditions (`arm_a`, `arm_b`, `arm_c`, `l4_without_nudge` at 283 records each, `diagnostic_primary` and `diagnostic_claude` at 100 records each). Analysis-ready exports live in [`../data/`](../data/).
 
-Two older status lines elsewhere in this experiment predate the run and are stale:
+One status line elsewhere in this experiment predates the run and is preserved as-is:
 
-- [`results/README.md`](results/README.md) says the results directory is empty. It is not. It was written before the run and is preserved as-is. The corpus, the analysis charts, the rubric coding sheets, and the run trail are all present.
-- [`planning/predictions.md`](planning/predictions.md) describes itself as "pre-lock". The `v0.3-predictions-locked` tag is the lock. See [`planning/PREDICTIONS_NOTE.md`](planning/PREDICTIONS_NOTE.md).
+- [`planning/predictions.md`](planning/predictions.md) describes itself as "pre-lock". The `v0.3-predictions-locked` tag is the lock, and the tagged file is the historical record, so the prose stays. See [`planning/PREDICTIONS_NOTE.md`](planning/PREDICTIONS_NOTE.md).
 
 ## Layout
 

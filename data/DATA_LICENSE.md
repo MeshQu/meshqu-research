@@ -18,7 +18,9 @@ Required attribution:
 
 > Contains public sector information licensed under the Open Government Licence v3.0.
 
-The corpus does not redistribute raw full OCDS releases. Each receipt references its source record by OCID and carries only the extracted evidence fields the policy evaluated. To retrieve a full release, query the Contracts Finder OCDS Search API with the OCID.
+The corpus does not redistribute raw full OCDS releases. Each receipt references its source record by OCID and carries only the extracted evidence fields the policy evaluated.
+
+Retrieving full releases needs care. The Contracts Finder Search API does not support lookup by OCID: it silently strips an `?ocid=` parameter and returns the latest releases site-wide, so that pattern hands back unrelated records without any error. Two routes work. Paginate the publication-window feed (`publishedFrom` / `publishedTo` plus `links.next`) and filter by OCID client-side, or open a known notice directly at `https://www.contractsfinder.service.gov.uk/Notice/<release_id>`. See `procurement-decisions/planning/substrate.md` for the sample windows E1 used.
 
 ## Receipts and parquet exports
 

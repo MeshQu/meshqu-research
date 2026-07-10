@@ -10,6 +10,12 @@ This script reads ONLY:
 It never reads results/runs/ directories. Those hold the pre-export execution
 trail and are not analysis input.
 
+The E1 tar contains 285 AppleDouble ._ sidecar members alongside its 285 real
+members. They are macOS metadata written at export time, not bundles, and this
+script skips them. Note that macOS `tar -tf` hides them from listings; Python
+tarfile shows them. The E2 and E3 tars contain none, but the skip applies to
+all three in case a copy obtained elsewhere differs.
+
 Each tar member bundles/<decision_id>.bundle.json is a two-layer JSON document:
 
     layer 1: {"manifest": {...}, "files": {"receipt.json": "<JSON string>", ...}}
@@ -20,19 +26,26 @@ Each tar member bundles/<decision_id>.bundle.json is a two-layer JSON document:
 Outputs, written next to this script:
 
     receipts.parquet    one row per canonical receipt (3,044 rows)
+    receipts.csv        the same rows as a human-readable convenience
     violations.parquet  one row per policy violation
     DATA_MANIFEST.json  tar digests, row counts, invariants, output digests
 
 The script asserts the published row counts (283 / 1,429 / 1,332) and the
 shared policy snapshot. It fails loudly on any mismatch.
 
+The byte-identical reproducibility claim in DATA_MANIFEST.json holds under
+the pinned pyarrow version below. Other pyarrow versions may serialise the
+same logical content to different parquet bytes.
+
 Usage:
 
-    pip install pyarrow
+    pip install pyarrow==25.0.0
     python data/build_export.py
 """
 
+import csv
 import hashlib
+import io
 import json
 import sys
 import tarfile
@@ -40,6 +53,8 @@ from pathlib import Path
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+
+PINNED_PYARROW = "25.0.0"
 
 REPO = Path(__file__).resolve().parents[1]
 OUT_DIR = Path(__file__).resolve().parent
@@ -168,9 +183,23 @@ def check(label, actual, expected):
 def main():
     all_receipts = []
     all_violations = []
+    if pa.__version__ != PINNED_PYARROW:
+        print(
+            "WARNING: pyarrow %s installed, %s pinned. Parquet bytes may not "
+            "match the digests in DATA_MANIFEST.json." % (pa.__version__, PINNED_PYARROW)
+        )
+
     manifest = {
         "generated_by": "data/build_export.py",
-        "regenerate_with": "python data/build_export.py",
+        "regenerate_with": "pip install pyarrow==%s && python data/build_export.py" % PINNED_PYARROW,
+        "environment": {
+            "pyarrow": pa.__version__,
+            "note": (
+                "Output digests are reproducible under this pyarrow version. "
+                "Other versions may serialise identical logical content to "
+                "different parquet bytes."
+            ),
+        },
         "corpora": {},
         "policy_snapshot": {
             "id": EXPECTED_SNAPSHOT_ID,
@@ -267,6 +296,30 @@ def main():
         pq.write_table(table, out_path, compression="zstd")
         manifest["outputs"][name] = {"rows": len(rows), "sha256": sha256_file(out_path)}
         print("Wrote %s: %d rows, sha256 %s" % (name, len(rows), manifest["outputs"][name]["sha256"]))
+
+    # Human-readable convenience copy. The parquet file is the typed,
+    # canonical load target. violation_codes is serialised as a JSON array
+    # string, for example ["PROC-001-S53","PROC-005-OPEN-TENDER"].
+    csv_path = OUT_DIR / "receipts.csv"
+    columns = [f.name for f in receipts_schema]
+    buf = io.StringIO()
+    writer = csv.writer(buf, lineterminator="\n")
+    writer.writerow(columns)
+    for row in all_receipts:
+        writer.writerow(
+            json.dumps(row[c], separators=(",", ":")) if c == "violation_codes" else row[c]
+            for c in columns
+        )
+    csv_path.write_text(buf.getvalue(), encoding="utf-8")
+    manifest["outputs"]["receipts.csv"] = {
+        "rows": len(all_receipts),
+        "sha256": sha256_file(csv_path),
+        "note": "convenience copy of receipts.parquet; parquet is canonical",
+    }
+    print(
+        "Wrote receipts.csv: %d rows, sha256 %s"
+        % (len(all_receipts), manifest["outputs"]["receipts.csv"]["sha256"])
+    )
 
     check("total receipts", len(all_receipts), 3044)
 

@@ -1,6 +1,10 @@
 {
   "generated_by": "data/build_export.py",
-  "regenerate_with": "python data/build_export.py",
+  "regenerate_with": "pip install pyarrow==25.0.0 && python data/build_export.py",
+  "environment": {
+    "pyarrow": "25.0.0",
+    "note": "Output digests are reproducible under this pyarrow version. Other versions may serialise identical logical content to different parquet bytes."
+  },
   "corpora": {
     "E1": {
       "path": "procurement-decisions/results/corpus.tar",
@@ -57,6 +61,11 @@
     "violations.parquet": {
       "rows": 2740,
       "sha256": "324107f9848b26967259fbf23c5870012e5f3a4cbac8c76ae387edea60c73ec4"
+    },
+    "receipts.csv": {
+      "rows": 3044,
+      "sha256": "81daf8fb9fc92d984315f35e3d8e0d1c233f9a92492948ab0d15d7020bf4b109",
+      "note": "convenience copy of receipts.parquet; parquet is canonical"
     }
   }
 }
