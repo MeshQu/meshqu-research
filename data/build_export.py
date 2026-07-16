@@ -393,6 +393,16 @@ def main():
     )
 
     manifest_path = OUT_DIR / "DATA_MANIFEST.json"
+    # Preserve the reasoning-supplement entries written by
+    # build_reasoning_supplement.py so the two scripts can be re-run in
+    # either order without losing each other's records.
+    if manifest_path.exists():
+        previous = json.loads(manifest_path.read_text())
+        if "reasoning_supplement" in previous:
+            manifest["reasoning_supplement"] = previous["reasoning_supplement"]
+        for name, meta in previous.get("outputs", {}).items():
+            if name.startswith("reasoning_"):
+                manifest["outputs"][name] = meta
     with open(manifest_path, "w") as f:
         json.dump(manifest, f, indent=2)
         f.write("\n")
