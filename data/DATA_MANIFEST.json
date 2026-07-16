@@ -77,6 +77,48 @@
       "records": 283,
       "sha256": "0bf225b8e5260bb76b954e3fafd60f132c163b643213b60b4926b855fb64ed6b",
       "note": "verbatim copy of the byte-identical runner fixtures at procurement-context-gradient/runner/tests/fixtures/full_corpus_records.json and procurement-context-disambiguation/runner/tests/fixtures/full_corpus_records.json; originals remain in place"
+    },
+    "reasoning_texts.parquet": {
+      "rows": 2761,
+      "sha256": "8406b7d19fd8385d97f4b1db211f7abfbf56c0eaa9a1cf10706ff24c28851f07"
+    },
+    "reasoning_texts.csv": {
+      "rows": 2761,
+      "sha256": "898536b7ef05636cb2b40dfad3a9881f06dc6e5291188232e2f55a7e5dced1ae"
     }
+  },
+  "reasoning_supplement": {
+    "generated_by": "data/build_reasoning_supplement.py",
+    "hash_rule": "sha256 of the UTF-8 bytes of the reasoning text equals the receipt-bound agent_reasoning_sha256",
+    "coverage": {
+      "E1": {
+        "canonical_receipts": 283,
+        "production_run": "production run not in repository",
+        "texts_found": 0,
+        "texts_verified": 0,
+        "texts_failed_hash_check": 0,
+        "texts_missing": 283,
+        "run_bundles_not_in_corpus": 0
+      },
+      "E2": {
+        "canonical_receipts": 1429,
+        "production_run": "procurement-context-gradient/results/runs/phase-2-20260522-101324-Z",
+        "texts_found": 1429,
+        "texts_verified": 1429,
+        "texts_failed_hash_check": 0,
+        "texts_missing": 0,
+        "run_bundles_not_in_corpus": 0
+      },
+      "E3": {
+        "canonical_receipts": 1332,
+        "production_run": "procurement-context-disambiguation/results/runs/phase-2-20260529T092611-Z",
+        "texts_found": 1332,
+        "texts_verified": 1332,
+        "texts_failed_hash_check": 0,
+        "texts_missing": 0,
+        "run_bundles_not_in_corpus": 0
+      }
+    },
+    "hash_failures": []
   }
 }
