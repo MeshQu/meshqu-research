@@ -141,7 +141,7 @@ Expected: L0 in E2 produces verdicts within E1's reproducibility band — same 9
 
 No new fetch from Contracts Finder. The OCDS records cached during E1's run are the source-of-truth records for E2. This eliminates substrate drift as a variable (different fetch windows could produce different records for the same OCIDs; reusing the cache holds substrate fixed).
 
-The substrate adapter is unchanged. The per-field provenance envelope is unchanged. The agent at L0 sees exactly what it saw in E1.
+The substrate adapter is unchanged. The per-field provenance envelope is unchanged. The agent at L0 sees exactly what it saw in E1 — **on 271 of the 283 records**. *(Corrected 2026-08-04: for the 12 duplicated OCIDs it does not; see [`substrate.md`](./substrate.md) and [IA-2026-02](../../docs/integrity-audits/2026-08-04-corpus-lineage-and-receipt-count.md).)*
 
 ## What this experiment is NOT
 

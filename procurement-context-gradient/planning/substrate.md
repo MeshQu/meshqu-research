@@ -6,9 +6,11 @@ The substrate is unchanged from E1. There is no new fetch from UK Contracts Find
 
 This is a deliberate experimental-design choice, not a convenience. Reusing the cached records means:
 
-- **Substrate is exactly fixed.** Different fetch windows could produce different record sets for the same OCIDs (OCDS publishes multiple releases per procurement — see E1 F005). Reusing the cache holds the substrate identical to the bit.
-- **The L0 baseline reproduces E1.** The agent at L0 in E2 sees exactly what it saw in E1. Reproducibility-on-cached-corpus is a meaningful (though partial) test of E1's results — see E1 P4 deferral.
+- **Substrate is fixed against re-fetch drift.** Different fetch windows could produce different record sets for the same OCIDs (OCDS publishes multiple releases per procurement — see E1 F005). Reusing the cache removes that variable. It does **not** make E2's records identical to the bit with the evidence E1 signed — see the correction below.
+- **The L0 baseline reproduces E1 on 271 of the 283 records.** On those, the agent at L0 in E2 sees exactly what it saw in E1. On the other 12 it does not. Reproducibility-on-cached-corpus is a meaningful (though partial) test of E1's results — see E1 P4 deferral.
 - **Row-by-row delta tracking is interpretable.** Each of the 283 records is the same record across all 5 levels. The only thing that changes per pass is the context payload. This is what makes "context moves the agent" a clean claim instead of a noisy correlation.
+
+> **Correction — 2026-08-04, per integrity audit IA-2026-02.** This page originally claimed that reusing the cache "holds the substrate identical to the bit" and that "the agent at L0 in E2 sees exactly what it saw in E1." Both are false for 12 of the 283 OCIDs. E1's runner processed 300 release events. The evaluator POST was OCID-keyed and idempotent, so a repeated OCID returned the receipt minted at its **first** release event; the `agent_outputs/{decision_id}.json` sidecar E2 rebuilt its corpus from was written last-write-wins and survived holding the **last**. Across all 12 duplicated OCIDs the sidecar's agent-reasoning hash differs from the one its receipt binds; on 5 the evidence fields also differ; on 2 the difference crosses the £139,000 threshold and flips the MeshQu verdict — which is why E1 publishes 144 ALLOW / 139 DENY and E2/E3 publish 146 / 137. Both splits are correct for the evidence each run signed, and no receipt, signature, or verdict is revised. Full reconciliation, including the per-record trace: [IA-2026-02](../../docs/integrity-audits/2026-08-04-corpus-lineage-and-receipt-count.md).
 
 ## What this means in practice
 
