@@ -53,7 +53,7 @@ The additivity invariant — each level adds, never replaces. The trade-off ackn
 
 ### §4 — The substrate (one paragraph + a reference)
 
-The substrate is unchanged from E1. Same 283 records from the cached fetch. The agent at L0 in E2 sees exactly what it saw in E1. This is what makes the row-by-row delta analysis interpretable: no record changed; only the context did. Reference to E1's full substrate documentation for any reader who wants it.
+The substrate is unchanged from E1. Same 283 records from the cached fetch. The agent at L0 in E2 sees exactly what it saw in E1 on 271 of them. *(Corrected 2026-08-04: not on the 12 duplicated OCIDs; see [`substrate.md`](./substrate.md) and [IA-2026-02](../../docs/integrity-audits/2026-08-04-corpus-lineage-and-receipt-count.md).)* This is what makes the row-by-row delta analysis interpretable: within E2, no record changed; only the context did. Reference to E1's full substrate documentation for any reader who wants it.
 
 ### §5 — What the corpus shows
 
