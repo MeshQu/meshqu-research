@@ -16,3 +16,4 @@ explicit anti-claims, and a forward/closure track.
 | ID | Date | Subject | Disposition |
 |----|------|---------|-------------|
 | [IA-2026-01](2026-06-09-rekor-anchoring-scope.md) | 2026-06-09 | Rekor anchoring across E1 / E2 / E3 | **Confirmed** (anchoring) · **Discovered** (reproducibility-instruction gap) |
+| [IA-2026-02](2026-08-04-corpus-lineage-and-receipt-count.md) | 2026-08-04 | Programme receipt count and E1 corpus lineage | **Refuted** (the ~3,061 count; 3,044 is correct) · **Discovered** (agent-output sidecar overwritten on repeat OCDS releases) · **Confirmed** (both published verdict splits) |
