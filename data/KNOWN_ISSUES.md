@@ -221,3 +221,40 @@ They disagree constantly, and that disagreement is the subject of the research.
 Do not reconcile them, treat one as ground truth, or clean the divergence away.
 
 There are no human verdicts anywhere in this dataset.
+
+---
+
+## 10. `direct_award_justification_present` is `"false"` on every row
+
+**What happens.** A categorical test on this field returns one category, so it
+cannot be used as a variable and any drift or association test on it is
+vacuous.
+
+**Why.** The value is not a measured finding that no direct-award
+justifications exist. The substrate derives the field by looking for a linked
+s.41 transparency notice in the OCDS `relatedProcesses` array. UK Contracts
+Finder does not populate that array for these releases, so the detector never
+finds a link and returns `"false"` every time. The substrate records the
+derivation honestly — `status: "derived"`, `confidence: "low"`, with the detail
+*"known false-negative mode — notice may exist but not be linked"*. You can see
+it per record:
+
+```python
+import json
+
+with open("data/source_records.json") as fh:
+    records = json.load(fh)["records"]
+
+note = records[0]["substrate_notes"]["direct_award_justification_present"]
+print(note["status"], note["confidence"])
+print(note["detail"])
+```
+
+**Do instead.** Read the value as *"no direct-award justification was detectable
+in this substrate"*, not as *"no direct-award justification exists"*. Write it up
+as an excluded variable on those grounds — not measurable here — rather than as
+a finding about UK procurement.
+
+If what you actually need is to identify direct awards, do not use this field.
+Use the recovered `tender.procurementMethod` from §8, which distinguishes
+`direct` and `limited` from `open` and `selective`.

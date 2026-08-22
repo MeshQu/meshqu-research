@@ -57,7 +57,7 @@ One row per canonical receipt. 3,044 rows: 283 E1, 1,429 E2, 1,332 E3.
 | `above_threshold` | string | `receipt.context.fields.above_threshold` | string boolean, `"true"` / `"false"` |
 | `governed_by_pa23` | string | `receipt.context.fields.governed_by_pa23` | string boolean |
 | `is_modification` | string | `receipt.context.fields.is_modification` | string boolean |
-| `direct_award_justification_present` | string | `receipt.context.fields.direct_award_justification_present` | string boolean; `"false"` on every row — not measurable in this substrate, see below |
+| `direct_award_justification_present` | string | `receipt.context.fields.direct_award_justification_present` | string boolean; `"false"` on every row — not measurable in this substrate, see [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) §10 |
 | `procurement_method_open_flag` | string | `receipt.context.fields.procurement_method_open_flag` | sparse presence flag; null means the method was not `open`, see below |
 | `supplier_id` | string | `receipt.context.fields.supplier_id` | e.g. `GB-COH-...` (Companies House) or `GB-CFS-...` |
 
