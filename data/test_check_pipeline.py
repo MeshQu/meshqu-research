@@ -233,6 +233,75 @@ def test_pandas_fillna_roundtrip_is_caught():
     assert "procurement_method_open_flag non-null" in names(failures)
 
 
+def test_pandas_from_parquet_with_ndarray_codes():
+    """The most common student load path: pq.read_table(...).to_pandas().
+
+    Parquet list columns come back as numpy ndarrays, not Python lists. A
+    scalar NaN comparison against one raises ValueError rather than returning
+    failures, so the checker used to crash on exactly the path most students
+    take. Regression test for that.
+    """
+    try:
+        import pyarrow.parquet as pq
+    except ImportError:
+        return
+    parquet = _default_corpus().parent / "receipts.parquet"
+    if not parquet.exists():
+        return
+
+    df = pq.read_table(parquet).to_pandas()
+    assert type(df["violation_codes"].iloc[0]).__name__ == "ndarray", (
+        "precondition: this test is only meaningful while parquet list columns "
+        "arrive as ndarrays"
+    )
+    assert check_pipeline(df) == [], "ndarray violation_codes must be counted, not crash"
+
+
+def test_ndarray_codes_counted_not_just_tolerated():
+    try:
+        import numpy as np
+    except ImportError:
+        return
+    rows = copy.deepcopy(CORPUS)
+    for r in rows:
+        codes = r["violation_codes"]
+        r["violation_codes"] = np.array(
+            codes if isinstance(codes, list) else json.loads(codes), dtype=object
+        )
+    assert check_pipeline(rows) == [], "arrays must produce the same counts as lists"
+
+
+def test_integer_one_is_not_a_valid_flag():
+    """1 == True in Python, so a naive set difference accepts an int cast."""
+    rows = copy.deepcopy(CORPUS)
+    for r in rows:
+        if r.get("procurement_method_open_flag") == "true":
+            r["procurement_method_open_flag"] = 1
+
+    failures = check_pipeline(rows)
+    f = find(failures, "procurement_method_open_flag values")
+    assert "int" in str(f.actual)
+    assert "integer" in f.cause
+
+
+def test_float_one_is_not_a_valid_flag():
+    rows = copy.deepcopy(CORPUS)
+    for r in rows:
+        if r.get("procurement_method_open_flag") == "true":
+            r["procurement_method_open_flag"] = 1.0
+    assert "procurement_method_open_flag values" in names(check_pipeline(rows))
+
+
+def test_literal_true_boolean_is_accepted():
+    """The documented wire format is a string, but a real bool is not a
+    corruption of the count, so it must not be reported as a stray value."""
+    rows = copy.deepcopy(CORPUS)
+    for r in rows:
+        if r.get("procurement_method_open_flag") == "true":
+            r["procurement_method_open_flag"] = True
+    assert "procurement_method_open_flag values" not in names(check_pipeline(rows))
+
+
 def test_failure_render_is_self_explanatory():
     rows = copy.deepcopy(CORPUS)
     for r in rows:

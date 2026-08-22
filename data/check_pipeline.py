@@ -114,15 +114,50 @@ class Failure:
 # ------------------------------------------------------------------ loading
 
 
+def _is_array_like(value) -> bool:
+    """True for numpy arrays and similar sequence containers.
+
+    A parquet list column arrives as a numpy ndarray once the table has been
+    through .to_pandas(), which is the most common way a student loads this
+    corpus. Comparing an array to itself yields an array rather than a bool, so
+    containers must be converted before any scalar test touches them.
+    """
+    return (
+        not isinstance(value, (str, bytes, dict))
+        and hasattr(value, "__len__")
+        and hasattr(value, "tolist")
+    )
+
+
 def _is_nan(value) -> bool:
+    """Scalar NaN test. Only safe once containers have been ruled out."""
     return value != value
 
 
+def _is_true_flag(value) -> bool:
+    """Only the string 'true' or the boolean True count as a set flag.
+
+    Deliberately strict about type. Python treats 1 == True, so an equality or
+    set-membership test would silently accept an integer or float 1 — meaning a
+    column cast to int would pass while violating the documented string-boolean
+    wire format.
+    """
+    if isinstance(value, bool):
+        return value is True
+    return isinstance(value, str) and value == "true"
+
+
 def _clean(value):
-    """Normalise pandas NaN, empty strings and whitespace to None."""
-    if value is None or _is_nan(value):
+    """Normalise containers to lists, and NaN / empty strings to None."""
+    if value is None:
         return None
-    if isinstance(value, str) and value.strip() == "":
+    if isinstance(value, (list, tuple, set)):
+        return list(value)
+    if _is_array_like(value):
+        return value.tolist()
+    if isinstance(value, str):
+        return None if value.strip() == "" else value
+    if _is_nan(value):
         return None
     return value
 
@@ -348,20 +383,23 @@ def check_pipeline(source=None) -> list[Failure]:
                 )
             )
 
-        values = {
-            _clean(r.get("procurement_method_open_flag"))
-            for r in rows
-            if _clean(r.get("procurement_method_open_flag")) is not None
-        }
-        if values - {"true", True}:
+        seen = [_clean(r.get("procurement_method_open_flag")) for r in rows]
+        invalid = sorted(
+            {"%s (%s)" % (v, type(v).__name__) for v in seen if v is not None and not _is_true_flag(v)}
+        )
+        if invalid:
             failures.append(
                 Failure(
                     "procurement_method_open_flag values",
-                    "only 'true' (or null)",
-                    sorted(str(v) for v in values),
-                    "This column never holds a false value anywhere in the corpus.\n"
-                    "If you see one, it was introduced by a fillna, a boolean cast,\n"
-                    "or an astype(bool) that turned null into False.",
+                    "only the string 'true', or null",
+                    invalid,
+                    "This column never holds a false value anywhere in the corpus,\n"
+                    "and its set values are the string 'true', not a boolean or a\n"
+                    "number. If you see anything else, it was introduced by a\n"
+                    "fillna, an astype(bool) that turned null into False, or an\n"
+                    "integer cast. Note that an integer 1 is not equivalent here:\n"
+                    "the wire format is a string boolean and the dtype is part of\n"
+                    "what this corpus documents.",
                 )
             )
 
