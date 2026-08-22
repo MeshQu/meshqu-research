@@ -55,12 +55,23 @@ DEAD_RULES = ("PROC-003-DEBARMENT", "PROC-004-COI", "PROC-006-MOD-CAP")
 OPEN_FLAG_NON_NULL = 204
 EXPERIMENT_ROWS = {"E1": 283, "E2": 1429, "E3": 1332}
 
+# Fields that hold one value on every row of the published corpus. Both are
+# documented in KNOWN_ISSUES.md; asserting them here means a student who
+# mutates one finds out rather than quietly analysing a column that no longer
+# matches the corpus.
+DEGENERATE_FIELDS = {
+    "direct_award_justification_present": "false",
+    "is_modification": "false",
+}
+
 REQUIRED_COLUMNS = (
     "experiment",
     "ocid",
     "policy_verdict",
     "violation_codes",
     "procurement_method_open_flag",
+    "direct_award_justification_present",
+    "is_modification",
 )
 
 _ROW_COUNT_CAUSES = """Common causes, in the order they usually happen:
@@ -134,17 +145,22 @@ def _is_nan(value) -> bool:
     return value != value
 
 
-def _is_true_flag(value) -> bool:
-    """Only the string 'true' or the boolean True count as a set flag.
+def _is_string_boolean(value, expected: bool) -> bool:
+    """Accept the documented string form, or a real boolean of the same sense.
 
-    Deliberately strict about type. Python treats 1 == True, so an equality or
-    set-membership test would silently accept an integer or float 1 — meaning a
-    column cast to int would pass while violating the documented string-boolean
-    wire format.
+    Deliberately strict about type. Python treats 1 == True and 0 == False, so
+    an equality or set-membership test would silently accept an integer or
+    float — meaning a column cast to int would pass while violating the
+    documented string-boolean wire format. A real boolean is accepted because
+    it preserves both the meaning and the count; a number is not.
     """
     if isinstance(value, bool):
-        return value is True
-    return isinstance(value, str) and value == "true"
+        return value is expected
+    return isinstance(value, str) and value == ("true" if expected else "false")
+
+
+def _is_true_flag(value) -> bool:
+    return _is_string_boolean(value, True)
 
 
 def _clean(value):
@@ -407,7 +423,41 @@ def check_pipeline(source=None) -> list[Failure]:
                 )
             )
 
-    # 9. experiment split
+    # 9. fields that hold one value across the whole corpus
+    for field, expected in sorted(DEGENERATE_FIELDS.items()):
+        if field not in present:
+            continue
+        want = expected == "true"
+        seen = [_clean(r.get(field)) for r in rows]
+        offenders = sorted(
+            {
+                "%s (%s)" % (v, type(v).__name__)
+                for v in seen
+                if not _is_string_boolean(v, want)
+            }
+        )
+        if offenders:
+            where = "§10" if field.startswith("direct_award") else "§4"
+            failures.append(
+                Failure(
+                    "%s uniformly %r" % (field, expected),
+                    "%r on all %d rows" % (expected, ROWS),
+                    offenders,
+                    "This field holds one value on every row of the published\n"
+                    "corpus, and that is a property of the corpus rather than an\n"
+                    "accident. A different value means the column was mutated, or\n"
+                    "that this is not the published data.\n"
+                    "\n"
+                    "A real boolean of the same sense is accepted. An integer or\n"
+                    "float 0 is not: Python treats 0 == False, so accepting it\n"
+                    "would let a numeric cast through unnoticed.\n"
+                    "\n"
+                    "See KNOWN_ISSUES.md %s for what the field means and why it\n"
+                    "cannot be used as a variable." % where,
+                )
+            )
+
+    # 10. experiment split
     if "experiment" in present:
         for name, expected in sorted(EXPERIMENT_ROWS.items()):
             actual = sum(1 for r in rows if _clean(r.get("experiment")) == name)
@@ -451,6 +501,8 @@ def main(argv: list[str]) -> int:
         print("      3,044 rows / 283 OCIDs / 1,475 DENY / 2,740 violations")
         print("      PROC-005 1,400 / PROC-002 771 / PROC-001 569")
         print("      204 non-null open flags, 2,840 nulls left in place.")
+        print("      direct_award_justification_present and is_modification")
+        print("      uniformly 'false', as published.")
         return 0
 
     for failure in failures:
@@ -460,7 +512,18 @@ def main(argv: list[str]) -> int:
 
 
 def _invariant_count() -> int:
-    return 1 + 1 + 1 + 2 + 2 + len(RULE_FIRINGS) + len(DEAD_RULES) + 2 + len(EXPERIMENT_ROWS)
+    return (
+        1  # required columns
+        + 1  # row count
+        + 1  # distinct ocids
+        + 2  # verdict split
+        + 2  # violation parseability and total
+        + len(RULE_FIRINGS)
+        + len(DEAD_RULES)
+        + 2  # open-flag count and values
+        + len(DEGENERATE_FIELDS)
+        + len(EXPERIMENT_ROWS)
+    )
 
 
 if __name__ == "__main__":
