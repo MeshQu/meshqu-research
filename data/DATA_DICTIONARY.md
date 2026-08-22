@@ -57,8 +57,8 @@ One row per canonical receipt. 3,044 rows: 283 E1, 1,429 E2, 1,332 E3.
 | `above_threshold` | string | `receipt.context.fields.above_threshold` | string boolean, `"true"` / `"false"` |
 | `governed_by_pa23` | string | `receipt.context.fields.governed_by_pa23` | string boolean |
 | `is_modification` | string | `receipt.context.fields.is_modification` | string boolean |
-| `direct_award_justification_present` | string | `receipt.context.fields.direct_award_justification_present` | string boolean |
-| `procurement_method_open_flag` | string | `receipt.context.fields.procurement_method_open_flag` | sparse; null when the source record is silent, see below |
+| `direct_award_justification_present` | string | `receipt.context.fields.direct_award_justification_present` | string boolean; `"false"` on every row — not measurable in this substrate, see below |
+| `procurement_method_open_flag` | string | `receipt.context.fields.procurement_method_open_flag` | sparse presence flag; null means the method was not `open`, see below |
 | `supplier_id` | string | `receipt.context.fields.supplier_id` | e.g. `GB-COH-...` (Companies House) or `GB-CFS-...` |
 
 The last eight columns are the per-record evidence fields the policy evaluated, exported with wire values preserved: string booleans stay strings and absent fields land as null, never a default. Agent-side fields (`agent_prompt_sha256`, `agent_reasoning_sha256`, `agent_recommended_action`, `agent_temperature`) and experiment plumbing (`prereg_tag`, `runner_git_commit`, `model_sampling`, `policy_permutation_seed`, `l4_envelope_sha256`) are not exported; read the bundles if you need them. `model_sampling` is the one non-flat field in `context.fields` and stays in the bundles.
@@ -94,7 +94,13 @@ Boolean-shaped values in `context.fields` are JSON strings, not JSON booleans. `
 
 ### Deliberate sparsity: procurement_method_open_flag
 
-`procurement_method_open_flag` is present on only 19 of 283 E1 records. The source OCDS releases publish the procurement method inconsistently, and the substrate adapter passes through only what the source record states. The sparsity carries into E2 (95 of 1,429 rows) and E3 (90 of 1,332 rows) because both reuse E1's 283 records. This is a property of the public data, not an export defect. In the parquet it is a nullable column: null means the source record was silent, and no default was filled. The 19-of-283 absence rate is itself meaningful. Rule PROC-005-OPEN-TENDER treats absence as evidence missing, which is part of the evidence-sparsity story in the writeups.
+`procurement_method_open_flag` is present on only 19 of 283 E1 records. The sparsity carries into E2 (95 of 1,429 rows) and E3 (90 of 1,332 rows) because both reuse E1's 283 records. In the parquet it is a nullable column and no default was filled.
+
+The column is a presence flag, not a boolean. The substrate adapter emits `"true"` when the source record's `tender.procurementMethod` is `open`, and emits nothing otherwise; there is no code path that produces `"false"`. Null therefore does not mean the source record was silent. It means the procurement method was something other than `open` — most often `selective` — or, in a minority of records, that the source stated no method at all. Of the 264 null records, 227 state a method (207 `selective`, 15 `direct`, 5 `limited`) and 37 are genuinely silent.
+
+Rule PROC-005-OPEN-TENDER treats the absence as the violation state, which is part of the evidence-sparsity story in the writeups. Note when reading that story that for 86% of the null records the absence reflects a non-open procurement route rather than an unpublished one.
+
+The underlying five-class `tender.procurementMethod` is not exported as a column, but it is preserved verbatim in `source_records.json` under `substrate_notes.procurement_method_open_flag.detail` and can be recovered — see [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) §8.
 
 ## violations.parquet
 
