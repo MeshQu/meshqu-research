@@ -333,6 +333,50 @@ def test_literal_true_boolean_is_accepted():
     assert "procurement_method_open_flag values" not in names(check_pipeline(rows))
 
 
+def test_mutated_direct_award_flag_is_caught():
+    rows = copy.deepcopy(CORPUS)
+    rows[0]["direct_award_justification_present"] = "true"
+    f = find(check_pipeline(rows), "direct_award_justification_present uniformly 'false'")
+    assert "true (str)" in str(f.actual)
+    assert "§10" in f.cause
+
+
+def test_mutated_is_modification_is_caught():
+    rows = copy.deepcopy(CORPUS)
+    rows[0]["is_modification"] = "true"
+    f = find(check_pipeline(rows), "is_modification uniformly 'false'")
+    assert "§4" in f.cause
+
+
+def test_integer_zero_is_not_a_valid_false_flag():
+    """Mirror of the integer-1 case: 0 == False in Python, so a numeric cast
+    must not pass a field documented as a string boolean."""
+    rows = copy.deepcopy(CORPUS)
+    for r in rows:
+        r["is_modification"] = 0
+    f = find(check_pipeline(rows), "is_modification uniformly 'false'")
+    assert "0 (int)" in str(f.actual)
+
+
+def test_boolean_false_is_accepted_for_degenerate_fields():
+    rows = copy.deepcopy(CORPUS)
+    for r in rows:
+        r["is_modification"] = False
+        r["direct_award_justification_present"] = False
+    got = names(check_pipeline(rows))
+    assert "is_modification uniformly 'false'" not in got
+    assert "direct_award_justification_present uniformly 'false'" not in got
+
+
+def test_nulled_degenerate_field_is_caught():
+    """A null is not the documented value either — dropping the column's
+    contents must not read as 'no offending values found'."""
+    rows = copy.deepcopy(CORPUS)
+    for r in rows:
+        r["is_modification"] = None
+    assert "is_modification uniformly 'false'" in names(check_pipeline(rows))
+
+
 def test_failure_render_is_self_explanatory():
     rows = copy.deepcopy(CORPUS)
     for r in rows:
