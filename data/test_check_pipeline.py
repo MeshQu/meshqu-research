@@ -222,15 +222,46 @@ def test_pandas_dataframe_input():
     assert check_pipeline(df) == [], "a pandas DataFrame of the corpus must pass"
 
 
-def test_pandas_fillna_roundtrip_is_caught():
+def test_pandas_read_csv_passes():
     try:
         import pandas as pd
     except ImportError:
         return
-    df = pd.DataFrame(copy.deepcopy(CORPUS))
+    csv_path = _default_corpus().parent / "receipts.csv"
+    if not csv_path.exists():
+        return
+    assert check_pipeline(pd.read_csv(csv_path)) == [], (
+        "pd.read_csv of the shipped corpus must satisfy every invariant"
+    )
+
+
+def test_pandas_fillna_roundtrip_is_caught():
+    """Built from pd.read_csv rather than from CORPUS.
+
+    CORPUS is whatever _default_corpus() loaded. With pandas installed but no
+    parquet engine that is the CSV, whose empty cells arrive as empty strings
+    rather than nulls — so fillna() would be a no-op and this test would
+    silently stop testing anything. read_csv parses empty cells as NaN, which
+    is also the path a student actually takes.
+    """
+    try:
+        import pandas as pd
+    except ImportError:
+        return
+    csv_path = _default_corpus().parent / "receipts.csv"
+    if not csv_path.exists():
+        return
+
+    df = pd.read_csv(csv_path)
+    assert df["procurement_method_open_flag"].isna().sum() == 2840, (
+        "precondition: read_csv must parse the empty cells as NaN, otherwise "
+        "the fillna below is a no-op and this test proves nothing"
+    )
+
     df["procurement_method_open_flag"] = df["procurement_method_open_flag"].fillna("false")
     failures = check_pipeline(df)
     assert "procurement_method_open_flag non-null" in names(failures)
+    assert find(failures, "procurement_method_open_flag non-null").actual == 3044
 
 
 def test_pandas_from_parquet_with_ndarray_codes():

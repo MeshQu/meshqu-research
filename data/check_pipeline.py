@@ -391,15 +391,19 @@ def check_pipeline(source=None) -> list[Failure]:
             failures.append(
                 Failure(
                     "procurement_method_open_flag values",
-                    "only the string 'true', or null",
+                    "the string 'true' or boolean True, or null",
                     invalid,
-                    "This column never holds a false value anywhere in the corpus,\n"
-                    "and its set values are the string 'true', not a boolean or a\n"
-                    "number. If you see anything else, it was introduced by a\n"
-                    "fillna, an astype(bool) that turned null into False, or an\n"
-                    "integer cast. Note that an integer 1 is not equivalent here:\n"
-                    "the wire format is a string boolean and the dtype is part of\n"
-                    "what this corpus documents.",
+                    "This column never holds a false value anywhere in the corpus.\n"
+                    "\n"
+                    "The shipped corpus stores the set flag as the string 'true'. A\n"
+                    "real boolean True is accepted too, since it preserves both the\n"
+                    "meaning and the count. An integer or float 1 is not accepted,\n"
+                    "even though Python treats 1 == True: allowing it would let a\n"
+                    "numeric cast through unnoticed, and the wire format here is a\n"
+                    "string boolean.\n"
+                    "\n"
+                    "Anything else means a value was introduced — usually by a\n"
+                    "fillna, or by an astype(bool) that turned null into False.",
                 )
             )
 
