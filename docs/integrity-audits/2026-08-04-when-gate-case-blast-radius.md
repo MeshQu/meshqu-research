@@ -161,8 +161,10 @@ two ways from the receipt's own `context.fields`: (a) strict, mirroring
 `evaluateWhen` today, and (b) case- and whitespace-folded on strings only, mirroring
 the approved #761 fix direction. Results:
 
-- **(a) vs recorded:** predicted NA set equals the receipt's signed `na_rules` on
-  **3,044 / 3,044** receipts.
+- **(a) vs recorded:** predicted NA set equals the receipt's recorded `na_rules` on
+  **3,044 / 3,044** receipts. `na_rules` is *recorded* on the receipt but is **not**
+  covered by the integrity hash or the v2 signing envelope, so this is agreement with
+  what the producer stored, not with a signed value.
 - **(b) vs (a):** identical NA sets on **3,044 / 3,044** receipts — the folded engine
   gates nothing differently, so it fires the same rules, finds the same violations,
   and reaches the same verdicts.
