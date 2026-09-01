@@ -258,3 +258,57 @@ a finding about UK procurement.
 If what you actually need is to identify direct awards, do not use this field.
 Use the recovered `tender.procurementMethod` from §8, which distinguishes
 `direct` and `limited` from `open` and `selective`.
+
+---
+
+## 11. Every bundle in `corpus.tar` fails `approval_lineage` — the bundles are sound
+
+**What happens.** Verify any bundle from any of the three `corpus.tar` archives
+and you get an overall verdict of **`invalid`** and **exit code 5**, with
+`approval_lineage` reported as the failing claim. It looks like the corpus is
+corrupt or the signatures are bad. It is neither.
+
+**What is actually true.** Measured 2026-09-01 against a bundle from
+`procurement-decisions/results/corpus.tar`, using the shipped verifier with the
+default trusted keys and the default Rekor roots:
+
+| claim | status |
+|---|---|
+| `bundle_manifest` | valid |
+| `integrity` | valid |
+| `signature` | **valid** |
+| `transparency` | **valid** |
+| `canonicalization` | valid |
+| `approval_lineage` | **invalid** |
+| `key_lifecycle` | not_checked |
+
+Every claim about the receipt's content, its signature and its public
+transparency anchor passes. **The receipts are unchanged and remain sound.**
+One claim about the *bundle wrapper* fails.
+
+**Why.** A bundle can carry a `policy_approval_receipts.json` file recording the
+approval lineage of the policy version that governed the decision. **No bundle
+in this corpus has that file** — 0 of 283 in E1, 0 of 1,429 in E2, 0 of 1,332 in
+E3. That is not a packaging accident: the exporter could not emit it. Approval
+bundling was unreachable from its first release, because one migration treated
+the policy-version identifier as input-only while the next joined exclusively on
+it. The exporter was later repaired; these archives were exported before that.
+
+The verifier now checks for the file. The exporter that produced these archives
+never could ship it. That mismatch is the whole failure.
+
+**What to do.** Read the verdict claim-by-claim rather than by exit code. For
+questions about the data — did the decision happen, was it signed, is it
+anchored, can it be reproduced — `signature`, `integrity`, `transparency` and
+`canonicalization` are the claims that answer them, and all four pass. Treat
+`approval_lineage` here as **not established**, not as a failure of the receipt.
+
+**What we are not doing, and why.** Re-exporting the wrappers would change the
+bytes of every `corpus.tar`, and therefore every SHA-256 in
+[`DATA_MANIFEST.json`](DATA_MANIFEST.json) — which currently match, and which
+published work cites. **We are deliberately not doing that while this corpus is
+in active use.** The archives you have will stay byte-identical and their
+digests will keep verifying. Any repair will be published as an additional
+artefact alongside these, not as a replacement for them.
+
+*Filed 2026-09-01. Tracked as CCR-002 in the MeshQu remediation register.*
