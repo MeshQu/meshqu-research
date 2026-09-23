@@ -69,6 +69,35 @@ CORPORA = {
     "E3": "procurement-context-disambiguation/results/corpus.tar",
 }
 
+# corpus-v2.tar: repaired copy of each corpus.tar (see data/KNOWN_ISSUES.md
+# §11). Same decision IDs, byte-identical receipt.json / policy_snapshot.json
+# / transparency_proof.json / trusted_keys.json, plus a new
+# policy_approval_receipts.json in every bundle. This script only READS these
+# tars to verify and record that repair — it never uses corpus-v2.tar as a
+# source for receipts.parquet / violations.parquet / receipts.csv, and it
+# never changes CORPORA above.
+CORPORA_V2 = {
+    "E1": "procurement-decisions/results/corpus-v2.tar",
+    "E2": "procurement-context-gradient/results/corpus-v2.tar",
+    "E3": "procurement-context-disambiguation/results/corpus-v2.tar",
+}
+
+# Every bundle in every corpus-v2.tar carries exactly this one approval
+# receipt (see data/KNOWN_ISSUES.md §11 and each archive's README).
+APPROVAL_RECEIPT_ID = "4bb13cfb-cefa-43d5-bddc-64c7884a0776"
+APPROVAL_RECEIPT_DIGEST = "e7081f5e7aaf54b5202503ce36a8f3bad0b0c5424dbeda02fe9102a490a0e58e"
+
+# These four files must be byte-identical between corpus.tar and
+# corpus-v2.tar for every decision_id. Only bundle_manifest.json (exported_at,
+# the new file's entry, manifest_digest) and the new
+# policy_approval_receipts.json file are allowed to differ / be added.
+V2_BYTE_IDENTICAL_FILES = [
+    "receipt.json",
+    "policy_snapshot.json",
+    "transparency_proof.json",
+    "trusted_keys.json",
+]
+
 EXPECTED_RECEIPTS = {"E1": 283, "E2": 1429, "E3": 1332}
 
 EXPECTED_CONDITIONS = {
@@ -204,6 +233,113 @@ def read_corpus(experiment, tar_path):
     return receipt_rows, violation_rows, members, sidecars
 
 
+def read_bundle_files(tar_path):
+    """Return {decision_id: files_dict} for every real bundle in tar_path.
+
+    files_dict is the bundle's raw "files" object: each value is the
+    embedded file's content as a JSON-text string, unparsed. Comparing these
+    strings directly (rather than re-parsing and re-serialising them) is what
+    makes the byte-identical check in verify_corpus_v2() meaningful.
+    """
+    result = {}
+    with tarfile.open(tar_path) as tf:
+        for member in sorted(tf.getmembers(), key=lambda m: m.name):
+            basename = member.name.rsplit("/", 1)[-1]
+            if basename.startswith("._"):
+                continue
+            if not member.isfile() or not member.name.endswith(".bundle.json"):
+                continue
+            bundle = json.load(tf.extractfile(member))
+            manifest = json.loads(bundle["files"]["bundle_manifest.json"])
+            result[manifest["decision_id"]] = bundle["files"]
+    return result
+
+
+def verify_corpus_v2(experiment, v1_tar_path, v2_tar_path):
+    """Enforce that corpus-v2.tar is what data/KNOWN_ISSUES.md §11 and each
+    archive's README claim it is, relative to the corresponding corpus.tar:
+
+      1. the v2 decision-ID set equals the v1 set
+      2. for every bundle, receipt.json / policy_snapshot.json /
+         transparency_proof.json / trusted_keys.json are byte-identical to v1
+      3. every v2 bundle carries policy_approval_receipts.json with exactly
+         the one expected receipt id and digest
+
+    Exits with a message naming the offending bundle on any violation.
+    """
+    v1_files = read_bundle_files(v1_tar_path)
+    v2_files = read_bundle_files(v2_tar_path)
+
+    v1_ids = set(v1_files)
+    v2_ids = set(v2_files)
+    if v1_ids != v2_ids:
+        missing = sorted(v1_ids - v2_ids)
+        extra = sorted(v2_ids - v1_ids)
+        sys.exit(
+            "MISMATCH %s corpus-v2.tar decision-ID set != corpus.tar's: "
+            "%d missing (e.g. %s), %d extra (e.g. %s)"
+            % (
+                experiment,
+                len(missing),
+                missing[0] if missing else "none",
+                len(extra),
+                extra[0] if extra else "none",
+            )
+        )
+
+    for decision_id in sorted(v1_ids):
+        f1 = v1_files[decision_id]
+        f2 = v2_files[decision_id]
+        for name in V2_BYTE_IDENTICAL_FILES:
+            if f1.get(name) != f2.get(name):
+                sys.exit(
+                    "MISMATCH %s bundle %s: %s is not byte-identical between "
+                    "corpus.tar and corpus-v2.tar" % (experiment, decision_id, name)
+                )
+        if "policy_approval_receipts.json" not in f2:
+            sys.exit(
+                "MISMATCH %s bundle %s: corpus-v2.tar is missing "
+                "policy_approval_receipts.json" % (experiment, decision_id)
+            )
+        approval = json.loads(f2["policy_approval_receipts.json"])
+        receipts = approval.get("receipts") or {}
+        if len(receipts) != 1:
+            sys.exit(
+                "MISMATCH %s bundle %s: policy_approval_receipts.json holds "
+                "%d receipts, expected exactly 1" % (experiment, decision_id, len(receipts))
+            )
+        record = next(iter(receipts.values()))
+        if record.get("id") != APPROVAL_RECEIPT_ID:
+            sys.exit(
+                "MISMATCH %s bundle %s: approval receipt id %r != expected %r"
+                % (experiment, decision_id, record.get("id"), APPROVAL_RECEIPT_ID)
+            )
+        if record.get("approval_receipt_digest") != APPROVAL_RECEIPT_DIGEST:
+            sys.exit(
+                "MISMATCH %s bundle %s: approval receipt digest %r != expected %r"
+                % (
+                    experiment,
+                    decision_id,
+                    record.get("approval_receipt_digest"),
+                    APPROVAL_RECEIPT_DIGEST,
+                )
+            )
+
+    with tarfile.open(v2_tar_path) as tf:
+        tar_members = len(tf.getmembers())
+
+    print(
+        "  OK %s corpus-v2.tar: %d bundles, decision-ID set matches, all "
+        "byte-identical, approval receipt matches" % (experiment, len(v2_ids))
+    )
+    return {
+        "tar_members": tar_members,
+        "receipts": len(v2_ids),
+        "approval_receipt_id": APPROVAL_RECEIPT_ID,
+        "approval_receipt_digest": APPROVAL_RECEIPT_DIGEST,
+    }
+
+
 def check(label, actual, expected):
     if actual != expected:
         sys.exit("MISMATCH %s: expected %r, got %r" % (label, expected, actual))
@@ -285,6 +421,27 @@ def main():
 
     if manifest["corpora"]["E1"]["unique_ocids"] != 283:
         sys.exit("MISMATCH: E1 must deduplicate to 283 unique OCIDs")
+
+    manifest["corpora_v2"] = {}
+    for experiment, v1_rel_path in CORPORA.items():
+        v2_rel_path = CORPORA_V2[experiment]
+        v2_tar_path = REPO / v2_rel_path
+        if not v2_tar_path.exists():
+            print("  SKIP %s corpus-v2.tar: not found at %s" % (experiment, v2_rel_path))
+            continue
+        print("Verifying %s (%s) against %s" % (experiment, v2_rel_path, v1_rel_path))
+        result = verify_corpus_v2(experiment, REPO / v1_rel_path, v2_tar_path)
+        manifest["corpora_v2"][experiment] = {
+            "path": v2_rel_path,
+            "sha256": sha256_file(v2_tar_path),
+            "tar_members": result["tar_members"],
+            "receipts": result["receipts"],
+            "supersedes": v1_rel_path,
+            "approval_receipt_id": result["approval_receipt_id"],
+            "approval_receipt_digest": result["approval_receipt_digest"],
+        }
+    if not manifest["corpora_v2"]:
+        del manifest["corpora_v2"]
 
     all_receipts.sort(key=lambda r: (r["experiment"], r["condition"], r["decision_id"]))
     all_violations.sort(

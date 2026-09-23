@@ -306,9 +306,102 @@ anchored, can it be reproduced — `signature`, `integrity`, `transparency` and
 **What we are not doing, and why.** Re-exporting the wrappers would change the
 bytes of every `corpus.tar`, and therefore every SHA-256 in
 [`DATA_MANIFEST.json`](DATA_MANIFEST.json) — which currently match, and which
-published work cites. **We are deliberately not doing that while this corpus is
-in active use.** The archives you have will stay byte-identical and their
-digests will keep verifying. Any repair will be published as an additional
-artefact alongside these, not as a replacement for them.
+published work cites. **We are not doing that.** The original `corpus.tar`
+archives stay byte-identical and their digests keep verifying under
+`corpora` in `DATA_MANIFEST.json`. The repair below shipped as an additional
+artefact alongside them, not as a replacement.
 
 *Filed 2026-09-01. Tracked as CCR-002 in the MeshQu remediation register.*
+
+---
+
+### 11a. Repaired copies: `corpus-v2.tar`
+
+Each of the three results directories now also carries `corpus-v2.tar`,
+alongside the untouched original `corpus.tar`:
+
+```
+procurement-decisions/results/corpus-v2.tar              (283 bundles)
+procurement-context-gradient/results/corpus-v2.tar       (1,429 bundles)
+procurement-context-disambiguation/results/corpus-v2.tar (1,332 bundles)
+```
+
+**What it is.** The same 3,044 signed receipts as `corpus.tar` (per
+experiment: its own count), re-exported on 2026-09-23 from the public bundle
+endpoint after the exporter fix in TradeQu/tradequ#1156. `receipt.json`,
+`policy_snapshot.json`, `transparency_proof.json` and `trusted_keys.json` are
+byte-identical to the corresponding bundle in `corpus.tar` — this is asserted,
+not just claimed: `data/build_export.py` reads every bundle in both tars and
+`sys.exit`s naming the bundle if any of the four differ, if the decision-ID
+sets differ, or if the new file is missing or holds the wrong receipt. See
+`corpora_v2` in [`DATA_MANIFEST.json`](DATA_MANIFEST.json) for the resulting
+digests. The one addition is `policy_approval_receipts.json`, the signed
+approval record for the policy version every receipt evaluated against, which
+the original exporter could not include (§11 above explains why).
+`bundle_manifest.json` differs from `corpus.tar`'s only in `exported_at`, the
+new file's entry, and the resulting `manifest_digest`.
+
+Built and reproducible via
+[`scripts/build_corpus_v2_tar.py`](../scripts/build_corpus_v2_tar.py).
+
+**How to verify — only as a reader can actually do it today.** On
+<https://verify.meshqu.com>, a `corpus-v2.tar` bundle headlines **"Bundle Not
+Fully Checked"**: no cryptographic check fails, and approval lineage reads
+"Not checked (nothing anchors which tenant these approvals belong to)". A
+bundle cannot vouch for its own tenant, and the web verifier has no way to be
+told one — that is a narrower, more accurate headline than the original
+archive's, which fails outright (§11 above: **"Bundle Failed Verification"**,
+exit 5, `approval_lineage` invalid).
+
+**If you verify an original `corpus.tar` bundle on verify.meshqu.com, read
+its approval-lineage text with care.** Checked in a browser on 2026-09-23, it
+says: *"An approval receipt's recomputed digest does not match the value bound
+into the snapshot. The bundled approval receipt was tampered or substituted."*
+That is wrong for these bundles. **No approval receipt is bundled in them at
+all**: the file is absent, for the reason §11 gives. Nothing was tampered with
+or substituted, and the signature, integrity and transparency checks on the
+same page pass. The verifier's wording for this case is being corrected
+separately. The v2 page also says *"The reference CLI accepts --expect-tenant
+to supply it"*; as noted below, no such CLI is publicly available yet.
+
+The expected tenant for every receipt in all three corpora is:
+
+```
+243f19a5-4d4f-4070-9ec1-8170e8260e26
+```
+
+Measured 2026-09-23 against the shipped verifier library with default trust,
+legacy approval trust and Rekor roots:
+
+| | original `corpus.tar` | `corpus-v2.tar`, no tenant | `corpus-v2.tar`, expected tenant `243f19a5-4d4f-4070-9ec1-8170e8260e26` |
+|---|---|---|---|
+| all 3,044 | invalid, exit 5 | indeterminate, exit 7 | warn, exit 0 (approval lineage valid; only `key_lifecycle` not checked) |
+
+A verifier given the expected tenant reports approval lineage **valid**. **A
+publicly available verifier that accepts an expected tenant is not yet
+available.** Do not run `@meshqu/verifier` or any `meshqu-verify` /
+`meshqu-verifier` CLI against these bundles expecting this check — the
+published `@meshqu/verifier` npm package is a `0.0.0` placeholder with no
+binary, and no public CLI can perform this check today. This applies equally
+to the original archives: their READMEs' "Option B" CLI instruction
+(`meshqu-verifier verify "$f"`) cannot be followed. The command name is wrong
+and no public CLI implementing it exists. The independent Rekor lookup route
+(Option C in each archive's README) is unaffected by any of this and works
+identically for both archives.
+
+**The approval record, stated honestly.** `policy_approval_receipts.json`'s
+contents are inside the signed bytes and cannot be edited:
+
+- `ratifier_id` and `ratifier_role` are both `staging-console-experiment-procurement` — a staging console credential, not a named individual.
+- `approval_authority` is `unspecified`.
+- `workflow_state` is `ratified`.
+- Ratified 2026-05-17, **before** this corpus froze on 2026-05-29.
+- No individual approver is named anywhere in the record.
+
+**What we are still not doing.** The original `corpus.tar` archives remain
+untouched and byte-identical; every digest under `corpora` in
+`DATA_MANIFEST.json` is unchanged by this repair. The repair ships only as the
+additional `corpus-v2.tar` artefact and the additive `corpora_v2` manifest
+section, not as a replacement for anything published before it.
+
+*Filed 2026-09-23.*

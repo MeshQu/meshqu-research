@@ -87,6 +87,35 @@
       "sha256": "898536b7ef05636cb2b40dfad3a9881f06dc6e5291188232e2f55a7e5dced1ae"
     }
   },
+  "corpora_v2": {
+    "E1": {
+      "path": "procurement-decisions/results/corpus-v2.tar",
+      "sha256": "72bc3c9c4295d78edb2f4a456db35de31ce834f2fec7c1461ec16cfc51f8606b",
+      "tar_members": 284,
+      "receipts": 283,
+      "supersedes": "procurement-decisions/results/corpus.tar",
+      "approval_receipt_id": "4bb13cfb-cefa-43d5-bddc-64c7884a0776",
+      "approval_receipt_digest": "e7081f5e7aaf54b5202503ce36a8f3bad0b0c5424dbeda02fe9102a490a0e58e"
+    },
+    "E2": {
+      "path": "procurement-context-gradient/results/corpus-v2.tar",
+      "sha256": "926ee4cec578a2456564f165aba3e24d09235ba2c2375b3f1eb3db9183449ea8",
+      "tar_members": 1430,
+      "receipts": 1429,
+      "supersedes": "procurement-context-gradient/results/corpus.tar",
+      "approval_receipt_id": "4bb13cfb-cefa-43d5-bddc-64c7884a0776",
+      "approval_receipt_digest": "e7081f5e7aaf54b5202503ce36a8f3bad0b0c5424dbeda02fe9102a490a0e58e"
+    },
+    "E3": {
+      "path": "procurement-context-disambiguation/results/corpus-v2.tar",
+      "sha256": "1162d76a2688b8797b63c8c87c453b437564914f3b7a73c0a21e9158542fabda",
+      "tar_members": 1333,
+      "receipts": 1332,
+      "supersedes": "procurement-context-disambiguation/results/corpus.tar",
+      "approval_receipt_id": "4bb13cfb-cefa-43d5-bddc-64c7884a0776",
+      "approval_receipt_digest": "e7081f5e7aaf54b5202503ce36a8f3bad0b0c5424dbeda02fe9102a490a0e58e"
+    }
+  },
   "reasoning_supplement": {
     "generated_by": "data/build_reasoning_supplement.py",
     "hash_rule": "sha256 of the UTF-8 bytes of the reasoning text equals the receipt-bound agent_reasoning_sha256",
