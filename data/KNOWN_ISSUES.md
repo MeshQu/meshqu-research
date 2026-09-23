@@ -353,16 +353,22 @@ told one — that is a narrower, more accurate headline than the original
 archive's, which fails outright (§11 above: **"Bundle Failed Verification"**,
 exit 5, `approval_lineage` invalid).
 
-**If you verify an original `corpus.tar` bundle on verify.meshqu.com, read
-its approval-lineage text with care.** Checked in a browser on 2026-09-23, it
-says: *"An approval receipt's recomputed digest does not match the value bound
-into the snapshot. The bundled approval receipt was tampered or substituted."*
-That is wrong for these bundles. **No approval receipt is bundled in them at
-all**: the file is absent, for the reason §11 gives. Nothing was tampered with
-or substituted, and the signature, integrity and transparency checks on the
-same page pass. The verifier's wording for this case is being corrected
-separately. The v2 page also says *"The reference CLI accepts --expect-tenant
-to supply it"*; as noted below, no such CLI is publicly available yet.
+**If you verified an original `corpus.tar` bundle on verify.meshqu.com before
+2026-09-23 evening**, its approval-lineage text said *"The bundled approval
+receipt was tampered or substituted."* That was wrong for these bundles.
+**No approval receipt is bundled in them at all**: the file is absent, for
+the reason §11 gives. Nothing was tampered with or substituted. The verifier
+reported a missing file under the same code it uses for a genuine digest
+mismatch.
+
+Corrected the same day (TradeQu/tradequ#1177, checked in a browser on the
+live site). The page now reports `approval_lineage.receipt_absent`: *"…the
+bundle does not carry one… No digest was compared, and this is not a claim of
+tampering: the evidence for this version simply was not included."* The
+headline for the originals is still **"Bundle Failed Verification"**, because
+the bundle genuinely lacks a receipt that its snapshot says exists. Only the
+explanation changed. The earlier line pointing v2 readers at a "reference CLI"
+for `--expect-tenant` was removed at the same time.
 
 The expected tenant for every receipt in all three corpora is:
 
