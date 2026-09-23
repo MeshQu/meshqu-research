@@ -353,6 +353,17 @@ told one — that is a narrower, more accurate headline than the original
 archive's, which fails outright (§11 above: **"Bundle Failed Verification"**,
 exit 5, `approval_lineage` invalid).
 
+**If you verify an original `corpus.tar` bundle on verify.meshqu.com, read
+its approval-lineage text with care.** Checked in a browser on 2026-09-23, it
+says: *"An approval receipt's recomputed digest does not match the value bound
+into the snapshot. The bundled approval receipt was tampered or substituted."*
+That is wrong for these bundles. **No approval receipt is bundled in them at
+all**: the file is absent, for the reason §11 gives. Nothing was tampered with
+or substituted, and the signature, integrity and transparency checks on the
+same page pass. The verifier's wording for this case is being corrected
+separately. The v2 page also says *"The reference CLI accepts --expect-tenant
+to supply it"*; as noted below, no such CLI is publicly available yet.
+
 The expected tenant for every receipt in all three corpora is:
 
 ```
